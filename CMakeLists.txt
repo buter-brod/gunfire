@@ -5,7 +5,13 @@ project(gunfire)
 set(SFML_STATIC_LIBRARIES TRUE)
 set(SFML_DIR 3rdparty/SFML/lib/cmake/SFML)
 
-add_executable(gunfire main.cpp)
+file(GLOB SRC 
+	${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/*.h
+	)
+
+add_executable(gunfire src/main.cpp)
+target_sources(gunfire PRIVATE ${SRC})
 
 INCLUDE_DIRECTORIES(3rdparty/thor/include)
 LINK_DIRECTORIES(3rdparty/thor/lib)

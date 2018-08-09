@@ -1,3 +1,4 @@
+#include "Game.h"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
@@ -10,8 +11,13 @@ inline std::string getResourceDir() {
 	return "../Resources/";
 }
 
-int main() {
-	
+Game::Game(){
+}
+
+Game::~Game(){
+}
+
+void Game::Run() {
 	sf::RenderWindow window(sf::VideoMode(screenW, screenH), "gunfire");
 
 	sf::Texture bgTex;
@@ -22,7 +28,7 @@ int main() {
 	sf::Sprite bgSprite;
 	bgSprite.setTexture(bgTex);
 
-	while (window.isOpen())	{
+	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
@@ -33,9 +39,4 @@ int main() {
 		window.draw(bgSprite);
 		window.display();
 	}
-
-	return 0;
 }
-
-
-
