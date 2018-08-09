@@ -11,7 +11,7 @@ public:
 	void Run();
 
 protected:
-	void restart();
+	void startGame();
 
 private:
 

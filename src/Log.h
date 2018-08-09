@@ -9,7 +9,8 @@ public:
 
 	enum class Channel {
 		ERROR,
-		MISC
+		MISC,
+		VERBOSE
 	};
 
 	static Log* inst();

@@ -27,8 +27,9 @@ Log::Log() {
 std::set<Log::Channel> Log::getEnabledChannels() {
 
 	static std::set<Log::Channel> channels = { 
-		Log::Channel::ERROR, 
-		Log::Channel::MISC 
+		Channel::ERROR, 
+		Channel::MISC
+		//,Channel::VERBOSE
 	};
 
 	return channels;

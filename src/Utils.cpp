@@ -23,54 +23,62 @@ namespace Utils {
 		return std::abs(float(first) - float(second)) / CLOCKS_PER_SEC;
 	}
 
-	std::string toString(size_t i) {
+	std::string toString(const size_t i) {
 		std::stringstream ss;
 		ss << i;
 		return ss.str();
 	}
 
-	Point Point::operator/(float val) {
+	std::string Point::str() const {
+		return std::string("(") + std::to_string(_x) + ", " + std::to_string(_y) + ")";
+	}
+
+	Point Point::operator/(float val) const {
 		return Point(_x / val, _y / val);
 	}
 
-	Point Point::operator*(float val) {
+	Point Point::operator*(float val) const {
 		return Point(_x * val, _y * val);
 	}
 
-	Point Point::operator+(Point p) {
-		return Point(_x + p.X(), _y + p.Y());
+	Point Point::operator+(const Point& p) const {
+		return Point(_x + p.getX(), _y + p.getY());
 	}
 
-	Point Point::operator*(Point p) {
-		return Point(_x * p.X(), _y * p.Y());
+	Point Point::operator*(const Point& p) const {
+		return Point(_x * p.getX(), _y * p.getY());
 	}
 
-	Point Point::operator-(Point p) {
-		return Point(_x - p.X(), _y - p.Y());
+	Point Point::operator/(const Point& p) const {
+		return Point(_x / p.getX(), _y / p.getY());
 	}
 
-	void Point::operator+=(Point p) {
-		_x += p.X();
-		_y += p.Y();
+	Point Point::operator-(const Point& p) const {
+		return Point(_x - p.getX(), _y - p.getY());
 	}
 
-	void Point::operator-=(Point p) {
-		_x -= p.X();
-		_y -= p.Y();
+	void Point::operator+=(const Point& p) {
+		_x += p.getX();
+		_y += p.getY();
 	}
 
-	Point Point::operator-() {
-		return Point(-X(), -Y());
+	void Point::operator-=(const Point& p) {
+		_x -= p.getX();
+		_y -= p.getY();
 	}
 
-	void Point::operator*=(Point p) {
-		_x *= p.X();
-		_y *= p.Y();
+	Point Point::operator-() const {
+		return Point(-getX(), -getY());
 	}
 
-	void Point::operator/=(Point p) {
-		_x /= p.X();
-		_y /= p.Y();
+	void Point::operator*=(const Point& p) {
+		_x *= p.getX();
+		_y *= p.getY();
+	}
+
+	void Point::operator/=(const Point& p) {
+		_x /= p.getX();
+		_y /= p.getY();
 	}
 
 	void Point::operator*=(float val) {
@@ -78,11 +86,11 @@ namespace Utils {
 		_y *= val;
 	}
 
-	Point Point::normalized() {
+	Point Point::normalized() const {
 		return (*this * (1.0f / len()));
 	}
 
-	float Point::len() {
+	float Point::len() const {
 		return sqrt(_x *_x + _y * _y);
 	}
 }

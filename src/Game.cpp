@@ -1,6 +1,8 @@
 #include "Game.h"
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "Config.h"
+#include "Log.h"
 
 const std::string bgSprName = "clouds.png";
 
@@ -9,6 +11,10 @@ Game::Game(){
 }
 
 Game::~Game(){
+}
+
+Size Game::getSize() const {
+	return Config::gameSize;
 }
 
 void Game::Draw(sf::RenderWindow* wnd) {
@@ -23,4 +29,13 @@ void Game::Init() {
 	if (bgTexPtr) {
 		_bgSprite.setTexture(*bgTexPtr);
 	}
+}
+
+void Game::OnCursorMoved(const Point& pt) {
+	Log::inst()->PutMessage(Log::Channel::VERBOSE, "OnCursorMoved " + pt.str());
+}
+
+void Game::OnCursorClicked(const Point& pt) {
+
+	Log::inst()->PutMessage("OnCursorClicked " + pt.str());
 }

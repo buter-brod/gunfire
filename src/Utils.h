@@ -22,35 +22,42 @@ namespace Utils {
 		Point() : _x(0.f), _y(0.f) {}
 		Point(float x, float y) : _x(x), _y(y) {}
 
-		Point operator+ (Point p);
-		Point operator- (Point p);
-		Point operator* (Point p);
+		Point operator+ (const Point& p) const;
+		Point operator- (const Point& p) const;
+		Point operator* (const Point& p) const;
+		Point operator/ (const Point& p) const;
 
-		Point operator-();
-		void  operator-=(Point p);
-		void  operator+=(Point p);
+		Point operator-() const;
+		void  operator-=(const Point& p);
+		void  operator+=(const Point& p);
 
-		void  operator*=(Point p);
-		void  operator/=(Point p);
+		void  operator*=(const Point& p);
+		void  operator/=(const Point& p);
 
 		void  operator*=(float val);
-		Point operator* (float val);
-		Point operator/ (float val);
+		Point operator* (float val) const;
+		Point operator/ (float val) const;
 
-		Point normalized();
-		float len();
+		Point normalized() const;
+		float len() const;
 
 		float& X() { return _x; }
 		float& Y() { return _y; }
 
-		int i_X() { return int(_x); }
-		int i_Y() { return int(_y); }
+		float getX() const { return _x; }
+		float getY() const { return _y; }
+
+		int i_X() const { return int(_x); }
+		int i_Y() const { return int(_y); }
+
+		std::string str() const;
 
 	protected:
 		float _x, _y;
 	};
 
-	typedef Point Size;
-
-	std::string toString(size_t i);
+	std::string toString(const size_t i);
 }
+
+typedef Utils::Point Point;
+typedef Utils::Point Size;
