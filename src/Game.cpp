@@ -2,41 +2,25 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
-const unsigned int screenW = 1024;
-const unsigned int screenH = 768;
-
 const std::string bgSprName = "clouds.png";
 
-inline std::string getResourceDir() {
-	return "../Resources/";
-}
-
 Game::Game(){
+	Init();
 }
 
 Game::~Game(){
 }
 
-void Game::Run() {
-	sf::RenderWindow window(sf::VideoMode(screenW, screenH), "gunfire");
+void Game::Draw(sf::RenderWindow* wnd) {
 
-	sf::Texture bgTex;
-	if (!bgTex.loadFromFile(getResourceDir() + bgSprName)) {
-		std::cout << "ERROR: unable to load clouds.png \n";
-	}
+	wnd->draw(_bgSprite);
+}
 
-	sf::Sprite bgSprite;
-	bgSprite.setTexture(bgTex);
+void Game::Init() {
 
-	while (window.isOpen()) {
-		sf::Event event;
-		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
+	const TexturePtr bgTexPtr = _textureManager.addTexture(bgSprName);
 
-		window.clear(sf::Color::Black);
-		window.draw(bgSprite);
-		window.display();
+	if (bgTexPtr) {
+		_bgSprite.setTexture(*bgTexPtr);
 	}
 }

@@ -1,9 +1,10 @@
+#include "Application.h"
 #include "Game.h"
 
 int main() {
 	
-	Game game;
-	game.Run();
+	Application app;
+	app.Run();
 
 	return 0;
 }
