@@ -11,6 +11,7 @@ public:
 	void Run();
 
 protected:
+	void freeResources();
 	void startGame();
 
 private:

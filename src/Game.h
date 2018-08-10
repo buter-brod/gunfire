@@ -1,6 +1,5 @@
 #pragma once
 
-#include "TextureManager.h"
 #include <SFML/Graphics.hpp>
 #include "Utils.h"
 
@@ -17,7 +16,6 @@ public:
 	Size getSize() const;
 
 protected:
-	TextureManager _textureManager;
 	sf::Sprite _bgSprite;
 };
 

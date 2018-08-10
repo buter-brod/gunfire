@@ -4,15 +4,34 @@
 #include "Config.h"
 #include "Game.h"
 #include "Log.h"
+#include "TextureManager.h"
 
 Application::Application() {
+	Log::inst()->PutMessage("Application::Application");
 }
 
 Application::~Application() {
+	
+	Log::inst()->PutMessage("Application::~Application");
+	freeResources();
+	TextureManager::resetInst();
+}
+
+void Application::freeResources() {
+
+	Log::inst()->PutMessage("Application::freeResources");
+	_gamePtr = nullptr;
 }
 
 void Application::startGame() {
-	_gamePtr = nullptr;
+
+	Log::inst()->PutMessage("Application::startGame");
+
+	if (_gamePtr) {
+		Log::inst()->PutErr("Application::startGame error, game is running already");
+		return;
+	}
+
 	_gamePtr = std::make_shared<Game>();
 }
 
@@ -24,17 +43,28 @@ bool isMouseOn(const sf::Sprite& spr, const sf::Vector2i pos) {
 
 void Application::Run() {
 		
+	const bool atlasLoadedOk = TextureManager::inst()->loadAtlas("atlas.png", "atlas.mtpf");
+
+	if (!atlasLoadedOk) {
+		Log::inst()->PutErr("Application::Run error, unable to load atlas");
+		return;
+	}
+
 	startGame();
-	sf::Texture restartBtnTex;	
+
+	const auto& texRect = TextureManager::inst()->getTexture(Config::restartImgFile);
+	if (texRect.texturePtr.lock() == nullptr) {
+		Log::inst()->PutErr("Application::Run error, not found " + Config::restartImgFile);
+		return;
+	}
+
+	const sf::Texture& restartBtnTex = *texRect.texturePtr.lock()->getTex();
 	sf::Sprite restartBtnImg;
 
-	if (!restartBtnTex.loadFromFile(Config::restartImgFile)) {
-		Log::inst()->PutErr("Application::Run error, cannot load " + Config::restartImgFile);
-		return;
-	}		
-
 	restartBtnImg.setTexture(restartBtnTex);
-	restartBtnImg.setPosition(Config::windowSize.getX() - restartBtnTex.getSize().x, 0.f);
+	restartBtnImg.setTextureRect(texRect.rect);
+
+	restartBtnImg.setPosition(Config::windowSize.getX() - restartBtnImg.getTextureRect().width, 0.f);
 
 	sf::RenderWindow window(sf::VideoMode(Config::windowSize.i_X(), Config::windowSize.i_Y()), Config::appTitle);
 
@@ -71,6 +101,7 @@ void Application::Run() {
 
 					const bool mouseOnRestartBtn = isMouseOn(restartBtnImg, mousePos);
 					if (mouseOnRestartBtn) {
+						freeResources();
 						startGame();
 					}
 				}

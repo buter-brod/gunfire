@@ -10,7 +10,7 @@ namespace Config {
 
 	static const Size gameSize(1024, 768);
 	static const Size windowSize = gameSize;
-	static const std::string restartImgFile = getResourceDir() + "reset.png";
+	static const std::string restartImgFile = "reset.png";
 
 	static const std::string appTitle = "gunfire";
 
