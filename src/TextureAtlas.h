@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
-#include "Graphics.h"
+#include "Rect.h"
 
 class TextureAtlas {
 public:

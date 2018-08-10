@@ -1,6 +1,6 @@
 #pragma once
 #include "Utils.h"
-#include "Graphics.h"
+#include <SFML/Graphics/Color.hpp>
 
 namespace Config {
 
@@ -13,7 +13,6 @@ namespace Config {
 	static const std::string restartImgFile = "reset.png";
 
 	static const std::string appTitle = "gunfire";
-
 	static const sf::Color btnNotHovered(230, 230, 230);
 }
 

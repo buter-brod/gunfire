@@ -2,33 +2,43 @@
 #include "Log.h"
 #include "TextureManager.h"
 
-Animation::Animation(const std::string& name, unsigned int size, unsigned int fps) {
-	load(name, size, fps);
+Animation::Animation(const std::string& name, unsigned int size, unsigned int fps) : _name(name), _size(size), _fps(fps) {
 }
 
-bool Animation::load(const std::string& name, unsigned int size, unsigned int FPS) {
+TextureRect Animation::GetTexRectFor(float dt) {
 
-	if (size < 1) {
-		Log::Inst()->PutErr("Animation::load " + name + ", invalid size");
-		return false;
+	const unsigned int frameInd = unsigned(dt * _fps) % _size;
+	const TextureRect& result = getTexRectFor(frameInd);
+	return result;
+}
+
+TextureRect Animation::getTexRectFor(const unsigned int index) {
+
+	TextureRect textureRect;
+
+	if (index >= _size) {
+		Log::Inst()->PutErr("Animation::GetSpriteFor error, index " + std::to_string(index) + " out of bounds ( " + _name + ")");
+		return textureRect;
 	}
 
-	for (unsigned int ind = 0; ind < size; ind++) {
-		
-		const std::string frameName = name + std::to_string(ind) + ".png";
-		const auto& texRect = TextureManager::Inst()->GetTexture(frameName);
-		const auto& texPtr = texRect.texturePtr.lock();
+	std::string frameName = _name;
 
-		if (texPtr == nullptr) {
-			Log::Inst()->PutErr("Animation::load error, texture not found for frame " + frameName);
-			return false;
-		}
-
-		const Texture& tex = *texPtr;
-		const auto& rect = texRect.rect;
-
-		_frames.emplace_back(tex, rect);
+	if (index == 0) {
+		textureRect = TextureManager::Inst()->GetTexture(frameName, true);
 	}
 
-	return true;
+	if (textureRect.isEmpty()) {
+		const auto dotPos = frameName.find(".");
+
+		if (dotPos != std::string::npos) {
+			frameName.insert(dotPos, std::to_string(index));
+			textureRect = TextureManager::Inst()->GetTexture(frameName);
+		}		
+	}
+
+	if (textureRect.isEmpty()) {
+		Log::Inst()->PutErr("Animation::load error, texture not found for frame " + frameName);
+	}
+
+	return textureRect;
 }

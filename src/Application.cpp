@@ -1,10 +1,10 @@
 #include "Application.h"
-#include <SFML/Graphics.hpp>
-
 #include "Config.h"
 #include "Game.h"
 #include "Log.h"
 #include "TextureManager.h"
+#include "Sprite.h"
+#include <SFML/Window/Event.hpp>
 
 Application::Application() {
 	Log::Inst()->PutMessage("Application::Application");
@@ -110,6 +110,8 @@ void Application::Run() {
 		}
 
 		window.clear(sf::Color::Black);
+
+		_gamePtr->Update();
 		_gamePtr->Draw(&window);
 
 		window.draw(restartBtnImg);

@@ -81,7 +81,7 @@ const TexturePtr TextureManager::AddTexture(const std::string& tName) {
 	return texPtr;
 }
 
-const TextureRect TextureManager::GetTexture(const std::string& tName) {
+TextureRect TextureManager::GetTexture(const std::string& tName, const bool onlyTry) {
 
 	const auto& tIt = _textures.find(tName);
 
@@ -116,7 +116,10 @@ const TextureRect TextureManager::GetTexture(const std::string& tName) {
 		}
 	}
 
-	Log::Inst()->PutErr("TextureManager::getTexture error, not found texture " + tName);
+	if (!onlyTry) {
+		Log::Inst()->PutErr("TextureManager::getTexture error, not found texture " + tName);
+	}
+
 	return emptyTexRect;
 }
 

@@ -3,6 +3,8 @@
 #include <string>
 #include <time.h>
 
+typedef unsigned long IDType;
+
 namespace Utils {
 	float rnd01();
 	float rnd0xf(float x);
