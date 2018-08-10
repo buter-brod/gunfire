@@ -7,28 +7,28 @@
 #include "TextureManager.h"
 
 Application::Application() {
-	Log::inst()->PutMessage("Application::Application");
+	Log::Inst()->PutMessage("Application::Application");
 }
 
 Application::~Application() {
 	
-	Log::inst()->PutMessage("Application::~Application");
+	Log::Inst()->PutMessage("Application::~Application");
 	freeResources();
-	TextureManager::resetInst();
+	TextureManager::ResetInst();
 }
 
 void Application::freeResources() {
 
-	Log::inst()->PutMessage("Application::freeResources");
+	Log::Inst()->PutMessage("Application::freeResources");
 	_gamePtr = nullptr;
 }
 
 void Application::startGame() {
 
-	Log::inst()->PutMessage("Application::startGame");
+	Log::Inst()->PutMessage("Application::startGame");
 
 	if (_gamePtr) {
-		Log::inst()->PutErr("Application::startGame error, game is running already");
+		Log::Inst()->PutErr("Application::startGame error, game is running already");
 		return;
 	}
 
@@ -43,18 +43,18 @@ bool isMouseOn(const sf::Sprite& spr, const sf::Vector2i pos) {
 
 void Application::Run() {
 		
-	const bool atlasLoadedOk = TextureManager::inst()->loadAtlas("atlas.png", "atlas.mtpf");
+	const bool atlasLoadedOk = TextureManager::Inst()->LoadAtlas("atlas.png", "atlas.mtpf");
 
 	if (!atlasLoadedOk) {
-		Log::inst()->PutErr("Application::Run error, unable to load atlas");
+		Log::Inst()->PutErr("Application::Run error, unable to load atlas");
 		return;
 	}
 
 	startGame();
 
-	const auto& texRect = TextureManager::inst()->getTexture(Config::restartImgFile);
+	const auto& texRect = TextureManager::Inst()->GetTexture(Config::restartImgFile);
 	if (texRect.texturePtr.lock() == nullptr) {
-		Log::inst()->PutErr("Application::Run error, not found " + Config::restartImgFile);
+		Log::Inst()->PutErr("Application::Run error, not found " + Config::restartImgFile);
 		return;
 	}
 
@@ -70,7 +70,7 @@ void Application::Run() {
 
 	auto toGamePoint = [&window, this](const sf::Vector2i pos) -> Point {
 		const Point screenPoint = Point(float(pos.x), float(pos.y));
-		const Point gamePoint = screenPoint / Config::windowSize * _gamePtr->getSize();
+		const Point gamePoint = screenPoint / Config::windowSize * _gamePtr->GetSize();
 		return gamePoint;
 	};
 

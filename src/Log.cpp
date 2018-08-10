@@ -4,7 +4,7 @@
 static const bool alwaysToCout = true;
 static const std::string& logFile = "log.txt";
 
-Log* Log::inst() {
+Log* Log::Inst() {
 	static Log* instance = new Log();
 	return instance;
 }

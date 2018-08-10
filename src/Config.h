@@ -1,6 +1,6 @@
 #pragma once
 #include "Utils.h"
-#include <SFML/Graphics.hpp>
+#include "Graphics.h"
 
 namespace Config {
 

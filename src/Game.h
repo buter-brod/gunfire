@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include "Utils.h"
+#include "Graphics.h"
 
 class Game {
 public:
@@ -12,11 +12,10 @@ public:
 	void Draw(sf::RenderWindow* wnd);
 	void OnCursorMoved(const Point& pt);
 	void OnCursorClicked(const Point& pt);
-
-	Size getSize() const;
+	Size GetSize() const;
 
 protected:
-	sf::Sprite _bgSprite;
+	std::shared_ptr<Sprite> _bgSpritePtr;
 };
 
 

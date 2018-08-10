@@ -13,7 +13,7 @@ public:
 		VERBOSE
 	};
 
-	static Log* inst();
+	static Log* Inst();
 
 	void PutErr(const std::string& msg);
 	void PutMessage(const std::string& msg);
@@ -23,7 +23,6 @@ protected:
 
 	static void putMsg(const std::string& msg);
 
-	std::set<std::ostream*>& getStreams();
 	std::set<Channel> getEnabledChannels();
 
 private:

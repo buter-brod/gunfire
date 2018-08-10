@@ -16,7 +16,7 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 	std::ifstream input_file(Config::getResourceDir() + descFileName, std::ifstream::in | std::ifstream::binary);
 	if (!input_file) {
 
-		Log::inst()->PutErr("TextureAtlas::load ERROR: " + descFileName);
+		Log::Inst()->PutErr("TextureAtlas::load ERROR: " + descFileName);
 		return false;
 	}
 
@@ -37,28 +37,28 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 			input.resize(imgNameLen);
 			input_file.read(&input[0], imgNameLen);
 
-			sf::IntRect texture_rect;
+			Rect texture_rect;
 			input_file >> texture_rect.left >> texture_rect.top >> texture_rect.width >> texture_rect.height;
 			_rects[input] = texture_rect;
 		}
 	}
 	input_file.close();
 
-	Log::inst()->PutMessage("TextureAtlas::load success: " + descFileName + " loaded " + std::to_string(_rects.size()) + " images");
+	Log::Inst()->PutMessage("TextureAtlas::load success: " + descFileName + " loaded " + std::to_string(_rects.size()) + " images");
 
 	return true;
 }
 
-const sf::IntRect& TextureAtlas::getRect(const std::string& name) const {
+const Rect& TextureAtlas::getRect(const std::string& name) const {
 
-	static const sf::IntRect nullRect;
+	static const Rect nullRect;
 	const auto& rectIt = _rects.find(name);
 
 	if (rectIt == _rects.end()) {
 		return nullRect;
 	}
 
-	const sf::IntRect& rect = rectIt->second;
+	const Rect& rect = rectIt->second;
 
 	return rect;
 }
