@@ -3,11 +3,24 @@
 #include "TextureManager.h"
 
 Animation::Animation(const std::string& name, unsigned int size, unsigned int fps) : _name(name), _size(size), _fps(fps) {
+
+	if (size == 0) {
+		Log::Inst()->PutErr("Animation::Animation error, size cannot be 0... " + name);
+	}
+
+	if (size == 1 && fps > 0) {
+		Log::Inst()->PutErr("Animation::Animation warning: if size == 1, fps should be 0... " + name);
+		_fps = 0;
+	}
 }
 
 TextureRect Animation::GetTexRectFor(float dt) {
 
-	const unsigned int frameInd = unsigned(dt * _fps) % _size;
+	unsigned int frameInd = 0;
+
+	if (_size > 1) {
+		frameInd = unsigned(dt * _fps) % _size;
+	}
 	const TextureRect& result = getTexRectFor(frameInd);
 	return result;
 }

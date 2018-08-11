@@ -30,6 +30,10 @@ void Game::Update() {
 
 	const auto currClock = clock();
 
+	if (_clock == 0) {
+		_clock = currClock;
+	}
+
 	const float dt = Utils::dt(currClock, _clock);
 
 	for (const auto& obj : _objects) {
@@ -66,7 +70,11 @@ void Game::Init() {
 	}
 
 	GameObjectPtr bottleObj = std::make_shared<GameObject>(newID(), "bottle_fire.png");
-	bottleObj->SetPosition({ 300, 300 });
+	bottleObj->SetPosition({ 912, 700 });
+	bottleObj->SetDirection({ -0.1f, -0.1f });
+	bottleObj->SetSpeed(200.f);
+	bottleObj->SetAngleSpeed(180);
+	
 	_objects[bottleObj->getId()] = bottleObj;
 }
 

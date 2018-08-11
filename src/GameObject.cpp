@@ -4,6 +4,49 @@
 GameObject::GameObject(const IDType id, const std::string& name) :_id(id), _name(name) {
 }
 
+void GameObject::SetPosition(const Point& pt) {
+	_position = pt;
+}
+
+void GameObject::SetSize(const Size& sz) {
+	_size = sz;
+}
+
+void GameObject::SetScale(const float scale) {
+	_scale = scale;
+}
+
+void GameObject::SetDirection(const Point& d) {
+	_direction = d;
+}
+
+void GameObject::SetSpeed(const float s) {
+	_speed = s;
+}
+
+void GameObject::SetAngleSpeed(const float s) {
+	_angleSpeed = s;
+}
+
+AnimationPtr GameObject::addAnimation(const std::string& name, const unsigned int framesCount, const unsigned int fps) {
+
+	AnimationPtr animPtr;
+	const auto& animIt = _animations.find(name);
+
+	if (animIt != _animations.end()) {
+
+		Log::Inst()->PutMessage("GameObject::addAnimation " + name + " already added, no action needed");
+		animPtr = animIt->second;
+	}
+	else {
+		animPtr = std::make_shared<Animation>(name, framesCount, fps);
+		_animations[_name] = animPtr;
+	}
+	
+	return animPtr;
+}
+
+
 bool GameObject::playAnimation(const std::string& animName) {
 
 	const auto& animIt = _animations.find(animName);
@@ -17,14 +60,6 @@ bool GameObject::playAnimation(const std::string& animName) {
 	_animationState._startTime = clock();
 
 	return true;
-}
-
-void GameObject::SetPosition(const Point& pt) {
-	_position = pt;
-}
-
-void GameObject::SetSize(const Size& sz) {
-	_size = sz;
 }
 
 void GameObject::updateScale() {
@@ -41,8 +76,11 @@ void GameObject::updateScale() {
 	}
 
 	_spritePtr->getSpr()->setScale(
-		_size.getX() / tRect.width,
-		_size.getY() / tRect.height);
+		_size.getX() / tRect.width * _scale,
+		_size.getY() / tRect.height * _scale);
+
+	const Size halfSize(float(tRect.width) / 2.f, float(tRect.height) / 2.f);
+	_spritePtr->getSpr()->setOrigin(halfSize.getX(), halfSize.getY());
 }
 
 void GameObject::updateAnimations() {
@@ -50,8 +88,8 @@ void GameObject::updateAnimations() {
 	if (_animationState.isEmpty()) {
 
 		if (_animations.empty()) {
-			AnimationPtr defaultAnimationPtr = std::make_shared<Animation>(_name, 2);
-			_animations[_name] = defaultAnimationPtr;
+
+			addAnimation(_name, 1, 0);
 		}
 
 		playAnimation(_name);
@@ -97,5 +135,6 @@ void GameObject::update(float dt) {
 	updateAnimations();
 	updateScale();
 
+	_spritePtr->getSpr()->setRotation(_rotation);
 	_spritePtr->getSpr()->setPosition(_position.getX(), _position.getY());
 }
