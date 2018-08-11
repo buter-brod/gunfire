@@ -4,12 +4,21 @@
 GameObject::GameObject(const IDType id, const std::string& name) :_id(id), _name(name) {
 }
 
+GameObject::~GameObject() {
+
+	Log::Inst()->PutMessage("~GameObject " + _name + " id " + std::to_string(_id));
+}
+
 void GameObject::SetPosition(const Point& pt) {
 	_position = pt;
 }
 
 void GameObject::SetSize(const Size& sz) {
 	_size = sz;
+}
+
+void GameObject::SetMirrorX(const bool mirrorX) {
+	_mirrorX = mirrorX;
 }
 
 void GameObject::SetScale(const float scale) {
@@ -28,26 +37,26 @@ void GameObject::SetAngleSpeed(const float s) {
 	_angleSpeed = s;
 }
 
-AnimationPtr GameObject::addAnimation(const std::string& name, const unsigned int framesCount, const unsigned int fps) {
+AnimationPtr GameObject::AddAnimation(const std::string& name, const unsigned int framesCount, const unsigned int fps) {
 
 	AnimationPtr animPtr;
 	const auto& animIt = _animations.find(name);
 
 	if (animIt != _animations.end()) {
 
-		Log::Inst()->PutMessage("GameObject::addAnimation " + name + " already added, no action needed");
+		Log::Inst()->PutMessage("GameObject::AddAnimation " + name + " already added, no action needed");
 		animPtr = animIt->second;
 	}
 	else {
 		animPtr = std::make_shared<Animation>(name, framesCount, fps);
-		_animations[_name] = animPtr;
+		_animations[name] = animPtr;
 	}
 	
 	return animPtr;
 }
 
 
-bool GameObject::playAnimation(const std::string& animName) {
+bool GameObject::PlayAnimation(const std::string& animName) {
 
 	const auto& animIt = _animations.find(animName);
 
@@ -57,7 +66,7 @@ bool GameObject::playAnimation(const std::string& animName) {
 	}
 
 	_animationState._ptr = animIt->second;
-	_animationState._startTime = clock();
+	_animationState._startTime = Utils::getTime();
 
 	return true;
 }
@@ -76,7 +85,7 @@ void GameObject::updateScale() {
 	}
 
 	_spritePtr->getSpr()->setScale(
-		_size.getX() / tRect.width * _scale,
+		_size.getX() / tRect.width * _scale * (_mirrorX ? -1.f : 1.f),
 		_size.getY() / tRect.height * _scale);
 
 	const Size halfSize(float(tRect.width) / 2.f, float(tRect.height) / 2.f);
@@ -86,13 +95,10 @@ void GameObject::updateScale() {
 void GameObject::updateAnimations() {
 		
 	if (_animationState.isEmpty()) {
-
 		if (_animations.empty()) {
-
-			addAnimation(_name, 1, 0);
+			AddAnimation(_name, 1, 0);
 		}
-
-		playAnimation(_name);
+		PlayAnimation(_animations.begin()->first);
 	}
 
 	const auto& currAnim = _animationState._ptr.lock();
@@ -102,7 +108,7 @@ void GameObject::updateAnimations() {
 		return;
 	}
 
-	const clock_t time = clock();
+	const time_us time = Utils::getTime();
 	const float dtFromAnimBegin = Utils::dt(time, _animationState._startTime);
 	const auto& textureRect = currAnim->GetTexRectFor(dtFromAnimBegin);
 
@@ -122,19 +128,24 @@ void GameObject::updateAnimations() {
 	}
 }
 
-void GameObject::update(float dt) {
+void GameObject::Update(float dt) {
 
 	if (_direction.len() == 0) {
 		Log::Inst()->PutErr("GameObject::update error, invalid direction " + std::to_string(getId()));
 	}
 
-	_position += _direction.normalized() * _speed * dt;
-	_rotation += _angleSpeed * dt;
 	_speed += _acceleration * dt;
+	_position += _direction.normalized() * _speed * dt;
+
+	const float angleFullRound = 360;
+	_rotation += fmod(_angleSpeed * dt, angleFullRound);
 
 	updateAnimations();
 	updateScale();
 
-	_spritePtr->getSpr()->setRotation(_rotation);
-	_spritePtr->getSpr()->setPosition(_position.getX(), _position.getY());
+
+	if (_spritePtr) {
+		_spritePtr->getSpr()->setRotation(_rotation);
+		_spritePtr->getSpr()->setPosition(_position.getX(), _position.getY());
+	}	
 }

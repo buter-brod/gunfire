@@ -4,6 +4,7 @@
 #include "Log.h"
 #include "TextureManager.h"
 #include "Sprite.h"
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
 Application::Application() {
@@ -33,6 +34,7 @@ void Application::startGame() {
 	}
 
 	_gamePtr = std::make_shared<Game>();
+	_gamePtr->Update(0.f);
 }
 
 bool isMouseOn(const sf::Sprite& spr, const sf::Vector2i pos) {
@@ -74,6 +76,15 @@ void Application::Run() {
 		return gamePoint;
 	};
 
+	const float dt = 1.f / Config::simulationFPS;
+
+	time_us currentTime = Utils::getTime();
+	float timeAccumulator = 0.f;
+
+	const unsigned int fpsLogFramesCap = 50000;
+	unsigned int fpsLogFramesCount = 0;
+	time_us fpsLogCountTimeStart = currentTime;
+
 	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {
@@ -109,13 +120,35 @@ void Application::Run() {
 			}
 		}
 
-		window.clear(sf::Color::Black);
+		{// update game simulation
 
-		_gamePtr->Update();
+			const time_us newTime = Utils::getTime();
+			const float frameTime = Utils::dt(newTime, currentTime);
+			currentTime = newTime;
+			timeAccumulator += frameTime;
+
+			while (timeAccumulator >= dt) {
+				_gamePtr->Update(dt);
+				timeAccumulator -= dt;
+			}
+		}
+
 		_gamePtr->Draw(&window);
 
 		window.draw(restartBtnImg);
-
 		window.display();
+
+		//FPS counter
+		if (fpsLogFramesCount > fpsLogFramesCap) {
+			const float elapsed = Utils::dt(currentTime, fpsLogCountTimeStart);
+			fpsLogCountTimeStart = currentTime;
+			fpsLogFramesCount = 0;
+			const auto currFPS = fpsLogFramesCap / elapsed;
+			Log::Inst()->PutMessage("FPS: " + std::to_string(int(currFPS)));
+		}
+		else {
+			fpsLogFramesCount++;
+		}
+		
 	}
 }

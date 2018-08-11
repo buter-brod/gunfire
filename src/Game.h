@@ -1,12 +1,14 @@
 #pragma once
 #include "Utils.h"
 #include <map>
-#include <time.h>
-#include <SFML/Graphics/RenderWindow.hpp>
 #include "GameObject.h"
-#include <time.h>
+#include <deque>
 
 class Sprite;
+
+namespace sf {
+	class RenderWindow;
+}
 
 class Game {
 public:
@@ -15,7 +17,7 @@ public:
 
 	void Init();
 	void Draw(sf::RenderWindow* wnd);
-	void Update();
+	void Update(const float dt);
 
 	void OnCursorMoved(const Point& pt);
 	void OnCursorClicked(const Point& pt);
@@ -25,11 +27,30 @@ public:
 	IDType Game::newID();
 
 protected:
-	std::shared_ptr<Sprite> _bgSpritePtr;
-	IDType _nextID{ 1 };
-	clock_t _clock{ 0 };
 
-	std::map<int, GameObjectPtr> _objects;
+	/* --- gameplay specific BEGIN ---*/
+
+	void shoot(const Point& whereTo);
+	void spawn();
+
+	GameObjectPtr _bgObject;
+	GameObjectPtr _playerObj;
+
+	typedef std::deque<GameObjectPtr> ObjectsArr;
+
+	ObjectsArr _enemyObjects;
+	ObjectsArr _bulletObjects;
+	ObjectsArr _effectObjects;
+
+	/* --- gameplay specific END ---*/
+
+	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr);
+	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr);
+
+	bool isObjectObsolete(GameObjectPtr objPtr);
+	void checkObjectsObsolete(ObjectsArr& arr);
+
+	IDType _nextID{ 1 };
 };
 
 

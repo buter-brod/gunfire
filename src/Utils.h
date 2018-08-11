@@ -1,14 +1,17 @@
 #pragma once
 
 #include <string>
-#include <time.h>
 
 typedef unsigned long IDType;
+
+// time in microseconds since epoch
+typedef unsigned long long time_us;
 
 namespace Utils {
 	float rnd01();
 	float rnd0xf(float x);
 	int   rnd0xi(int x);
+	bool  rndYesNo();
 	float rndfMinMax(float min, float max);
 
 	/*
@@ -17,7 +20,9 @@ namespace Utils {
 	rnd0xi is random integer value 0..x
 	*/
 
-	float dt(clock_t first, clock_t second);
+	time_us getTime();
+
+	float dt(time_us first, time_us second);
 
 	class Point {
 	public:

@@ -1,11 +1,25 @@
 #include "Utils.h"
 #include <sstream>
 #include <random>
+#include <chrono>
 
 static const float RANDOM_STRENGTH = 5000.f;
 
 namespace Utils {
 
+	time_us getTime() {
+		
+		auto now = std::chrono::system_clock::now();
+		auto duration = now.time_since_epoch();
+		auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+		
+		return us;
+	}
+
+	bool rndYesNo() {
+		return rnd0xi(2) == 0;
+	}
+	
 	size_t rnd() {
 
 		static std::default_random_engine rng(std::random_device{}());
@@ -19,8 +33,15 @@ namespace Utils {
 
 	float rndfMinMax(float min, float max) { return min + rnd01() * (max - min); }
 
-	float dt(clock_t first, clock_t second) {
-		return std::abs(float(first) - float(second)) / CLOCKS_PER_SEC;
+	float dt(time_us first, time_us second) {
+
+		if (first < second) {
+			return 0; // very sad, but error.
+		}
+
+		const auto usDelta = first - second;
+		float dtSeconds = float(usDelta) / 1000.f / 1000.f;
+		return dtSeconds;
 	}
 
 	std::string toString(const size_t i) {
