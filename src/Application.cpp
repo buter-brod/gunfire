@@ -2,7 +2,7 @@
 #include "Config.h"
 #include "Game.h"
 #include "Log.h"
-#include "TextureManager.h"
+#include "ResourceManager.h"
 #include "Sprite.h"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
@@ -15,7 +15,7 @@ Application::~Application() {
 	
 	Log::Inst()->PutMessage("Application::~Application");
 	freeResources();
-	TextureManager::ResetInst();
+	ResourceManager::ResetInst();
 }
 
 void Application::freeResources() {
@@ -45,16 +45,18 @@ bool isMouseOn(const sf::Sprite& spr, const sf::Vector2i pos) {
 
 void Application::Run() {
 		
-	const bool atlasLoadedOk = TextureManager::Inst()->LoadAtlas("atlas.png", "atlas.mtpf");
+	const bool atlasLoadedOk = ResourceManager::Inst()->LoadAtlas("atlas.png", "atlas.mtpf");
 
 	if (!atlasLoadedOk) {
 		Log::Inst()->PutErr("Application::Run error, unable to load atlas");
 		return;
 	}
 
+	Log::Inst()->PutMessage("LOADING GAME...");
+
 	startGame();
 
-	const auto& texRect = TextureManager::Inst()->GetTexture(Config::restartImgFile);
+	const auto& texRect = ResourceManager::Inst()->GetTexture(Config::restartImgFile);
 	if (texRect.texturePtr.lock() == nullptr) {
 		Log::Inst()->PutErr("Application::Run error, not found " + Config::restartImgFile);
 		return;

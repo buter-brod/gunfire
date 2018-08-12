@@ -30,8 +30,11 @@ protected:
 
 	/* --- gameplay specific BEGIN ---*/
 
-	void shoot(const Point& whereTo);
+	void tryShoot(const Point& whereTo);
 	void spawn();
+
+	void checkCollisions();
+	void onCollision(GameObjectPtr bullet, GameObjectPtr enemy);
 
 	GameObjectPtr _bgObject;
 	GameObjectPtr _playerObj;

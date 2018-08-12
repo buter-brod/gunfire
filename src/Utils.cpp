@@ -29,7 +29,7 @@ namespace Utils {
 
 	float rnd01() { return float(rnd()) / RANDOM_STRENGTH; }
 	float rnd0xf(float x) { return rnd01() * x; }
-	int   rnd0xi(int   x) { return rnd() % x; }
+	unsigned int rnd0xi(unsigned int x) { return rnd() % x; }
 
 	float rndfMinMax(float min, float max) { return min + rnd01() * (max - min); }
 
@@ -52,6 +52,10 @@ namespace Utils {
 
 	std::string Point::str() const {
 		return std::string("(") + std::to_string(_x) + ", " + std::to_string(_y) + ")";
+	}
+
+	std::string Point::strInt() const {
+		return std::string("(") + std::to_string(int(_x)) + ", " + std::to_string(int(_y)) + ")";
 	}
 
 	Point Point::operator/(float val) const {

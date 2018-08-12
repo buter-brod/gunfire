@@ -1,6 +1,6 @@
 #include "Animation.h"
 #include "Log.h"
-#include "TextureManager.h"
+#include "ResourceManager.h"
 
 Animation::Animation(const std::string& name, unsigned int size, unsigned int fps) : _name(name), _size(size), _fps(fps) {
 
@@ -37,7 +37,7 @@ TextureRect Animation::getTexRectFor(const unsigned int index) {
 	std::string frameName = _name;
 
 	if (index == 0) {
-		textureRect = TextureManager::Inst()->GetTexture(frameName, true);
+		textureRect = ResourceManager::Inst()->GetTexture(frameName, true);
 	}
 
 	if (textureRect.isEmpty()) {
@@ -45,7 +45,7 @@ TextureRect Animation::getTexRectFor(const unsigned int index) {
 
 		if (dotPos != std::string::npos) {
 			frameName.insert(dotPos, std::to_string(index));
-			textureRect = TextureManager::Inst()->GetTexture(frameName);
+			textureRect = ResourceManager::Inst()->GetTexture(frameName);
 		}		
 	}
 

@@ -1,11 +1,17 @@
 #include "GameObject.h"
 #include "Log.h"
+#include "Config.h"
+#include "ResourceManager.h"
 
-GameObject::GameObject(const IDType id, const std::string& name) :_id(id), _name(name) {
+GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
+
+	if (!_idleState) {
+		_idleState = std::make_shared<State>(Config::idleStateName);
+		_idleState->_animation = _idleAnimation;
+	}
 }
 
 GameObject::~GameObject() {
-
 	Log::Inst()->PutMessage("~GameObject " + _name + " id " + std::to_string(_id));
 }
 
@@ -37,6 +43,10 @@ void GameObject::SetAngleSpeed(const float s) {
 	_angleSpeed = s;
 }
 
+AnimationPtr GameObject::AddAnimation(const std::string& name) {
+	return AddAnimation(name, 1, 0);
+}
+
 AnimationPtr GameObject::AddAnimation(const std::string& name, const unsigned int framesCount, const unsigned int fps) {
 
 	AnimationPtr animPtr;
@@ -55,26 +65,23 @@ AnimationPtr GameObject::AddAnimation(const std::string& name, const unsigned in
 	return animPtr;
 }
 
-
-bool GameObject::PlayAnimation(const std::string& animName) {
+AnimationPtr GameObject::GetAnimation(const std::string& animName, const bool onlyTry) {
 
 	const auto& animIt = _animations.find(animName);
 
 	if (animIt == _animations.end()) {
-		Log::Inst()->PutErr("GameObject::playAnimation error, not found " + animName);
-		return false;
+
+		if (!onlyTry) {
+			Log::Inst()->PutErr("GameObject::GetAnimation error, not found animation " + animName);
+		}
+		return AnimationPtr();
 	}
-
-	_animationState._ptr = animIt->second;
-	_animationState._startTime = Utils::getTime();
-
-	return true;
+	return animIt->second;
 }
 
 void GameObject::updateScale() {
 
 	if (_spritePtr == nullptr) {
-		Log::Inst()->PutErr("GameObject::updateScale error, _spritePtr null, obj id " + std::to_string(_id));
 		return;
 	}
 
@@ -92,30 +99,109 @@ void GameObject::updateScale() {
 	_spritePtr->getSpr()->setOrigin(halfSize.getX(), halfSize.getY());
 }
 
-void GameObject::updateAnimations() {
-		
-	if (_animationState.isEmpty()) {
-		if (_animations.empty()) {
-			AddAnimation(_name, 1, 0);
+void GameObject::onStateUpdate() {
+}
+
+void GameObject::ChangeState(StatePtr newState) {
+
+	Log::Inst()->PutMessage("object " + _name + " id " + std::to_string(_id) + " will change state from " + (_state ? _state->_name : "-") + " to " + newState->_name);
+
+	auto soundFunc = [](const std::string& soundName) {
+		if (!soundName.empty()) {
+			SoundPtr soundPtr = ResourceManager::Inst()->GetSound(soundName);
+
+			if (!soundPtr) {
+				Log::Inst()->PutErr("GameObject::onStateUpdate unable to play sound " + soundName);
+			}
+			else {
+				soundPtr->get().play();
+			}
 		}
-		PlayAnimation(_animations.begin()->first);
+	};
+
+	if (_state) {
+		soundFunc(_state->_soundEnd);
+	}
+	
+	soundFunc(newState->_sound);
+
+	_state = newState;
+	_state->_startTime = Utils::getTime();
+	onStateUpdate();
+}
+
+const std::string GameObject::GetState() const {
+	return _state ? _state->_name : "";
+}
+
+void GameObject::updateState() {
+
+	const time_us currTime = Utils::getTime();
+
+	if (!_state) {
+		
+		AnimationPtr idleAnimPtr = GetAnimation(_idleAnimation, true);
+		if (!idleAnimPtr) {
+			AddAnimation(_idleAnimation);
+		}
+		
+		ChangeState(_idleState);
 	}
 
-	const auto& currAnim = _animationState._ptr.lock();
+	const float stateElapsed = Utils::dt(currTime, _state->_startTime);
+	float duration = _state->_duration;
 
-	if (currAnim == nullptr) {
+	if (!_state->_animation.empty()) {
+		AnimationPtr animation = GetAnimation(_state->_animation);
+
+		if (animation == nullptr) {
+			Log::Inst()->PutErr("GameObject::updateState error, state " + _state->_name + " animation " + _state->_animation);
+			return;
+		}
+
+		if (duration == basedOnAnimation) {
+			const unsigned int animFPS = animation->GetFPS();
+
+			if (animFPS == 0) {
+				Log::Inst()->PutErr("GameObject::updateState error, state " + _state->_name + " duration is based on animation, but FPS == 0");
+				duration = 0.f;
+			}
+			else {
+				duration = float(animation->GetSize()) / animFPS;
+			}
+		}
+	}
+
+	if (duration > 0.f && stateElapsed > duration) {
+		StatePtr newState = _state->_nextState ? _state->_nextState : _idleState;
+		ChangeState(newState);
+	}
+}
+
+void GameObject::updateAnimations() {
+		
+	if (_state->_animation.empty()) {
+
+		if (_spritePtr) {
+			_spritePtr = nullptr;
+		}
+		return;
+	}
+
+	AnimationPtr animation = GetAnimation(_state->_animation);
+
+	if (animation == nullptr) {
 		Log::Inst()->PutErr("GameObject::update error, animation broken :(");
 		return;
 	}
 
 	const time_us time = Utils::getTime();
-	const float dtFromAnimBegin = Utils::dt(time, _animationState._startTime);
-	const auto& textureRect = currAnim->GetTexRectFor(dtFromAnimBegin);
-
+	const float dtFromAnimBegin = Utils::dt(time, _state->_startTime);
+	const auto& textureRect = animation->GetTexRectFor(dtFromAnimBegin);
 	const auto& texturePtr = textureRect.texturePtr.lock();
 
 	if (texturePtr == nullptr) {
-		Log::Inst()->PutErr("GameObject::update error, animation texture not found? " + currAnim->getName());
+		Log::Inst()->PutErr("GameObject::update error, animation texture not found? " + animation->getName());
 		return;
 	}
 
@@ -140,9 +226,9 @@ void GameObject::Update(float dt) {
 	const float angleFullRound = 360;
 	_rotation += fmod(_angleSpeed * dt, angleFullRound);
 
+	updateState();
 	updateAnimations();
 	updateScale();
-
 
 	if (_spritePtr) {
 		_spritePtr->getSpr()->setRotation(_rotation);

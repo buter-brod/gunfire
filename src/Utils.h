@@ -10,7 +10,7 @@ typedef unsigned long long time_us;
 namespace Utils {
 	float rnd01();
 	float rnd0xf(float x);
-	int   rnd0xi(int x);
+	unsigned int rnd0xi(unsigned int x);
 	bool  rndYesNo();
 	float rndfMinMax(float min, float max);
 
@@ -58,6 +58,7 @@ namespace Utils {
 		int i_Y() const { return int(_y); }
 
 		std::string str() const;
+		std::string strInt() const;
 
 	protected:
 		float _x, _y;
