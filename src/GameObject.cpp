@@ -220,6 +220,23 @@ void GameObject::Update(float dt) {
 		Log::Inst()->PutErr("GameObject::update error, invalid direction " + std::to_string(getId()));
 	}
 
+	if (_name == Config::enemyName) {
+		// handle turn back on edges
+
+		const float x = _position.getX();
+		const float xMax = Config::gameSize.getX();
+
+		const bool needTurn = _direction.getY() == 0.f && (
+			(_direction.getX() < 0.f && x < 0.f) ||
+			(_direction.getX() > 0.f && x > xMax));
+		
+		if (needTurn) {
+			_direction.X() = -_direction.getX();
+			_mirrorX = !_mirrorX;
+		}
+
+	}
+
 	_speed += _acceleration * dt;
 	_position += _direction.normalized() * _speed * dt;
 

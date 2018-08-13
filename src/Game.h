@@ -3,6 +3,7 @@
 #include <map>
 #include "GameObject.h"
 #include <deque>
+#include "Text.h"
 
 class Sprite;
 
@@ -36,8 +37,21 @@ protected:
 	void checkCollisions();
 	void onCollision(GameObjectPtr bullet, GameObjectPtr enemy);
 
+	void initText();
+	void updateText();
+
 	GameObjectPtr _bgObject;
 	GameObjectPtr _playerObj;
+
+	TextPtr _timerTxt;
+	TextPtr _scoreTxt;
+	TextPtr _gameOverText;
+
+	FontPtr _font;
+
+	time_us _startTimetamp{ 0 };
+
+	unsigned int _frags{ 0 };
 
 	typedef std::deque<GameObjectPtr> ObjectsArr;
 
@@ -46,6 +60,8 @@ protected:
 	ObjectsArr _effectObjects;
 
 	/* --- gameplay specific END ---*/
+	
+	time_us Game::getTimeRemain() const;
 
 	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr);
 	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr);

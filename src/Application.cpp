@@ -70,7 +70,7 @@ void Application::Run() {
 
 	restartBtnImg.setPosition(Config::windowSize.getX() - restartBtnImg.getTextureRect().width, 0.f);
 
-	sf::RenderWindow window(sf::VideoMode(Config::windowSize.i_X(), Config::windowSize.i_Y()), Config::appTitle);
+	sf::RenderWindow window(sf::VideoMode(Config::windowSize.i_X(), Config::windowSize.i_Y()), Config::appTitle, sf::Style::Titlebar | sf::Style::Close);
 
 	auto toGamePoint = [&window, this](const sf::Vector2i pos) -> Point {
 		const Point screenPoint = Point(float(pos.x), float(pos.y));

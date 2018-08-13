@@ -18,6 +18,13 @@ namespace Config {
 	static const std::string appTitle = "gunfire";
 	static const sf::Color btnNotHovered(230, 230, 230);
 
+	static const sf::Color scoreColor(0, 255, 0);
+
+	static const std::string gameOverText = "GAME OVER";
+
+	static const std::string timerTxt = "Time left: ";
+	static const std::string scoreTxt = "Score: ";
+
 	static const std::string bulletName = "bottle";
 	static const std::string bulletSpr = "bottle_fire.png";
 	static const unsigned int bulletAnimFramesCount = 2;
@@ -44,6 +51,16 @@ namespace Config {
 
 	static const float throwDuration{ 0.5f };
 	static const float cooldown{ 1.5f };
+
+	static const std::string fontName = getResourceDir() + "the unseen.ttf";
+
+	static const float scoreX = 850;
+	static const float scoreY = 700;
+
+	const float timerX = 80;
+	const float timerY = 700;
+
+	static const time_us roundDuration = 10; // seconds
 	
 	static const std::string bgName = "background";
 	static const std::string bgSprName = "background.png";

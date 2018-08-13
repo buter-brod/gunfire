@@ -26,9 +26,42 @@ Size Game::GetSize() const {
 	return Config::gameSize;
 }
 
+time_us Game::getTimeRemain() const {
+
+	const auto currClock = Utils::getTime();
+	const time_us elapsed_s = (currClock - _startTimetamp) / (1000 * 1000);
+
+	if (Config::roundDuration > elapsed_s) {
+		const auto timeRemain = Config::roundDuration - elapsed_s;
+		return timeRemain;
+	}
+	
+	return 0;
+}
+
+void Game::updateText() {
+
+	const time_us timeRemainSec = getTimeRemain();
+
+	_timerTxt->setString(Config::timerTxt + std::to_string(int(timeRemainSec)));
+	_scoreTxt->setString(Config::scoreTxt + std::to_string(_frags));
+}
+
 void Game::Update(const float dt) {
 
 	const auto currClock = Utils::getTime();
+
+	if (_startTimetamp == 0) {
+		_startTimetamp = currClock;
+	}
+
+	const time_us timeRemainSec = getTimeRemain();
+
+	if (timeRemainSec == 0) {
+		return;
+	}
+
+	updateText();
 
 	_bgObject->Update(dt);
 	_playerObj->Update(dt);
@@ -61,6 +94,15 @@ void Game::Draw(sf::RenderWindow* wnd) {
 	for (const auto& obj : _enemyObjects)  { drawObj(obj); }
 	for (const auto& obj : _bulletObjects) { drawObj(obj); }
 	for (const auto& obj : _effectObjects) { drawObj(obj); }
+
+	wnd->draw(*_scoreTxt);
+
+	if (getTimeRemain() > 0) {
+		wnd->draw(*_timerTxt);
+	}
+	else {
+		wnd->draw(*_gameOverText);
+	}
 }
 
 bool Game::isObjectObsolete(GameObjectPtr objPtr) {
@@ -99,7 +141,6 @@ bool Game::isObjectObsolete(GameObjectPtr objPtr) {
 }
 
 void Game::checkObjectsObsolete(ObjectsArr& arr) {
-
 	arr.erase(std::remove_if(arr.begin(), arr.end(), [this](const GameObjectPtr& obj) { return isObjectObsolete(obj); }), arr.end());
 }
 
@@ -212,6 +253,8 @@ void Game::onCollision(GameObjectPtr bullet, GameObjectPtr enemy) {
 	boomState->_nextState = deadState;
 
 	bullet->ChangeState(boomState);
+
+	++_frags;
 }
 
 void Game::tryShoot(const Point& whereTo) {
@@ -258,9 +301,40 @@ void Game::tryShoot(const Point& whereTo) {
 	_playerObj->ChangeState(shootState);
 }
 
+
+void Game::initText() {
+
+	if (!_font) {
+		_font = std::make_shared<Font>();
+		_font->loadFromFile(Config::fontName);
+	}
+
+	if (!_timerTxt) {
+		_timerTxt = std::make_shared<Text>();
+		_timerTxt->setFont(*_font);
+		_timerTxt->setPosition(Config::timerX, Config::timerY);
+	}
+
+	if (!_scoreTxt) {
+		_scoreTxt = std::make_shared<Text>();
+		_scoreTxt->setFont(*_font);
+		_scoreTxt->setFillColor(Config::scoreColor);
+		_scoreTxt->setPosition(Config::scoreX, Config::scoreY);
+	}
+
+	if (!_gameOverText) {
+		_gameOverText = std::make_shared<Text>();
+		_gameOverText->setFont(*_font);
+		_gameOverText->setString(Config::gameOverText);
+		_gameOverText->setPosition(Config::gameSize.getX() / 2.f, Config::gameSize.getY() / 2.f);
+	}
+}
+
 void Game::Init() {
 
 	Log::Inst()->PutMessage("Game::Init");
+
+	initText();
 
 	for (auto& s : Config::boomSounds) {
 		ResourceManager::Inst()->AddSound(s);
