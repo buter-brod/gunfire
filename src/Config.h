@@ -3,6 +3,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
 class Config{
 
@@ -13,7 +14,6 @@ public:
 	std::string getString(const std::string& key) const;
 	int getInt(const std::string& key) const;
 	float getFloat(const std::string& key) const;
-
 
 private:
 	Config();

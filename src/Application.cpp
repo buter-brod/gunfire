@@ -3,7 +3,6 @@
 #include "Game.h"
 #include "Log.h"
 #include "ResourceManager.h"
-#include "Sprite.h"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
@@ -37,110 +36,114 @@ void Application::startGame() {
 	_gamePtr->Update(0.f);
 }
 
-bool isMouseOn(const sf::Sprite& spr, const sf::Vector2i pos) {
+bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
 	const sf::Vector2f mousePosF(float(pos.x), float(pos.y));
-	const bool result = spr.getGlobalBounds().contains(mousePosF);
+	const bool result = spr->getSpr()->getGlobalBounds().contains(mousePosF);
 	return result;	
 }
 
-void Application::Run() {
-		
+void Application::handleEvent(sf::Event* event) {
+	switch (event->type) {
+		case sf::Event::Closed: {
+			_window->close();
+			break;
+		}
+
+		case sf::Event::MouseMoved: {
+			const sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
+			
+			_gamePtr->OnCursorMoved(toGamePoint(mousePos));
+			
+			const bool mouseOnRestartBtn = isMouseOn(_restartBtnImg, mousePos);
+			_restartBtnImg->getSpr()->setColor(mouseOnRestartBtn ? sf::Color::White : CfgStatic::btnNotHovered);
+		}
+		break;
+
+		case sf::Event::MouseButtonPressed: {
+			const sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
+
+			_gamePtr->OnCursorClicked(toGamePoint(mousePos));
+
+			const bool mouseOnRestartBtn = isMouseOn(_restartBtnImg, mousePos);
+			if (mouseOnRestartBtn) {
+				freeResources();
+				startGame();
+			}
+		}
+		break;
+	}
+}
+
+Point Application::toGamePoint(const sf::Vector2i pos){
+	const Point screenPoint = Point(float(pos.x), float(pos.y));
+	const Point gamePoint = screenPoint / CfgStatic::windowSize * _gamePtr->GetSize();
+	return gamePoint;
+};
+
+bool Application::init() {
+
 	const bool atlasLoadedOk = ResourceManager::Inst()->LoadAtlas(CfgStatic::atlasPng, CfgStatic::atlasMtpf);
 
 	if (!atlasLoadedOk) {
 		Log::Inst()->PutErr("Application::Run error, unable to load atlas");
-		return;
+		return false;
 	}
 
 	Log::Inst()->PutMessage("LOADING GAME...");
 
-	startGame();
-
 	const auto& texRect = ResourceManager::Inst()->GetTexture(CfgStatic::restartImgFile);
 	if (texRect.texturePtr.lock() == nullptr) {
 		Log::Inst()->PutErr("Application::Run error, not found " + CfgStatic::restartImgFile);
-		return;
+		return false;
 	}
 
-	const sf::Texture& restartBtnTex = *texRect.texturePtr.lock()->getTex();
-	sf::Sprite restartBtnImg;
+	TexturePtr restartBtnTex = texRect.texturePtr.lock();
+	_restartBtnImg = std::make_shared<Sprite>(*restartBtnTex);
+	_restartBtnImg->getSpr()->setTextureRect(texRect.rect);
+	_restartBtnImg->getSpr()->setPosition(CfgStatic::windowSize.getX() - _restartBtnImg->getSpr()->getTextureRect().width, 0.f);
 
-	restartBtnImg.setTexture(restartBtnTex);
-	restartBtnImg.setTextureRect(texRect.rect);
+	startGame();
 
-	restartBtnImg.setPosition(CfgStatic::windowSize.getX() - restartBtnImg.getTextureRect().width, 0.f);
+	_window = std::make_shared<sf::RenderWindow>(sf::VideoMode(CfgStatic::windowSize.i_X(), CfgStatic::windowSize.i_Y()), CfgStatic::appTitle, sf::Style::Titlebar | sf::Style::Close);
 
-	sf::RenderWindow window(sf::VideoMode(CfgStatic::windowSize.i_X(), CfgStatic::windowSize.i_Y()), CfgStatic::appTitle, sf::Style::Titlebar | sf::Style::Close);
+	return true;
+}
 
-	auto toGamePoint = [&window, this](const sf::Vector2i pos) -> Point {
-		const Point screenPoint = Point(float(pos.x), float(pos.y));
-		const Point gamePoint = screenPoint / CfgStatic::windowSize * _gamePtr->GetSize();
-		return gamePoint;
-	};
+void Application::draw() {
+
+	_gamePtr->Draw(_window.get());
+	_window->draw(*_restartBtnImg->getSpr());
+	_window->display();
+}
+
+void Application::gameLoop() {
 
 	const float dt = 1.f / CfgStatic::simulationFPS;
-
-	time_us currentTime = Utils::getTime();
 	float timeAccumulator = 0.f;
-
+	time_us currentTime = Utils::getTime();
 	unsigned int fpsLogFramesCount = 0;
 	time_us fpsLogCountTimeStart = currentTime;
 
-	while (window.isOpen()) {
+	while (_window->isOpen()) {
 		sf::Event event;
-		while (window.pollEvent(event)) {
-
-			switch (event.type) {
-				case sf::Event::Closed: {
-					window.close();
-					break;
-				}
-
-				case sf::Event::MouseMoved:	{
-					const sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-
-					_gamePtr->OnCursorMoved(toGamePoint(mousePos));
-
-					const bool mouseOnRestartBtn = isMouseOn(restartBtnImg, mousePos);
-					restartBtnImg.setColor(mouseOnRestartBtn ? sf::Color::White : CfgStatic::btnNotHovered);
-				}
-				break;
-
-				case sf::Event::MouseButtonPressed:	{
-					const sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-										
-					_gamePtr->OnCursorClicked(toGamePoint(mousePos));
-
-					const bool mouseOnRestartBtn = isMouseOn(restartBtnImg, mousePos);
-					if (mouseOnRestartBtn) {
-						freeResources();
-						startGame();
-					}
-				}
-				break;
-			}
+		while (_window->pollEvent(event)) {
+			handleEvent(&event);
 		}
 
-		{// update game simulation
+		const time_us newTime = Utils::getTime();
+		const float frameTime = Utils::dt(newTime, currentTime);
+		currentTime = newTime;
+		timeAccumulator += frameTime;
 
-			const time_us newTime = Utils::getTime();
-			const float frameTime = Utils::dt(newTime, currentTime);
-			currentTime = newTime;
-			timeAccumulator += frameTime;
-
-			while (timeAccumulator >= dt) {
-				_gamePtr->Update(dt);
-				timeAccumulator -= dt;
-			}
+		while (timeAccumulator >= dt) {
+			_gamePtr->Update(dt);
+			timeAccumulator -= dt;
 		}
 
-		_gamePtr->Draw(&window);
+		draw();
 
-		window.draw(restartBtnImg);
-		window.display();
+		if (fpsLogFramesCount > CfgStatic::fpsLogFramesCap) { //FPS counter
 
-		//FPS counter
-		if (fpsLogFramesCount > CfgStatic::fpsLogFramesCap) {
 			const float elapsed = Utils::dt(currentTime, fpsLogCountTimeStart);
 			fpsLogCountTimeStart = currentTime;
 			fpsLogFramesCount = 0;
@@ -150,6 +153,16 @@ void Application::Run() {
 		else {
 			fpsLogFramesCount++;
 		}
-		
 	}
+}
+
+void Application::Run() {
+	
+	const bool initOk = init();
+
+	if (!initOk) {
+		return;
+	}
+	
+	gameLoop();
 }
