@@ -13,6 +13,8 @@ IDType Game::newID(){
 
 Game::Game(){
 
+	Config::Inst();
+
 	Log::Inst()->PutMessage("Game::Game");
 	Init();
 }
@@ -23,7 +25,7 @@ Game::~Game(){
 }
 
 Size Game::GetSize() const {
-	return Config::gameSize;
+	return CfgStatic::gameSize;
 }
 
 time_us Game::getTimeRemain() const {
@@ -31,8 +33,10 @@ time_us Game::getTimeRemain() const {
 	const auto currClock = Utils::getTime();
 	const time_us elapsed_s = (currClock - _startTimetamp) / (1000 * 1000);
 
-	if (Config::roundDuration > elapsed_s) {
-		const auto timeRemain = Config::roundDuration - elapsed_s;
+	const unsigned int roundDuration = Config::Inst()->getInt("roundDuration");
+
+	if (roundDuration > elapsed_s) {
+		const auto timeRemain = roundDuration - elapsed_s;
 		return timeRemain;
 	}
 	
@@ -43,8 +47,8 @@ void Game::updateText() {
 
 	const time_us timeRemainSec = getTimeRemain();
 
-	_timerTxt->setString(Config::timerTxt + std::to_string(int(timeRemainSec)));
-	_scoreTxt->setString(Config::scoreTxt + std::to_string(_frags));
+	_timerTxt->setString(CfgStatic::timerTxt + std::to_string(int(timeRemainSec)));
+	_scoreTxt->setString(CfgStatic::scoreTxt + std::to_string(_frags));
 }
 
 void Game::Update(const float dt) {
@@ -107,7 +111,7 @@ void Game::Draw(sf::RenderWindow* wnd) {
 
 bool Game::isObjectObsolete(GameObjectPtr objPtr) {
 
-	if (objPtr->GetState() == Config::deadStateName) {
+	if (objPtr->GetState() == CfgStatic::deadStateName) {
 		return true;
 	}
 
@@ -170,7 +174,9 @@ bool Game::removeObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 
 void Game::spawn() {
 
-	if (_enemyObjects.size() >= Config::enemyCount) {
+	unsigned int enemyCount = Config::Inst()->getInt("enemyCount");
+
+	if (_enemyObjects.size() >= enemyCount) {
 		return;
 	}
 
@@ -178,22 +184,25 @@ void Game::spawn() {
 	const Point center = gameSize / 2.f;
 	const bool leftSide = Utils::rndYesNo();
 	
-	const float fromX = leftSide ? (-Config::enemyPositionGapX) : (gameSize.getX() + Config::enemyPositionGapX);
-	const float fromY = Utils::rndfMinMax(Config::enemyPositionGapYMin, Config::enemyPositionGapYMax);
+	const float fromX = leftSide ? (-CfgStatic::enemyPositionGapX) : (gameSize.getX() + CfgStatic::enemyPositionGapX);
+	const float fromY = Utils::rndfMinMax(CfgStatic::enemyPositionGapYMin, CfgStatic::enemyPositionGapYMax);
 
 	const Point from(fromX, fromY);
 	const Point whereTo(center.getX(), fromY);
 	const Point direction(whereTo - from);
 
-	const float speed = Utils::rndfMinMax(Config::enemySpeedMin, Config::enemySpeedMax);
+	const float enemySpeedMin = Config::Inst()->getFloat("enemySpeedMin");
+	const float enemySpeedMax = Config::Inst()->getFloat("enemySpeedMax");
 
-	GameObjectPtr enemyObj = std::make_shared<GameObject>(newID(), Config::enemyName, Config::enemySpr);
-	enemyObj->AddAnimation(Config::enemySpr, Config::enemyAnimFramesCount, Config::enemyAnimFPS);
+	const float speed = Utils::rndfMinMax(enemySpeedMin, enemySpeedMax);
 
-	const bool spawnSound = Utils::rnd0xi(Config::enemyCount) == 0;
+	GameObjectPtr enemyObj = std::make_shared<GameObject>(newID(), CfgStatic::enemyName, CfgStatic::enemySpr);
+	enemyObj->AddAnimation(CfgStatic::enemySpr, CfgStatic::enemyAnimFramesCount, CfgStatic::enemyAnimFPS);
+
+	const bool spawnSound = Utils::rnd0xi(enemyCount) == 0;
 	if (spawnSound) {
-		const unsigned int soundInd = Utils::rnd0xi((unsigned int)Config::enemySounds.size());
-		enemyObj->getIdleState()->_sound = Config::enemySounds[soundInd];
+		const unsigned int soundInd = Utils::rnd0xi((unsigned int)CfgStatic::enemySounds.size());
+		enemyObj->getIdleState()->_sound = CfgStatic::enemySounds[soundInd];
 	}
 
 	enemyObj->SetMirrorX(leftSide);
@@ -226,7 +235,7 @@ void Game::checkCollisions() {
 	for (const auto& bulletPtr : _bulletObjects) {
 		for (const auto& enemyPtr : _enemyObjects) {
 
-			if (bulletPtr->GetState() == Config::idleStateName) {
+			if (bulletPtr->GetState() == CfgStatic::idleStateName) {
 				if (collides(bulletPtr, enemyPtr)) {
 					onCollision(bulletPtr, enemyPtr);
 				}
@@ -241,15 +250,15 @@ void Game::onCollision(GameObjectPtr bullet, GameObjectPtr enemy) {
 	enemyDirection.Y() = -1.f;
 	enemy->SetDirection(enemyDirection);
 
-	enemy->SetSpeed(Config::boomAcceleration);
-	enemy->SetAngleSpeed((Utils::rndYesNo() ? 1.f : -1.f) *  Config::boomAngleSpeed);
+	enemy->SetSpeed(CfgStatic::boomAcceleration);
+	enemy->SetAngleSpeed((Utils::rndYesNo() ? 1.f : -1.f) *  CfgStatic::boomAngleSpeed);
 
-	GameObject::StatePtr boomState = std::make_shared<GameObject::State>(Config::boomStateName);
-	boomState->_animation = Config::boomSpr;
+	GameObject::StatePtr boomState = std::make_shared<GameObject::State>(CfgStatic::boomStateName);
+	boomState->_animation = CfgStatic::boomSpr;
 	boomState->_duration = basedOnAnimation;
-	boomState->_sound = Config::boomSounds[Utils::rnd0xi((unsigned int)Config::boomSounds.size())];
+	boomState->_sound = CfgStatic::boomSounds[Utils::rnd0xi((unsigned int)CfgStatic::boomSounds.size())];
 	
-	GameObject::StatePtr deadState = std::make_shared<GameObject::State>(Config::deadStateName);
+	GameObject::StatePtr deadState = std::make_shared<GameObject::State>(CfgStatic::deadStateName);
 	boomState->_nextState = deadState;
 
 	bullet->ChangeState(boomState);
@@ -262,22 +271,22 @@ void Game::tryShoot(const Point& whereTo) {
 	const Size& gameSize = GetSize();
 	const Point center = gameSize / 2.f;
 
-	const Point from(center.getX(), gameSize.getY() - Config::bulletPositionGapY);
+	const Point from(center.getX(), gameSize.getY() - CfgStatic::bulletPositionGapY);
 	const Point direction(whereTo - from);
 
 	const std::string& playerStateName = _playerObj->GetState();
 
-	if (direction.getY() > 0 || playerStateName != Config::idleStateName) {
+	if (direction.getY() > 0 || playerStateName != CfgStatic::idleStateName) {
 		return;
 	}
 
-	const float speed = Utils::rndfMinMax(Config::bulletSpeedMin, Config::bulletSpeedMax);
-	const float angleSpeed = Utils::rndfMinMax(Config::bulletAngleSpeedMin, Config::bulletAngleSpeedMax);
+	const float speed = Utils::rndfMinMax(CfgStatic::bulletSpeedMin, CfgStatic::bulletSpeedMax);
+	const float angleSpeed = Utils::rndfMinMax(CfgStatic::bulletAngleSpeedMin, CfgStatic::bulletAngleSpeedMax);
 
-	GameObjectPtr bottleObj = std::make_shared<GameObject>(newID(), Config::bulletName, Config::bulletSpr);
+	GameObjectPtr bottleObj = std::make_shared<GameObject>(newID(), CfgStatic::bulletName, CfgStatic::bulletSpr);
 
-	bottleObj->AddAnimation(Config::bulletSpr, Config::bulletAnimFramesCount, Config::bulletAnimFPS);
-	bottleObj->AddAnimation(Config::boomSpr, Config::boomAnimFramesCount, Config::boomAnimFPS);
+	bottleObj->AddAnimation(CfgStatic::bulletSpr, CfgStatic::bulletAnimFramesCount, CfgStatic::bulletAnimFPS);
+	bottleObj->AddAnimation(CfgStatic::boomSpr, CfgStatic::boomAnimFramesCount, CfgStatic::boomAnimFPS);
 
 	bottleObj->SetPosition(from);
 	bottleObj->SetDirection(direction);
@@ -286,15 +295,15 @@ void Game::tryShoot(const Point& whereTo) {
 
 	addObject(bottleObj, _bulletObjects);
 
-	GameObject::StatePtr shootState = std::make_shared<GameObject::State>(Config::shootingStateName);
-	shootState->_animation = Config::playerFireSpr;
-	shootState->_duration = Config::throwDuration;
-	shootState->_sound = Config::throwSound;
+	GameObject::StatePtr shootState = std::make_shared<GameObject::State>(CfgStatic::shootingStateName);
+	shootState->_animation = CfgStatic::playerFireSpr;
+	shootState->_duration = CfgStatic::throwDuration;
+	shootState->_sound = CfgStatic::throwSound;
 
-	GameObject::StatePtr cooldownState = std::make_shared<GameObject::State>(Config::cooldownStateName);
-	cooldownState->_animation = Config::playerCooldownSpr;
-	cooldownState->_duration = Config::cooldown;
-	cooldownState->_soundEnd = Config::readySound;
+	GameObject::StatePtr cooldownState = std::make_shared<GameObject::State>(CfgStatic::cooldownStateName);
+	cooldownState->_animation = CfgStatic::playerCooldownSpr;
+	cooldownState->_duration = CfgStatic::cooldown;
+	cooldownState->_soundEnd = CfgStatic::readySound;
 
 	shootState->_nextState = cooldownState;
 
@@ -306,27 +315,29 @@ void Game::initText() {
 
 	if (!_font) {
 		_font = std::make_shared<Font>();
-		_font->loadFromFile(Config::fontName);
+		_font->loadFromFile(CfgStatic::fontName);
 	}
 
 	if (!_timerTxt) {
 		_timerTxt = std::make_shared<Text>();
 		_timerTxt->setFont(*_font);
-		_timerTxt->setPosition(Config::timerX, Config::timerY);
+		_timerTxt->setPosition(CfgStatic::timerPositionX, CfgStatic::timerPositionY);
 	}
 
 	if (!_scoreTxt) {
 		_scoreTxt = std::make_shared<Text>();
 		_scoreTxt->setFont(*_font);
-		_scoreTxt->setFillColor(Config::scoreColor);
-		_scoreTxt->setPosition(Config::scoreX, Config::scoreY);
+		_scoreTxt->setFillColor(CfgStatic::scoreColor);
+		_scoreTxt->setPosition(CfgStatic::scorePositionX, CfgStatic::scorePositionY);
 	}
 
 	if (!_gameOverText) {
 		_gameOverText = std::make_shared<Text>();
 		_gameOverText->setFont(*_font);
-		_gameOverText->setString(Config::gameOverText);
-		_gameOverText->setPosition(Config::gameSize.getX() / 2.f, Config::gameSize.getY() / 2.f);
+
+		const std::string& gameOverText = Config::Inst()->getString("gameOverText");
+		_gameOverText->setString(gameOverText);
+		_gameOverText->setPosition(CfgStatic::gameSize.getX() / 2.f, CfgStatic::gameSize.getY() / 2.f);
 	}
 }
 
@@ -336,19 +347,19 @@ void Game::Init() {
 
 	initText();
 
-	for (auto& s : Config::boomSounds) {
+	for (auto& s : CfgStatic::boomSounds) {
 		ResourceManager::Inst()->AddSound(s);
 	}
 
-	for (auto& s : Config::enemySounds) {
+	for (auto& s : CfgStatic::enemySounds) {
 		ResourceManager::Inst()->AddSound(s);
 	}	
 	
-	ResourceManager::Inst()->AddSound(Config::readySound);
-	ResourceManager::Inst()->AddSound(Config::throwSound);
+	ResourceManager::Inst()->AddSound(CfgStatic::readySound);
+	ResourceManager::Inst()->AddSound(CfgStatic::throwSound);
 
-	auto ambientSnd = ResourceManager::Inst()->AddSound(Config::ambientSound);
-	auto musicSnd   = ResourceManager::Inst()->AddSound(Config::musicTrack);
+	auto ambientSnd = ResourceManager::Inst()->AddSound(CfgStatic::ambientSound);
+	auto musicSnd   = ResourceManager::Inst()->AddSound(CfgStatic::musicTrack);
 
 	if (ambientSnd) {
 		ambientSnd->get().play();
@@ -363,15 +374,15 @@ void Game::Init() {
 	const Size& gameSize = GetSize();
 	const Point center = gameSize / 2.f;
 	
-	ResourceManager::Inst()->AddTexture(Config::bgSprName);
+	ResourceManager::Inst()->AddTexture(CfgStatic::bgSprName);
 
-	_bgObject = std::make_shared<GameObject>(newID(), Config::bgName, Config::bgSprName);
+	_bgObject = std::make_shared<GameObject>(newID(), CfgStatic::bgName, CfgStatic::bgSprName);
 	_bgObject->SetPosition(center);
 
-	_playerObj = std::make_shared<GameObject>(newID(), Config::playerName, Config::playerSpr);
-	_playerObj->SetPosition({ gameSize.getX() / 2.f, gameSize.getY() - Config::playerPositionGapY });
-	_playerObj->AddAnimation(Config::playerFireSpr);
-	_playerObj->AddAnimation(Config::playerCooldownSpr);
+	_playerObj = std::make_shared<GameObject>(newID(), CfgStatic::playerName, CfgStatic::playerSpr);
+	_playerObj->SetPosition({ gameSize.getX() / 2.f, gameSize.getY() - CfgStatic::playerPositionGapY });
+	_playerObj->AddAnimation(CfgStatic::playerFireSpr);
+	_playerObj->AddAnimation(CfgStatic::playerCooldownSpr);
 }
 
 void Game::OnCursorMoved(const Point& pt) {

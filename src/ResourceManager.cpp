@@ -70,7 +70,7 @@ const SoundPtr ResourceManager::AddSound(const std::string& sName) {
 
 	SoundPtr sndPtr = std::make_shared<Sound>();
 
-	const bool loadOk = sndPtr->load(Config::getResourceDir() + sName);
+	const bool loadOk = sndPtr->load(CfgStatic::getResourceDir() + sName);
 	if (!loadOk) {
 		Log::Inst()->PutErr("ResourceManager::addSound error: unable to load " + sName);
 		return SoundPtr();
@@ -107,7 +107,7 @@ const TexturePtr ResourceManager::AddTexture(const std::string& tName) {
 	}
 
 	TexturePtr texPtr = std::make_shared<Texture>();
-	const bool loadOk = texPtr->loadFromFile(Config::getResourceDir() + tName);
+	const bool loadOk = texPtr->loadFromFile(CfgStatic::getResourceDir() + tName);
 	if (!loadOk) {
 		Log::Inst()->PutErr("ResourceManager::addTexture error: unable to load " + tName);
 		return TexturePtr();

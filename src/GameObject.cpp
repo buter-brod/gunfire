@@ -3,10 +3,12 @@
 #include "Config.h"
 #include "ResourceManager.h"
 
+#include <Thor/Particles.hpp>
+
 GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
 
 	if (!_idleState) {
-		_idleState = std::make_shared<State>(Config::idleStateName);
+		_idleState = std::make_shared<State>(CfgStatic::idleStateName);
 		_idleState->_animation = _idleAnimation;
 	}
 }
@@ -220,11 +222,11 @@ void GameObject::Update(float dt) {
 		Log::Inst()->PutErr("GameObject::update error, invalid direction " + std::to_string(getId()));
 	}
 
-	if (_name == Config::enemyName) {
+	if (_name == CfgStatic::enemyName) {
 		// handle turn back on edges
 
 		const float x = _position.getX();
-		const float xMax = Config::gameSize.getX();
+		const float xMax = CfgStatic::gameSize.getX();
 
 		const bool needTurn = _direction.getY() == 0.f && (
 			(_direction.getX() < 0.f && x < 0.f) ||

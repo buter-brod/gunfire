@@ -3,15 +3,19 @@
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <memory>
 #include <string>
-
-// PATH=%PATH%;$(ProjectDir)..\Resources
+#include "Log.h"
 
 class Sound {
 
 public: 
 	Sound() {}
+	~Sound() {
+		Log::Inst()->PutMessage("~Sound: " + _name);
+	}
 
 	bool load(const std::string& name) {
+
+		_name = name;
 
 		const bool loadOk = _buffer.loadFromFile(name);
 		if (!loadOk) {
@@ -29,6 +33,7 @@ public:
 private:
 	sf::Sound _sound;
 	sf::SoundBuffer _buffer;
+	std::string _name;
 };
 
 typedef std::shared_ptr<Sound> SoundPtr;

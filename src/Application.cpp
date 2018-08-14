@@ -45,7 +45,7 @@ bool isMouseOn(const sf::Sprite& spr, const sf::Vector2i pos) {
 
 void Application::Run() {
 		
-	const bool atlasLoadedOk = ResourceManager::Inst()->LoadAtlas("atlas.png", "atlas.mtpf");
+	const bool atlasLoadedOk = ResourceManager::Inst()->LoadAtlas(CfgStatic::atlasPng, CfgStatic::atlasMtpf);
 
 	if (!atlasLoadedOk) {
 		Log::Inst()->PutErr("Application::Run error, unable to load atlas");
@@ -56,9 +56,9 @@ void Application::Run() {
 
 	startGame();
 
-	const auto& texRect = ResourceManager::Inst()->GetTexture(Config::restartImgFile);
+	const auto& texRect = ResourceManager::Inst()->GetTexture(CfgStatic::restartImgFile);
 	if (texRect.texturePtr.lock() == nullptr) {
-		Log::Inst()->PutErr("Application::Run error, not found " + Config::restartImgFile);
+		Log::Inst()->PutErr("Application::Run error, not found " + CfgStatic::restartImgFile);
 		return;
 	}
 
@@ -68,22 +68,21 @@ void Application::Run() {
 	restartBtnImg.setTexture(restartBtnTex);
 	restartBtnImg.setTextureRect(texRect.rect);
 
-	restartBtnImg.setPosition(Config::windowSize.getX() - restartBtnImg.getTextureRect().width, 0.f);
+	restartBtnImg.setPosition(CfgStatic::windowSize.getX() - restartBtnImg.getTextureRect().width, 0.f);
 
-	sf::RenderWindow window(sf::VideoMode(Config::windowSize.i_X(), Config::windowSize.i_Y()), Config::appTitle, sf::Style::Titlebar | sf::Style::Close);
+	sf::RenderWindow window(sf::VideoMode(CfgStatic::windowSize.i_X(), CfgStatic::windowSize.i_Y()), CfgStatic::appTitle, sf::Style::Titlebar | sf::Style::Close);
 
 	auto toGamePoint = [&window, this](const sf::Vector2i pos) -> Point {
 		const Point screenPoint = Point(float(pos.x), float(pos.y));
-		const Point gamePoint = screenPoint / Config::windowSize * _gamePtr->GetSize();
+		const Point gamePoint = screenPoint / CfgStatic::windowSize * _gamePtr->GetSize();
 		return gamePoint;
 	};
 
-	const float dt = 1.f / Config::simulationFPS;
+	const float dt = 1.f / CfgStatic::simulationFPS;
 
 	time_us currentTime = Utils::getTime();
 	float timeAccumulator = 0.f;
 
-	const unsigned int fpsLogFramesCap = 50000;
 	unsigned int fpsLogFramesCount = 0;
 	time_us fpsLogCountTimeStart = currentTime;
 
@@ -103,7 +102,7 @@ void Application::Run() {
 					_gamePtr->OnCursorMoved(toGamePoint(mousePos));
 
 					const bool mouseOnRestartBtn = isMouseOn(restartBtnImg, mousePos);
-					restartBtnImg.setColor(mouseOnRestartBtn ? sf::Color::White : Config::btnNotHovered);
+					restartBtnImg.setColor(mouseOnRestartBtn ? sf::Color::White : CfgStatic::btnNotHovered);
 				}
 				break;
 
@@ -141,11 +140,11 @@ void Application::Run() {
 		window.display();
 
 		//FPS counter
-		if (fpsLogFramesCount > fpsLogFramesCap) {
+		if (fpsLogFramesCount > CfgStatic::fpsLogFramesCap) {
 			const float elapsed = Utils::dt(currentTime, fpsLogCountTimeStart);
 			fpsLogCountTimeStart = currentTime;
 			fpsLogFramesCount = 0;
-			const auto currFPS = fpsLogFramesCap / elapsed;
+			const auto currFPS = CfgStatic::fpsLogFramesCap / elapsed;
 			Log::Inst()->PutMessage("FPS: " + std::to_string(int(currFPS)));
 		}
 		else {

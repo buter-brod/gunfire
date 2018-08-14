@@ -13,7 +13,7 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 
 	_textureName = texName;
 
-	std::ifstream input_file(Config::getResourceDir() + descFileName, std::ifstream::in | std::ifstream::binary);
+	std::ifstream input_file(CfgStatic::getResourceDir() + descFileName, std::ifstream::in | std::ifstream::binary);
 	if (!input_file) {
 
 		Log::Inst()->PutErr("TextureAtlas::load ERROR: " + descFileName);

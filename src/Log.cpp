@@ -1,8 +1,8 @@
 #include "Log.h"
 #include <fstream>
+#include "Config.h"
 
 static const bool alwaysToCout = true;
-static const std::string& logFile = "log.txt";
 
 Log* Log::Inst() {
 	static Log* instance = new Log();
@@ -11,15 +11,15 @@ Log* Log::Inst() {
 
 Log::Log() {
 
-	if (!logFile.empty()) {
-		std::ofstream logFileStream(logFile);
+	if (!CfgStatic::logFile.empty()) {
+		std::ofstream logFileStream(CfgStatic::logFile);
 
 		if (logFileStream.good()) {
 			logFileStream << "Game Log: \n";
 			logFileStream.close();
 		}
 		else {
-			std::cout << "Log::Log error, unable to open " + logFile + "\n";
+			std::cout << "Log::Log error, unable to open " + CfgStatic::logFile + "\n";
 		}
 	}
 }
@@ -37,19 +37,19 @@ std::set<Log::Channel> Log::getEnabledChannels() {
 
 void Log::putMsg(const std::string& msg) {
 	
-	if (logFile.empty() || alwaysToCout) {
+	if (CfgStatic::logFile.empty() || alwaysToCout) {
 		std::cout << msg;
 	}
 	
-	if (!logFile.empty()) {
+	if (!CfgStatic::logFile.empty()) {
 		std::ofstream logFileStream;
-		logFileStream.open(logFile, std::ofstream::out | std::ofstream::app);
+		logFileStream.open(CfgStatic::logFile, std::ofstream::out | std::ofstream::app);
 
 		if (logFileStream.good()) {
 			logFileStream << msg;
 		}
 		else {
-			std::cout << "Log::putMsg error, unable to open " + logFile + "\n";
+			std::cout << "Log::putMsg error, unable to open " + CfgStatic::logFile + "\n";
 		}
 	}
 }
