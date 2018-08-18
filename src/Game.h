@@ -38,6 +38,7 @@ protected:
 	void onCollision(GameObjectPtr bullet, GameObjectPtr enemy);
 
 	void initText();
+	void initSound();
 	void updateText();
 
 	GameObjectPtr _bgObject;

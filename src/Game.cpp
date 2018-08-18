@@ -352,11 +352,7 @@ void Game::initText() {
 	}
 }
 
-void Game::Init() {
-
-	Log::Inst()->PutMessage("Game::Init");
-
-	initText();
+void Game::initSound() {
 
 	for (auto& s : CfgStatic::boomSounds) {
 		ResourceManager::Inst()->AddSound(s);
@@ -372,17 +368,30 @@ void Game::Init() {
 	ResourceManager::Inst()->AddSound(CfgStatic::throwSound);
 
 	auto ambientSnd = ResourceManager::Inst()->AddSound(CfgStatic::ambientSound);
-	auto musicSnd   = ResourceManager::Inst()->AddSound(CfgStatic::musicTrack);
 
 	if (ambientSnd) {
 		ambientSnd->get().play();
 		ambientSnd->get().setLoop(true);
 	}
 
-	if (musicSnd) {
-		musicSnd->get().play();
-		musicSnd->get().setLoop(true);
+	const bool musicDisabled = Config::Inst()->getInt("noMusic") > 0;
+
+	if (!musicDisabled) {
+		auto musicSnd = ResourceManager::Inst()->AddSound(CfgStatic::musicTrack);
+
+		if (musicSnd) {
+			musicSnd->get().play();
+			musicSnd->get().setLoop(true);
+		}
 	}
+}
+
+void Game::Init() {
+
+	Log::Inst()->PutMessage("Game::Init");
+
+	initText();
+	initSound();
 
 	const Size& gameSize = GetSize();
 	const Point center = gameSize / 2.f;
