@@ -54,8 +54,46 @@ bool ResourceManager::LoadAtlas(const std::string& tName, const std::string& des
 	}
 
 	_atlases[tName] = atlasPtr;
-
 	return true;
+}
+
+const ShaderPtr ResourceManager::AddShader(const std::string& sName) {
+
+	const auto& shIt = _shaders.find(sName);
+
+	if (shIt != _shaders.end()) {
+		const ShaderPtr foundShPtr = shIt->second;
+		Log::Inst()->PutMessage("ResourceManager::AddShader: shader already added " + sName);
+		return foundShPtr;
+	}
+
+	const std::string& resPref = CfgStatic::getResourceDir();
+	ShaderPtr shPtr = std::make_shared<Shader>(sName);
+
+	const bool loadOk = shPtr->Load(resPref + sName + CfgStatic::vertExt, resPref + sName + CfgStatic::fragExt);
+	if (!loadOk) {
+		Log::Inst()->PutErr("ResourceManager::addShader error: unable to load " + sName);
+		return ShaderPtr();
+	}
+
+	_shaders[sName] = shPtr;
+	Log::Inst()->PutMessage("ResourceManager::addShader: shader added successfully: " + sName);
+
+	return shPtr;
+}
+const ShaderPtr ResourceManager::GetShader(const std::string& sName, const bool onlyTry) {
+
+	const auto& shIt = _shaders.find(sName);
+
+	if (shIt == _shaders.end()) {
+
+		if (!onlyTry) {
+			Log::Inst()->PutErr("ResourceManager::GetShader error, not found sound " + sName);
+		}
+		return ShaderPtr();
+	}
+
+	return shIt->second;
 }
 
 const SoundPtr ResourceManager::AddSound(const std::string& sName) {
@@ -64,7 +102,7 @@ const SoundPtr ResourceManager::AddSound(const std::string& sName) {
 
 	if (sndIt != _sounds.end()) {
 		const SoundPtr foundSndPtr = sndIt->second;
-		Log::Inst()->PutMessage("ResourceManager::addSound: sound already added " + sName);
+		Log::Inst()->PutMessage("ResourceManager::AddSound: sound already added " + sName);
 		return foundSndPtr;
 	}
 
@@ -72,12 +110,12 @@ const SoundPtr ResourceManager::AddSound(const std::string& sName) {
 
 	const bool loadOk = sndPtr->load(CfgStatic::getResourceDir() + sName);
 	if (!loadOk) {
-		Log::Inst()->PutErr("ResourceManager::addSound error: unable to load " + sName);
+		Log::Inst()->PutErr("ResourceManager::AddSound error: unable to load " + sName);
 		return SoundPtr();
 	}
 
 	_sounds[sName] = sndPtr;
-	Log::Inst()->PutMessage("ResourceManager::addSound: sound added successfully: " + sName);
+	Log::Inst()->PutMessage("ResourceManager::AddSound: sound added successfully: " + sName);
 
 	return sndPtr;
 }
@@ -88,7 +126,7 @@ const SoundPtr ResourceManager::GetSound(const std::string& sName, const bool on
 	if (sndIt == _sounds.end()) {
 
 		if (!onlyTry) {
-			Log::Inst()->PutErr("ResourceManager::getSound error, not found sound " + sName);
+			Log::Inst()->PutErr("ResourceManager::GetSound error, not found sound " + sName);
 		}
 		return SoundPtr();
 	}
@@ -109,12 +147,12 @@ const TexturePtr ResourceManager::AddTexture(const std::string& tName) {
 	TexturePtr texPtr = std::make_shared<Texture>();
 	const bool loadOk = texPtr->loadFromFile(CfgStatic::getResourceDir() + tName);
 	if (!loadOk) {
-		Log::Inst()->PutErr("ResourceManager::addTexture error: unable to load " + tName);
+		Log::Inst()->PutErr("ResourceManager::AddTexture error: unable to load " + tName);
 		return TexturePtr();
 	}
 
 	_textures[tName] = texPtr;
-	Log::Inst()->PutMessage("ResourceManager::addTexture: texture added successfully: " + tName);
+	Log::Inst()->PutMessage("ResourceManager::AddTexture: texture added successfully: " + tName);
 
 	return texPtr;
 }
@@ -144,7 +182,7 @@ TextureRect ResourceManager::GetTexture(const std::string& tName, const bool onl
 				const auto& texRectBigTex = GetTexture(bigTexName);
 
 				if (texRectBigTex.texturePtr.lock() == nullptr) {
-					Log::Inst()->PutErr("ResourceManager::getTexture error, atlas may not be loaded yet: " + bigTexName);
+					Log::Inst()->PutErr("ResourceManager::GetTexture error, atlas may not be loaded yet: " + bigTexName);
 					return emptyTexRect;
 				}
 

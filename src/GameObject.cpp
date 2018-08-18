@@ -154,14 +154,15 @@ void GameObject::updateState() {
 	float duration = _state->_duration;
 
 	if (!_state->_animation.empty()) {
-		AnimationPtr animation = GetAnimation(_state->_animation);
-
-		if (animation == nullptr) {
-			Log::Inst()->PutErr("GameObject::updateState error, state " + _state->_name + " animation " + _state->_animation);
-			return;
-		}
 
 		if (duration == basedOnAnimation) {
+			AnimationPtr animation = GetAnimation(_state->_animation);
+
+			if (animation == nullptr) {
+				Log::Inst()->PutErr("GameObject::updateState error, state " + _state->_name + " animation " + _state->_animation);
+				return;
+			}
+
 			const unsigned int animFPS = animation->GetFPS();
 
 			if (animFPS == 0) {
@@ -178,6 +179,39 @@ void GameObject::updateState() {
 		StatePtr newState = _state->_nextState ? _state->_nextState : _idleState;
 		ChangeState(newState);
 	}
+}
+
+ShaderPtr GameObject::GetShader() {
+
+	const std::string& shaderName = _state->_shader;
+	if (!shaderName.empty()) {
+		
+		ShaderPtr shader = ResourceManager::Inst()->GetShader(shaderName);
+		
+		if (shaderName == CfgStatic::pixelizeShader) { // pixelize-specific
+
+			const time_us time = Utils::getTime();
+			const float dtFromAnimBegin = Utils::dt(time, _state->_startTime);
+			const auto& bigRect = getSprite()->getSpr()->getTexture()->getSize();
+			const auto& smallRect = getSprite()->getSpr()->getTextureRect();
+			
+			const float coeff = std::min(CfgStatic::pixelizeCoeffMax, CfgStatic::pixelizeSpeed * dtFromAnimBegin + 1.f);
+
+			sf::Glsl::Vec4 texRectGlsl(
+				float(smallRect.left),
+				float(bigRect.y - smallRect.top),
+				float(smallRect.width),
+				float(smallRect.height));
+
+			shader->get()->setUniform("bigRectSize", sf::Glsl::Vec2(bigRect));
+			shader->get()->setUniform("smallRect", texRectGlsl);
+			shader->get()->setUniform("coeff", coeff);
+		}
+
+		return shader;
+	}
+
+	return ShaderPtr();
 }
 
 void GameObject::updateAnimations() {

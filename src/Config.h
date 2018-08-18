@@ -38,7 +38,13 @@ namespace CfgStatic {
 
 	static const std::string configFile = getResourceDir() + "config.cfg";
 	static const std::string fontName   = getResourceDir() + "the unseen.ttf";
+
+	static const std::string pixelizeShader = "pixelize";
+
 	static const std::string& logFile = ""; // "log.txt"; // log file disabled
+
+	static const std::string vertExt = ".vert";
+	static const std::string fragExt = ".frag";
 
 	// sprites
 
@@ -110,6 +116,8 @@ namespace CfgStatic {
 	static const float bulletSpeedMin      = 100.f;
 	static const float bulletSpeedMax      = 300.f;
 	static const float bulletSpeed         = 200.f;
+	static const float pixelizeSpeed       = 10.f;
+	static const float pixelizeCoeffMax    = 15.f;
 
 	// positions
 
@@ -129,6 +137,7 @@ namespace CfgStatic {
 	static const std::string cooldownStateName = "cooldown";
 	static const std::string shootingStateName = "shooting";
 	static const std::string boomStateName     = "boom";
+	static const std::string enemyDStateName   = "dying";
 	static const std::string deadStateName     = "dead";
 }
 

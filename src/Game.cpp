@@ -88,13 +88,19 @@ void Game::Draw(sf::RenderWindow* wnd) {
 	auto drawObj = [wnd](GameObjectPtr obj) {
 		const auto& spr = obj->getSprite();
 		if (spr) {
-			wnd->draw(*spr->getSpr());
+			sf::Shader* shader{ nullptr };
+			const auto& shPtr = obj->GetShader();
+			if (shPtr) {
+				shader = shPtr->get();
+			}
+
+			wnd->draw(*obj->getSprite()->getSpr(), shader);
 		}
 	};
 
 	drawObj(_bgObject);
 	drawObj(_playerObj);
-		
+
 	for (const auto& obj : _enemyObjects)  { drawObj(obj); }
 	for (const auto& obj : _bulletObjects) { drawObj(obj); }
 	for (const auto& obj : _effectObjects) { drawObj(obj); }
@@ -253,6 +259,11 @@ void Game::onCollision(GameObjectPtr bullet, GameObjectPtr enemy) {
 	enemy->SetSpeed(CfgStatic::boomAcceleration);
 	enemy->SetAngleSpeed((Utils::rndYesNo() ? 1.f : -1.f) *  CfgStatic::boomAngleSpeed);
 
+	GameObject::StatePtr enemyDeadState = std::make_shared<GameObject::State>(CfgStatic::enemyDStateName);
+	enemyDeadState->_animation = enemy->getIdleState()->_animation;
+	enemyDeadState->_shader = CfgStatic::pixelizeShader;
+	enemy->ChangeState(enemyDeadState);
+
 	GameObject::StatePtr boomState = std::make_shared<GameObject::State>(CfgStatic::boomStateName);
 	boomState->_animation = CfgStatic::boomSpr;
 	boomState->_duration = basedOnAnimation;
@@ -355,6 +366,8 @@ void Game::Init() {
 		ResourceManager::Inst()->AddSound(s);
 	}	
 	
+	ResourceManager::Inst()->AddShader(CfgStatic::pixelizeShader);
+
 	ResourceManager::Inst()->AddSound(CfgStatic::readySound);
 	ResourceManager::Inst()->AddSound(CfgStatic::throwSound);
 

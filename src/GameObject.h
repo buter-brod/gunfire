@@ -2,6 +2,7 @@
 #include "Animation.h"
 #include <unordered_map>
 #include "Utils.h"
+#include "Shader.h"
 
 static const float basedOnAnimation{ -1.f };
 
@@ -38,6 +39,7 @@ public:
 	const Point& GetDirection() const { return _direction; }
 	const Size& GetSize() const { return _size; }
 	const float GetSpeed() const { return _speed; }
+	ShaderPtr GetShader();
 
 	IDType getId() const { return _id; }
 	SpritePtr getSprite() { return _spritePtr; }
@@ -50,6 +52,7 @@ public:
 		std::string _animation;
 		std::string _sound;
 		std::string _soundEnd;
+		std::string _shader;
 
 		float _duration{ 0.f };
 		time_us _startTime{ 0 };

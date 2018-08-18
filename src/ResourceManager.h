@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include "Texture.h"
+#include "Shader.h"
 #include "Sound.h"
 
 class TextureAtlas;
@@ -20,6 +21,9 @@ public:
 	const SoundPtr AddSound(const std::string& sName);
 	const SoundPtr GetSound(const std::string& sName, const bool onlyTry = false);
 
+	const ShaderPtr AddShader(const std::string& sName);
+	const ShaderPtr GetShader(const std::string& sName, const bool onlyTry = false);
+
 	const TexturePtr AddTexture(const std::string& tName);
 	bool RemoveTexture(const std::string& tName);
 	TextureRect GetTexture(const std::string& tName, const bool onlyTry = false);
@@ -29,6 +33,8 @@ public:
 private:
 	std::unordered_map<std::string, TexturePtr> _textures;
 	std::unordered_map<std::string, TextureAtlasPtr> _atlases;
+
+	std::unordered_map<std::string, ShaderPtr> _shaders;
 
 	std::unordered_map<std::string, SoundPtr> _sounds;
 
