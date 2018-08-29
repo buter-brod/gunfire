@@ -6,7 +6,7 @@ class Shader {
 
 public:
 
-	Shader(const std::string& name);
+	explicit Shader(const std::string& name);
 	sf::Shader* get() { return &_shader; }
 	bool Load(const std::string& vF, const std::string& fF);
 

@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "Utils.h"
 #include "Shader.h"
+#include "Particles.h"
 
 static const float basedOnAnimation{ -1.f };
 
@@ -43,16 +44,18 @@ public:
 
 	IDType getId() const { return _id; }
 	SpritePtr getSprite() { return _spritePtr; }
+	ParticlesPtr getParticles();
 
 	struct State {
 
-		State(const std::string& name) : _name(name) {}
+		explicit State(const std::string& name) : _name(name) {}
 
 		std::string _name;
 		std::string _animation;
 		std::string _sound;
 		std::string _soundEnd;
 		std::string _shader;
+		std::string _particles;
 
 		float _duration{ 0.f };
 		time_us _startTime{ 0 };
@@ -67,11 +70,12 @@ protected:
 	void updateState();
 	void updateAnimations();
 
-	virtual void onStateUpdate();
+	virtual void onStateUpdate(const StatePtr prevState);
 
 	StatePtr _state;
 	StatePtr _idleState;
 	SpritePtr _spritePtr;
+	ParticlesPtr _particles;
 
 	std::unordered_map<std::string, AnimationPtr> _animations;
 

@@ -32,7 +32,7 @@ protected:
 	/* --- gameplay specific BEGIN ---*/
 
 	void tryShoot(const Point& whereTo);
-	void spawn();
+	void checkSpawn();
 
 	void checkCollisions();
 	void onCollision(GameObjectPtr bullet, GameObjectPtr enemy);

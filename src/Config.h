@@ -51,6 +51,8 @@ namespace CfgStatic {
 	static const std::string atlasPng  = "atlas.png";
 	static const std::string atlasMtpf = "atlas.mtpf";
 
+	static const std::string smokePng = "smoke.png";
+
 	static const std::string restartImgFile    = "reset.png";
 	static const std::string bulletSpr         = "bottle_fire.png";
 	static const std::string boomSpr           = "boom.png";
@@ -74,13 +76,16 @@ namespace CfgStatic {
 
 	static const sf::Color btnNotHovered(230, 230, 230);
 	static const sf::Color scoreColor(0, 255, 0);
+	static const sf::Color smokeColor(192, 192, 192);
 
 	// FPS
 	
 	static const unsigned int simulationFPS = 60;
+
 	static const unsigned int bulletAnimFPS = 5;
-	static const unsigned int boomAnimFPS   = 30;
-	static const unsigned int enemyAnimFPS  = 5;
+	static const unsigned int   boomAnimFPS = 30;
+	static const unsigned int  enemyAnimFPS = 5;
+
 	const unsigned int fpsLogFramesCap = 50000;
 
 	// animation
@@ -93,6 +98,7 @@ namespace CfgStatic {
 
 	static const float throwDuration{ 0.5f };
 	static const float cooldown{ 1.5f };
+	static const float smokeLifetime{ 1.f };
 
 	// text
 
@@ -111,33 +117,45 @@ namespace CfgStatic {
 
 	static const float boomAcceleration    = 300.f;
 	static const float boomAngleSpeed      = 30.f;
+
 	static const float bulletAngleSpeedMin = 30.f;
 	static const float bulletAngleSpeedMax = 360.f;
 	static const float bulletSpeedMin      = 100.f;
 	static const float bulletSpeedMax      = 300.f;
 	static const float bulletSpeed         = 200.f;
+
 	static const float pixelizeSpeed       = 10.f;
 	static const float pixelizeCoeffMax    = 15.f;
+	
+	static const float smokeFadeIn         = 0.15f;
+	static const float smokeFadeOut        = 0.85f;
+	static const float smokeSpeed          = 20.f;
+	static const float smokeEmission       = 45.f;
 
 	// positions
 
 	static const float enemyPositionGapX    = 100;
 	static const float enemyPositionGapYMin = 80;
 	static const float enemyPositionGapYMax = 280;
+
 	static const float playerPositionGapY   = 145;
 	static const float bulletPositionGapY   = 290;
+
 	static const float scorePositionX       = 850;
 	static const float scorePositionY       = 700;
+
 	const float timerPositionX              = 80;
 	const float timerPositionY              = 700;
 
+	static const float smokeMaxDeflect      = 15.f;
+
 	//states
 
-	static const std::string idleStateName     = "idle";
+	static const std::string     idleStateName = "idle";
 	static const std::string cooldownStateName = "cooldown";
 	static const std::string shootingStateName = "shooting";
-	static const std::string boomStateName     = "boom";
-	static const std::string enemyDStateName   = "dying";
-	static const std::string deadStateName     = "dead";
+	static const std::string     boomStateName = "boom";
+	static const std::string   enemyDStateName = "dying";
+	static const std::string     deadStateName = "dead";
 }
 

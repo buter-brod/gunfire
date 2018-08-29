@@ -23,7 +23,7 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 	std::string input;
 
 	while (input_file >> input) {
-		size_t nameLen;
+		size_t nameLen(0);
 		(input_file >> nameLen).ignore(1);
 		input.resize(nameLen);
 		input_file.read(&input[0], nameLen);
@@ -32,7 +32,7 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 		input_file >> imgCount;
 
 		for (size_t index = 0; index < imgCount; index++){
-			size_t imgNameLen;
+			size_t imgNameLen(0);
 			(input_file >> imgNameLen).ignore(1);
 			input.resize(imgNameLen);
 			input_file.read(&input[0], imgNameLen);

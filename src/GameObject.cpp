@@ -3,8 +3,6 @@
 #include "Config.h"
 #include "ResourceManager.h"
 
-#include <Thor/Particles.hpp>
-
 GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
 
 	if (!_idleState) {
@@ -101,12 +99,7 @@ void GameObject::updateScale() {
 	_spritePtr->getSpr()->setOrigin(halfSize.getX(), halfSize.getY());
 }
 
-void GameObject::onStateUpdate() {
-}
-
-void GameObject::ChangeState(StatePtr newState) {
-
-	Log::Inst()->PutMessage("object " + _name + " id " + std::to_string(_id) + " will change state from " + (_state ? _state->_name : "-") + " to " + newState->_name);
+void GameObject::onStateUpdate(const StatePtr prevState) {
 
 	auto soundFunc = [](const std::string& soundName) {
 		if (!soundName.empty()) {
@@ -121,15 +114,22 @@ void GameObject::ChangeState(StatePtr newState) {
 		}
 	};
 
-	if (_state) {
-		soundFunc(_state->_soundEnd);
+	if (prevState) {
+		soundFunc(prevState->_soundEnd);
 	}
-	
-	soundFunc(newState->_sound);
 
+	soundFunc(_state->_sound);
+	_particles = Particles::Build(_state->_particles);
+}
+
+void GameObject::ChangeState(StatePtr newState) {
+
+	Log::Inst()->PutMessage("object " + _name + " id " + std::to_string(_id) + " will change state from " + (_state ? _state->_name : "-") + " to " + newState->_name);
+
+	StatePtr prevState = _state;
 	_state = newState;
 	_state->_startTime = Utils::getTime();
-	onStateUpdate();
+	onStateUpdate(prevState);
 }
 
 const std::string GameObject::GetState() const {
@@ -179,6 +179,11 @@ void GameObject::updateState() {
 		StatePtr newState = _state->_nextState ? _state->_nextState : _idleState;
 		ChangeState(newState);
 	}
+}
+
+ParticlesPtr GameObject::getParticles() {
+
+	return _particles;
 }
 
 ShaderPtr GameObject::GetShader() {
@@ -272,7 +277,7 @@ void GameObject::Update(float dt) {
 		}
 
 	}
-
+	
 	_speed += _acceleration * dt;
 	_position += _direction.normalized() * _speed * dt;
 
@@ -286,5 +291,19 @@ void GameObject::Update(float dt) {
 	if (_spritePtr) {
 		_spritePtr->getSpr()->setRotation(_rotation);
 		_spritePtr->getSpr()->setPosition(_position.getX(), _position.getY());
-	}	
+	}
+
+	if (_particles) {
+
+		Point emitterPos = _position;
+
+		if (_name == CfgStatic::bulletName) {
+
+			// smoke should go from the bottle neck
+			emitterPos.Y() -= GetSize().getY() / 2.f;
+			emitterPos.rotate(_position, _rotation);
+		}
+
+		_particles->Update(dt, emitterPos);
+	}
 }

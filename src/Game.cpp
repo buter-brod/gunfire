@@ -68,13 +68,14 @@ void Game::Update(const float dt) {
 	updateText();
 
 	_bgObject->Update(dt);
+
 	_playerObj->Update(dt);
 
 	checkObjectsObsolete(_enemyObjects);
 	checkObjectsObsolete(_bulletObjects);
 	checkObjectsObsolete(_effectObjects);
 
-	spawn();
+	checkSpawn();
 
 	for (const auto& obj : _enemyObjects)  { obj->Update(dt); }
 	for (const auto& obj : _bulletObjects) { obj->Update(dt); }
@@ -95,6 +96,11 @@ void Game::Draw(sf::RenderWindow* wnd) {
 			}
 
 			wnd->draw(*obj->getSprite()->getSpr(), shader);
+		}
+
+		const auto& particles = obj->getParticles();
+		if (particles) {
+			wnd->draw(*particles);
 		}
 	};
 
@@ -178,7 +184,7 @@ bool Game::removeObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 	return true;
 }
 
-void Game::spawn() {
+void Game::checkSpawn() {
 
 	unsigned int enemyCount = Config::Inst()->getInt("enemyCount");
 
@@ -295,6 +301,8 @@ void Game::tryShoot(const Point& whereTo) {
 	const float angleSpeed = Utils::rndfMinMax(CfgStatic::bulletAngleSpeedMin, CfgStatic::bulletAngleSpeedMax);
 
 	GameObjectPtr bottleObj = std::make_shared<GameObject>(newID(), CfgStatic::bulletName, CfgStatic::bulletSpr);
+
+	bottleObj->getIdleState()->_particles = "smoke";
 
 	bottleObj->AddAnimation(CfgStatic::bulletSpr, CfgStatic::bulletAnimFramesCount, CfgStatic::bulletAnimFPS);
 	bottleObj->AddAnimation(CfgStatic::boomSpr, CfgStatic::boomAnimFramesCount, CfgStatic::boomAnimFPS);

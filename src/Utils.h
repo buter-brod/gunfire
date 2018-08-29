@@ -26,7 +26,7 @@ namespace Utils {
 
 	class Point {
 	public:
-		Point() : _x(0.f), _y(0.f) {}
+		Point() noexcept : _x(0.f), _y(0.f)  {}
 		Point(float x, float y) : _x(x), _y(y) {}
 
 		Point operator+ (const Point& p) const;
@@ -44,6 +44,8 @@ namespace Utils {
 		void  operator*=(float val);
 		Point operator* (float val) const;
 		Point operator/ (float val) const;
+
+		void rotate(const Point& pivot, const float angle);
 
 		Point normalized() const;
 		float len() const;

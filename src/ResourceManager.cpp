@@ -4,7 +4,6 @@
 #include <SFML/Graphics/Texture.hpp>
 #include "TextureAtlas.h"
 
-//static const TexturePtr emptyTex = TexturePtr();
 static const TextureRect emptyTexRect = TextureRect();
 
 std::shared_ptr<ResourceManager>& ResourceManager::instancePtr() {

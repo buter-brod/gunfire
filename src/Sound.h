@@ -8,7 +8,7 @@
 class Sound {
 
 public: 
-	Sound() {}
+	Sound() noexcept {}
 	~Sound() {
 		Log::Inst()->PutMessage("~Sound: " + _name);
 	}

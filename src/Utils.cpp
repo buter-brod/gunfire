@@ -3,6 +3,8 @@
 #include <random>
 #include <chrono>
 
+#include <SFML/Graphics/Transform.hpp>
+
 static const float RANDOM_STRENGTH = 5000.f;
 
 namespace Utils {
@@ -56,6 +58,16 @@ namespace Utils {
 
 	std::string Point::strInt() const {
 		return std::string("(") + std::to_string(int(_x)) + ", " + std::to_string(int(_y)) + ")";
+	}
+
+	void Point::rotate(const Point& pivot, const float angle) {
+		*this -= pivot;
+		sf::Transform rotateTr;
+		rotateTr.rotate(angle);
+		sf::Vector2f posV2(getX(), getY());
+		posV2 = rotateTr.transformPoint(posV2);
+		*this = { posV2.x, posV2.y };
+		*this += pivot;
 	}
 
 	Point Point::operator/(float val) const {

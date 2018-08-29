@@ -6,7 +6,7 @@ class Sprite {
 
 public:
 	Sprite(const Texture& texture, const Rect& rectangle) : _sprite(*texture.getTex(), rectangle) {}
-	Sprite(const Texture& texture) : _sprite(*texture.getTex()) {}
+	explicit Sprite(const Texture& texture) : _sprite(*texture.getTex()) {}
 	sf::Sprite* getSpr() { return &_sprite; }
 
 private:
