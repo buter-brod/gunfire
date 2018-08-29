@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <memory>
 
+//#define RELEASE_BUILD
+
 class Config{
 
 public:
@@ -33,7 +35,11 @@ namespace CfgStatic {
 	// files
 
 	inline std::string getResourceDir() {
+#ifdef RELEASE_BUILD
+		return "./Resources/";
+#else
 		return "../Resources/";
+#endif
 	}
 
 	static const std::string configFile = getResourceDir() + "config.cfg";
