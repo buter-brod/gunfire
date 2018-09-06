@@ -119,7 +119,10 @@ void GameObject::onStateUpdate(const StatePtr prevState) {
 	}
 
 	soundFunc(_state->_sound);
-	_particles = Particles::Build(_state->_particles);
+
+	if (!prevState || prevState->_particles != _state->_particles) {
+		_particles = Particles::Build(_state->_particles);
+	}
 }
 
 void GameObject::ChangeState(StatePtr newState) {
