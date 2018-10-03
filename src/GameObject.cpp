@@ -6,7 +6,7 @@
 GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
 
 	if (!_idleState) {
-		_idleState = std::make_shared<State>(CfgStatic::idleStateName);
+		_idleState = State::New(CfgStatic::idleStateName);
 		_idleState->_animation = _idleAnimation;
 	}
 }
@@ -109,7 +109,7 @@ void GameObject::onStateUpdate(const StatePtr prevState) {
 				Log::Inst()->PutErr("GameObject::onStateUpdate unable to play sound " + soundName);
 			}
 			else {
-				soundPtr->get().play();
+				soundPtr->Play();
 			}
 		}
 	};
@@ -127,7 +127,7 @@ void GameObject::onStateUpdate(const StatePtr prevState) {
 
 void GameObject::ChangeState(StatePtr newState) {
 
-	Log::Inst()->PutMessage("object " + _name + " id " + std::to_string(_id) + " will change state from " + (_state ? _state->_name : "-") + " to " + newState->_name);
+	Log::Inst()->PutMessage("object " + _name + " id " + std::to_string(_id) + " will change state from " + (_state ? _state->_name : "(none)") + " to " + newState->_name);
 
 	StatePtr prevState = _state;
 	_state = newState;
@@ -192,34 +192,18 @@ ParticlesPtr GameObject::getParticles() {
 ShaderPtr GameObject::GetShader() {
 
 	const std::string& shaderName = _state->_shader;
+	ShaderPtr shader;
+
 	if (!shaderName.empty()) {
 		
-		ShaderPtr shader = ResourceManager::Inst()->GetShader(shaderName);
-		
-		if (shaderName == CfgStatic::pixelizeShader) { // pixelize-specific
+		shader = ResourceManager::Inst()->GetShader(shaderName);
 
-			const time_us time = Utils::getTime();
-			const float dtFromAnimBegin = Utils::dt(time, _state->_startTime);
-			const auto& bigRect = getSprite()->getSpr()->getTexture()->getSize();
-			const auto& smallRect = getSprite()->getSpr()->getTextureRect();
-			
-			const float coeff = std::min(CfgStatic::pixelizeCoeffMax, CfgStatic::pixelizeSpeed * dtFromAnimBegin + 1.f);
-
-			sf::Glsl::Vec4 texRectGlsl(
-				float(smallRect.left),
-				float(bigRect.y - smallRect.top),
-				float(smallRect.width),
-				float(smallRect.height));
-
-			shader->get()->setUniform("bigRectSize", sf::Glsl::Vec2(bigRect));
-			shader->get()->setUniform("smallRect", texRectGlsl);
-			shader->get()->setUniform("coeff", coeff);
+		if (!shader) {
+			Log::Inst()->PutErr("GameObject::GetShader error: unable to get " + shaderName);
 		}
-
-		return shader;
 	}
-
-	return ShaderPtr();
+	
+	return shader;
 }
 
 void GameObject::updateAnimations() {
@@ -258,27 +242,14 @@ void GameObject::updateAnimations() {
 	}
 }
 
+Point GameObject::getEmitterPosition() {
+	return _position;
+}
+
 void GameObject::Update(float dt) {
 
 	if (_direction.len() == 0) {
 		Log::Inst()->PutErr("GameObject::update error, invalid direction " + std::to_string(getId()));
-	}
-
-	if (_name == CfgStatic::enemyName) {
-		// handle turn back on edges
-
-		const float x = _position.getX();
-		const float xMax = CfgStatic::gameSize.getX();
-
-		const bool needTurn = _direction.getY() == 0.f && (
-			(_direction.getX() < 0.f && x < 0.f) ||
-			(_direction.getX() > 0.f && x > xMax));
-		
-		if (needTurn) {
-			_direction.X() = -_direction.getX();
-			_mirrorX = !_mirrorX;
-		}
-
 	}
 	
 	_speed += _acceleration * dt;
@@ -297,16 +268,7 @@ void GameObject::Update(float dt) {
 	}
 
 	if (_particles) {
-
-		Point emitterPos = _position;
-
-		if (_name == CfgStatic::bulletName) {
-
-			// smoke should go from the bottle neck
-			emitterPos.Y() -= GetSize().getY() / 2.f;
-			emitterPos.rotate(_position, _rotation);
-		}
-
+		const Point emitterPos = getEmitterPosition();
 		_particles->Update(dt, emitterPos);
 	}
 }

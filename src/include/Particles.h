@@ -24,6 +24,7 @@ public:
 
 	void SetPosDeviation(const float d) { _posDeviation = d; }
 	void SetPosition(const Utils::Point& p);
+	void Stop();
 
 protected:
 	thor::UniversalEmitter _e;
@@ -33,6 +34,7 @@ protected:
 class Particles : public thor::ParticleSystem {
 
 public:
+	void StopEmitters();
 	bool AddEmitter(EmitterPtr emitterPtr);
 	void Update(const float dt, const Utils::Point& p);
 

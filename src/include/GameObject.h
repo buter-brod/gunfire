@@ -18,7 +18,7 @@ public:
 	AnimationPtr AddAnimation(const std::string& name, const unsigned int framesCount, const unsigned int fps);
 	AnimationPtr GetAnimation(const std::string& animName, const bool onlyTry = false);
 	
-	void Update(float dt);
+	virtual void Update(float dt);
 
 	void SetScale(const float scale);
 	void SetSize(const Size& sz);
@@ -40,7 +40,7 @@ public:
 	const Point& GetDirection() const { return _direction; }
 	const Size& GetSize() const { return _size; }
 	const float GetSpeed() const { return _speed; }
-	ShaderPtr GetShader();
+	virtual ShaderPtr GetShader();
 
 	IDType getId() const { return _id; }
 	SpritePtr getSprite() { return _spritePtr; }
@@ -62,6 +62,10 @@ public:
 
 		StatePtr _nextState;
 		bool isEmpty() const { return _name.empty(); }
+
+		static StatePtr New(const std::string& name) {
+			return std::make_shared<State>(name);
+		}
 	};
 
 protected:
@@ -69,6 +73,8 @@ protected:
 	void updateScale();
 	void updateState();
 	void updateAnimations();
+
+	virtual Point getEmitterPosition();
 
 	virtual void onStateUpdate(const StatePtr prevState);
 

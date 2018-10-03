@@ -105,6 +105,7 @@ namespace CfgStatic {
 	static const float throwDuration{ 0.5f };
 	static const float cooldown{ 1.5f };
 	static const float smokeLifetime{ 1.f };
+	static const float boomLifetime{ 0.15f };
 
 	// text
 

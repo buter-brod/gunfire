@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include <deque>
 #include "Text.h"
+#include "Player.h"
 
 class Sprite;
 
@@ -42,7 +43,7 @@ protected:
 	void updateText();
 
 	GameObjectPtr _bgObject;
-	GameObjectPtr _playerObj;
+	PlayerPtr _playerObj;
 
 	TextPtr _timerTxt;
 	TextPtr _scoreTxt;
