@@ -107,7 +107,7 @@ const SoundPtr ResourceManager::AddSound(const std::string& sName) {
 
 	SoundPtr sndPtr = std::make_shared<Sound>();
 
-	const bool loadOk = sndPtr->load(CfgStatic::getResourceDir() + sName);
+	const bool loadOk = sndPtr->load(CfgStatic::getResourceDir() + CfgStatic::getSoundDir() + sName);
 	if (!loadOk) {
 		Log::Inst()->PutErr("ResourceManager::AddSound error: unable to load " + sName);
 		return SoundPtr();

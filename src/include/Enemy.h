@@ -6,7 +6,7 @@
 class Enemy : public GameObject {
 
 public:
-	Enemy(const IDType id);
+	Enemy(const IDType id, const GameWPtr game);
 
 	void Boom(const Point& bulletPos);
 	

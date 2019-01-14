@@ -35,7 +35,8 @@ namespace Utils {
 
 	float rndfMinMax(float min, float max) { return min + rnd01() * (max - min); }
 
-	float dt(time_us first, time_us second) {
+	
+	float dt(const time_us first, const time_us second) {
 
 		if (first < second) {
 			return 0; // very sad, but error.
@@ -43,6 +44,18 @@ namespace Utils {
 
 		const auto usDelta = first - second;
 		float dtSeconds = float(usDelta) / 1000.f / 1000.f;
+		return dtSeconds;
+	}
+	
+
+	float dt(const float first, const float second) {
+
+		if (first < second) {
+			return 0; // very sad, but error.
+		}
+
+		const auto usDelta = first - second;
+		const float dtSeconds = usDelta;
 		return dtSeconds;
 	}
 

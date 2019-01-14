@@ -7,10 +7,13 @@
 
 static const float basedOnAnimation{ -1.f };
 
+class Game;
+typedef std::weak_ptr<Game> GameWPtr;
+
 class GameObject {
 
 public:
-	GameObject(const IDType id, const std::string& name, const std::string& idleAnim);
+	GameObject(const IDType id, const std::string& name, const std::string& idleAnim, const GameWPtr game);
 
 	virtual ~GameObject();
 
@@ -58,7 +61,7 @@ public:
 		std::string _particles;
 
 		float _duration{ 0.f };
-		time_us _startTime{ 0 };
+		float _startTime{ 0 };
 
 		StatePtr _nextState;
 		bool isEmpty() const { return _name.empty(); }
@@ -77,6 +80,10 @@ protected:
 	virtual Point getEmitterPosition();
 
 	virtual void onStateUpdate(const StatePtr prevState);
+
+	GameWPtr _gamePtr;
+
+	float _gameSimulationTime{ 0.f };
 
 	StatePtr _state;
 	StatePtr _idleState;

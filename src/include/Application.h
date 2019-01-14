@@ -1,9 +1,11 @@
 #pragma once
 
-class Game;
 #include <memory>
 #include "Sprite.h"
 #include "Utils.h"
+
+class Game;
+typedef std::shared_ptr<Game> GamePtr;
 
 namespace sf {
 	class Event;
@@ -30,7 +32,8 @@ protected:
 
 private:
 
-	std::shared_ptr<Game> _gamePtr;
+	GamePtr _gamePtr;
 	SpritePtr _restartBtnImg;
+	SpritePtr _pauseBtnImg;
 	WindowPtr _window{ nullptr };
 };

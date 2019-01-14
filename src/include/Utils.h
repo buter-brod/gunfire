@@ -22,7 +22,8 @@ namespace Utils {
 
 	time_us getTime();
 
-	float dt(time_us first, time_us second);
+	float dt(const time_us first, const time_us second);
+	float dt(const float first, const float second);
 
 	class Point {
 	public:

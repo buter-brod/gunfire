@@ -2,9 +2,10 @@
 
 #include "Config.h"
 #include "ResourceManager.h"
+#include "Game.h"
 
-Enemy::Enemy(const IDType id)
-	: GameObject(id, CfgStatic::enemyName, CfgStatic::enemySpr) {
+Enemy::Enemy(const IDType id, const GameWPtr game)
+	: GameObject(id, CfgStatic::enemyName, CfgStatic::enemySpr, game) {
 
 	AddAnimation(CfgStatic::enemySpr, CfgStatic::enemyAnimFramesCount, CfgStatic::enemyAnimFPS);
 
@@ -29,7 +30,7 @@ ShaderPtr Enemy::GetShader() {
 
 	if (shader && shaderName == CfgStatic::pixelizeShader) {
 
-		const time_us time = Utils::getTime();
+		const float time = _gameSimulationTime;
 		const float dtFromAnimBegin = Utils::dt(time, _state->_startTime);
 		const auto& bigRect = getSprite()->getSpr()->getTexture()->getSize();
 		const auto& smallRect = getSprite()->getSpr()->getTextureRect();
@@ -69,7 +70,8 @@ void Enemy::Update(float dt) {
 	if (_particles) {
 
 		if (GetState() == CfgStatic::enemyDStateName) {
-			const time_us currTime = Utils::getTime();
+
+			const float currTime = _gameSimulationTime;
 			const float stateElapsed = Utils::dt(currTime, _state->_startTime);
 			if (stateElapsed > CfgStatic::boomLifetime) {
 				_particles->StopEmitters();

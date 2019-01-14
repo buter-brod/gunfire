@@ -31,7 +31,7 @@ ParticlesPtr Particles::Build(const std::string& config) {
 		auto ePtr = emitter->get();
 
 		ePtr->setParticleTextureIndex(index0);
-		ePtr->setParticleColor(CfgStatic::smokeColor);
+		ePtr->setParticleColor(CfgStatic::smokeClr);
 
 		ePtr->setParticleVelocity(thor::Distributions::deflect({ 0.f, -CfgStatic::smokeSpeed }, CfgStatic::smokeMaxDeflect));
 		ePtr->setParticleRotation(thor::Distributions::uniform(0.f, 360.f));
@@ -58,8 +58,8 @@ ParticlesPtr Particles::Build(const std::string& config) {
 		particlesPtr->setTexture(*texRect.texturePtr.lock()->getTex());
 		unsigned int index0 = particlesPtr->addTextureRect(texRect.rect);
 		
-		sf::Color fireColor1(192, 0, 0);
-		sf::Color fireColor2(255, 255, 0);
+		sf::Color fireColor1(128, 25, 0);
+		sf::Color fireColor2(255, 255, 165);
 
 		EmitterPtr emitter1 = std::make_shared<EmitterPtr::element_type>();
 		EmitterPtr emitter2 = std::make_shared<EmitterPtr::element_type>();

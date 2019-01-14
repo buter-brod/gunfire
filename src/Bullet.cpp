@@ -3,8 +3,8 @@
 #include "Bullet.h"
 #include "Config.h"
 
-Bullet::Bullet(const IDType id)
-	: GameObject(id, CfgStatic::bulletName, CfgStatic::bulletSpr) {
+Bullet::Bullet(const IDType id, const GameWPtr game)
+	: GameObject(id, CfgStatic::bulletName, CfgStatic::bulletSpr, game) {
 
 	getIdleState()->_particles = "smoke";
 

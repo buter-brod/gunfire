@@ -12,7 +12,7 @@ namespace sf {
 	class RenderWindow;
 }
 
-class Game {
+class Game : public std::enable_shared_from_this<Game> {
 public:
 	Game();
 	~Game();
@@ -25,6 +25,11 @@ public:
 	void OnCursorClicked(const Point& pt);
 	
 	Size GetSize() const;
+
+	bool GetPaused() const;
+	bool SetPaused(const bool paused);
+
+	float GetSimulationTime() const { return _simulationTime; };
 
 	IDType Game::newID();
 
@@ -49,9 +54,11 @@ protected:
 	TextPtr _scoreTxt;
 	TextPtr _gameOverText;
 
+	bool _paused{ false };
+
 	FontPtr _font;
 
-	time_us _startTimetamp{ 0 };
+	float _simulationTime{ 0 };
 
 	unsigned int _frags{ 0 };
 
@@ -63,7 +70,7 @@ protected:
 
 	/* --- gameplay specific END ---*/
 	
-	time_us Game::getTimeRemain() const;
+	float Game::getTimeRemain() const;
 
 	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr);
 	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr);

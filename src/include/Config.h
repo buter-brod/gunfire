@@ -34,6 +34,10 @@ namespace CfgStatic {
 
 	// files
 
+	inline std::string getSoundDir() {
+		return "sound/";
+	}
+
 	inline std::string getResourceDir() {
 #ifdef RELEASE_BUILD
 		return "./Resources/";
@@ -59,6 +63,7 @@ namespace CfgStatic {
 
 	static const std::string smokePng = "smoke.png";
 
+	static const std::string pauseImgFile      = "pause.png";
 	static const std::string restartImgFile    = "reset.png";
 	static const std::string bulletSpr         = "bottle_fire.png";
 	static const std::string boomSpr           = "boom.png";
@@ -80,9 +85,14 @@ namespace CfgStatic {
 
 	//colors 
 
-	static const sf::Color btnNotHovered(230, 230, 230);
-	static const sf::Color scoreColor(0, 255, 0);
-	static const sf::Color smokeColor(192, 192, 192);
+	static const sf::Color btnPauseOnClr(100, 100, 100);
+	static const sf::Color btnPauseOnHoverClr(150, 150, 150);
+	
+	static const sf::Color btnPauseOffNoHoverClr(230, 230, 230);
+
+	static const sf::Color btnNotHoveredClr(230, 230, 230);
+	static const sf::Color scoreClr(0, 255, 0);
+	static const sf::Color smokeClr(192, 192, 192);
 
 	// FPS
 	
@@ -131,7 +141,7 @@ namespace CfgStatic {
 	static const float bulletSpeedMax      = 300.f;
 	static const float bulletSpeed         = 200.f;
 
-	static const float pixelizeSpeed       = 10.f;
+	static const float pixelizeSpeed       = 5.f;
 	static const float pixelizeCoeffMax    = 15.f;
 	
 	static const float smokeFadeIn         = 0.15f;

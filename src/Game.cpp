@@ -18,7 +18,6 @@ Game::Game(){
 	Config::Inst();
 
 	Log::Inst()->PutMessage("Game::Game");
-	Init();
 }
 
 Game::~Game(){
@@ -30,11 +29,9 @@ Size Game::GetSize() const {
 	return CfgStatic::gameSize;
 }
 
-time_us Game::getTimeRemain() const {
+float Game::getTimeRemain() const {
 
-	const auto currClock = Utils::getTime();
-	const time_us elapsed_s = (currClock - _startTimetamp) / (1000 * 1000);
-
+	const float elapsed_s = _simulationTime;
 	const unsigned int roundDuration = Config::Inst()->getInt("roundDuration");
 
 	if (roundDuration > elapsed_s) {
@@ -47,7 +44,7 @@ time_us Game::getTimeRemain() const {
 
 void Game::updateText() {
 
-	const time_us timeRemainSec = getTimeRemain();
+	const float timeRemainSec = getTimeRemain();
 
 	_timerTxt->setString(CfgStatic::timerTxt + std::to_string(int(timeRemainSec)));
 	_scoreTxt->setString(CfgStatic::scoreTxt + std::to_string(_frags));
@@ -55,15 +52,15 @@ void Game::updateText() {
 
 void Game::Update(const float dt) {
 
-	const auto currClock = Utils::getTime();
-
-	if (_startTimetamp == 0) {
-		_startTimetamp = currClock;
+	if (_paused) {
+		return;
 	}
 
-	const time_us timeRemainSec = getTimeRemain();
+	_simulationTime += dt;
 
-	if (timeRemainSec == 0) {
+	const float timeRemainSec = getTimeRemain();
+
+	if (timeRemainSec == 0.f) {
 		return;
 	}
 
@@ -205,7 +202,7 @@ void Game::checkSpawn() {
 	const Point whereTo(center.getX(), fromY);
 	const Point direction(whereTo - from);
 
-	GameObjectPtr enemyObj = std::make_shared<Enemy>(newID());
+	GameObjectPtr enemyObj = std::make_shared<Enemy>(newID(), weak_from_this());
 
 	enemyObj->SetMirrorX(leftSide);
 	enemyObj->SetPosition(from);
@@ -269,7 +266,7 @@ void Game::tryShoot(const Point& whereTo) {
 		return;
 	}
 
-	GameObjectPtr bottleObj = std::make_shared<Bullet>(newID());
+	GameObjectPtr bottleObj = std::make_shared<Bullet>(newID(), weak_from_this());
 
 	bottleObj->SetPosition(from);
 	bottleObj->SetDirection(direction);
@@ -296,7 +293,7 @@ void Game::initText() {
 	if (!_scoreTxt) {
 		_scoreTxt = std::make_shared<Text>();
 		_scoreTxt->setFont(*_font);
-		_scoreTxt->setFillColor(CfgStatic::scoreColor);
+		_scoreTxt->setFillColor(CfgStatic::scoreClr);
 		_scoreTxt->setPosition(CfgStatic::scorePositionX, CfgStatic::scorePositionY);
 	}
 
@@ -356,23 +353,48 @@ void Game::Init() {
 	
 	ResourceManager::Inst()->AddTexture(CfgStatic::bgSprName);
 
-	_bgObject = std::make_shared<GameObject>(newID(), CfgStatic::bgName, CfgStatic::bgSprName);
+	_bgObject = std::make_shared<GameObject>(newID(), CfgStatic::bgName, CfgStatic::bgSprName, weak_from_this());
 	_bgObject->SetPosition(center);
 
-	_playerObj = std::make_shared<Player>(newID());
+	_playerObj = std::make_shared<Player>(newID(), weak_from_this());
 	_playerObj->SetPosition({ gameSize.getX() / 2.f, gameSize.getY() - CfgStatic::playerPositionGapY });
+
+	Update(0.f);
+}
+
+bool Game::GetPaused() const {
+	return _paused; 
+}
+
+bool Game::SetPaused(const bool paused) {
+
+	if (_paused == paused) {
+		Log::Inst()->PutMessage(Log::Channel::VERBOSE, "Game::SetPaused, _paused already " + std::string(paused ? "1" : "0"));
+		return false;
+	}
+
+	_paused = paused;
+	return true;
 }
 
 void Game::OnCursorMoved(const Point& pt) {
 
+	Log::Inst()->PutMessage(Log::Channel::VERBOSE, "Game::OnCursorMoved " + pt.strInt());
+
+	if (_paused) {
+		return;
+	}
+
 	const bool onLeftSide = pt.getX() < GetSize().getX() / 2.f;
 	_playerObj->SetMirrorX(onLeftSide);
-
-	Log::Inst()->PutMessage(Log::Channel::VERBOSE, "Game::OnCursorMoved " + pt.strInt());
 }
 
 void Game::OnCursorClicked(const Point& pt) {
 	Log::Inst()->PutMessage("Game::OnCursorClicked " + pt.strInt());
+
+	if (_paused) {
+		return;
+	}
 
 	tryShoot(pt);
 }

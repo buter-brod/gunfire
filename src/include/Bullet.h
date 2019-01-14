@@ -1,6 +1,5 @@
 #pragma once
 
-#pragma once
 #include "GameObject.h"
 #include <memory>
 
@@ -8,7 +7,7 @@ class Bullet : public GameObject {
 
 public:
 
-	Bullet(const IDType id);
+	Bullet(const IDType id, const GameWPtr game);
 	void Boom();
 
 protected:

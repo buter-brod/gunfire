@@ -2,8 +2,13 @@
 #include "Log.h"
 #include "Config.h"
 #include "ResourceManager.h"
+#include "Game.h"
 
-GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
+GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim, const GameWPtr game) :_id(id), _name(name), _idleAnimation(idleAnim), _gamePtr(game) {
+
+	if (!_gamePtr.lock()) {
+		Log::Inst()->PutErr("GameObject::GameObject " + Utils::toString(id) + " trying to create with empty game");
+	}
 
 	if (!_idleState) {
 		_idleState = State::New(CfgStatic::idleStateName);
@@ -131,7 +136,7 @@ void GameObject::ChangeState(StatePtr newState) {
 
 	StatePtr prevState = _state;
 	_state = newState;
-	_state->_startTime = Utils::getTime();
+	_state->_startTime = _gameSimulationTime;
 	onStateUpdate(prevState);
 }
 
@@ -141,7 +146,7 @@ const std::string GameObject::GetState() const {
 
 void GameObject::updateState() {
 
-	const time_us currTime = Utils::getTime();
+	const float currTime = _gameSimulationTime;
 
 	if (!_state) {
 		
@@ -153,7 +158,6 @@ void GameObject::updateState() {
 		ChangeState(_idleState);
 	}
 
-	const float stateElapsed = Utils::dt(currTime, _state->_startTime);
 	float duration = _state->_duration;
 
 	if (!_state->_animation.empty()) {
@@ -177,6 +181,8 @@ void GameObject::updateState() {
 			}
 		}
 	}
+
+	const float stateElapsed = Utils::dt(currTime, _state->_startTime);
 
 	if (duration > 0.f && stateElapsed > duration) {
 		StatePtr newState = _state->_nextState ? _state->_nextState : _idleState;
@@ -223,7 +229,7 @@ void GameObject::updateAnimations() {
 		return;
 	}
 
-	const time_us time = Utils::getTime();
+	const float time = _gameSimulationTime;
 	const float dtFromAnimBegin = Utils::dt(time, _state->_startTime);
 	const auto& textureRect = animation->GetTexRectFor(dtFromAnimBegin);
 	const auto& texturePtr = textureRect.texturePtr.lock();
@@ -247,6 +253,15 @@ Point GameObject::getEmitterPosition() {
 }
 
 void GameObject::Update(float dt) {
+
+	auto gameLock = _gamePtr.lock();
+
+	if (!gameLock) {
+		Log::Inst()->PutMessage("GameObject::Update error, gameLock invalid");
+		return;
+	}
+
+	_gameSimulationTime = gameLock->GetSimulationTime();
 
 	if (_direction.len() == 0) {
 		Log::Inst()->PutErr("GameObject::update error, invalid direction " + std::to_string(getId()));

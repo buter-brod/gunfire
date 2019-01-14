@@ -1,8 +1,8 @@
 #include "Player.h"
 #include "Config.h"
 
-Player::Player(const IDType id) 
-: GameObject(id, CfgStatic::playerName, CfgStatic::playerSpr) {
+Player::Player(const IDType id, GameWPtr game)
+: GameObject(id, CfgStatic::playerName, CfgStatic::playerSpr, game) {
 
 	AddAnimation(CfgStatic::playerFireSpr);
 	AddAnimation(CfgStatic::playerCooldownSpr);
