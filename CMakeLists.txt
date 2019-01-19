@@ -20,14 +20,22 @@ if(APPLE OR WINDOWS)
     cocos_mark_multi_resources(common_res_files RES_TO "Resources" FOLDERS ${GAME_RES_FOLDER})
 endif()
 
+file(GLOB SRC 
+	${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
+	)
+	
+file(GLOB HDR
+	${CMAKE_CURRENT_LIST_DIR}/src/include/*.h
+	)
+
 # add cross-platforms source files and header files 
 list(APPEND GAME_SOURCE
-	 src/*.cpp
-	 src/include/*.h
+	 ${SRC}
      Classes/AppDelegate.cpp
      Classes/Scene.cpp
      )
 list(APPEND GAME_HEADER
+     ${HDR}
      Classes/AppDelegate.h
      Classes/Scene.h
      )
@@ -99,6 +107,7 @@ endif()
 
 target_link_libraries(${APP_NAME} cocos2d)
 target_include_directories(${APP_NAME}
+		PRIVATE src/include
         PRIVATE Classes
         PRIVATE ${COCOS2DX_ROOT_PATH}/cocos/audio/include/
 )
