@@ -1,28 +1,124 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.6)
 
-project(gunfire)
+set(APP_NAME gunfirec)
+project(${APP_NAME})
 
-set(SFML_STATIC_LIBRARIES TRUE)
-set(SFML_DIR 3rdparty/SFML/lib/cmake/SFML)
+set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cocos2d)
+set(CMAKE_MODULE_PATH ${COCOS2DX_ROOT_PATH}/cmake/Modules/)
 
-file(GLOB SRC 
-	${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/include/*.h
-	)
+include(CocosBuildSet)
+add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos ${ENGINE_BINARY_PATH}/cocos/core)
 
-add_executable(gunfire src/main.cpp)
-target_sources(gunfire PRIVATE ${SRC})
+# record sources, headers, resources...
+set(GAME_SOURCE)
+set(GAME_HEADER)
 
+set(GAME_RES_FOLDER
+    "${CMAKE_CURRENT_SOURCE_DIR}/Resources"
+    )
+if(APPLE OR WINDOWS)
+    cocos_mark_multi_resources(common_res_files RES_TO "Resources" FOLDERS ${GAME_RES_FOLDER})
+endif()
 
-INCLUDE_DIRECTORIES(src/include)
-INCLUDE_DIRECTORIES(3rdparty/thor/include)
-LINK_DIRECTORIES(3rdparty/thor/lib)
+# add cross-platforms source files and header files 
+list(APPEND GAME_SOURCE
+	 src/*.cpp
+	 src/include/*.h
+     Classes/AppDelegate.cpp
+     Classes/Scene.cpp
+     )
+list(APPEND GAME_HEADER
+     Classes/AppDelegate.h
+     Classes/Scene.h
+     )
 
-find_library(THOR_LIBRARY_D thor-s-d.lib HINTS 3rdparty/thor/lib)
-find_library(THOR_LIBRARY thor-s.lib HINTS 3rdparty/thor/lib)
+if(ANDROID)
+    # change APP_NAME to the share library name for Android, it's value depend on AndroidManifest.xml
+    set(APP_NAME gunfirec)
+    list(APPEND GAME_SOURCE
+         proj.android/app/jni/cpp/main.cpp
+         )
+elseif(LINUX)
+    list(APPEND GAME_SOURCE
+         proj.linux/main.cpp
+         )
+elseif(WINDOWS)
+    list(APPEND GAME_HEADER
+         proj.win32/main.h
+         proj.win32/resource.h
+         )
+    list(APPEND GAME_SOURCE
+         proj.win32/main.cpp
+         proj.win32/game.rc
+         ${common_res_files}
+         )
+elseif(APPLE)
+    if(IOS)
+        list(APPEND GAME_HEADER
+             proj.ios_mac/ios/AppController.h
+             proj.ios_mac/ios/RootViewController.h
+             )
+        set(APP_UI_RES
+            proj.ios_mac/ios/LaunchScreen.storyboard
+            proj.ios_mac/ios/LaunchScreenBackground.png
+            proj.ios_mac/ios/Images.xcassets
+            )
+        list(APPEND GAME_SOURCE
+             proj.ios_mac/ios/main.m
+             proj.ios_mac/ios/AppController.mm
+             proj.ios_mac/ios/RootViewController.mm
+             proj.ios_mac/ios/Prefix.pch
+             ${APP_UI_RES}
+             )
+    elseif(MACOSX)
+        set(APP_UI_RES
+            proj.ios_mac/mac/Icon.icns
+            proj.ios_mac/mac/Info.plist
+            )
+        list(APPEND GAME_SOURCE
+             proj.ios_mac/mac/main.cpp
+             proj.ios_mac/mac/Prefix.pch
+             ${APP_UI_RES}
+             )
+    endif()
+    list(APPEND GAME_SOURCE ${common_res_files})
+endif()
 
-target_link_libraries(gunfire debug ${THOR_LIBRARY_D})
-target_link_libraries(gunfire ${THOR_LIBRARY})
+# mark app complie info and libs info
+set(all_code_files
+    ${GAME_HEADER}
+    ${GAME_SOURCE}
+    )
+if(NOT ANDROID)
+    add_executable(${APP_NAME} ${all_code_files})
+else()
+    add_library(${APP_NAME} SHARED ${all_code_files})
+    add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos/platform/android ${ENGINE_BINARY_PATH}/cocos/platform)
+    target_link_libraries(${APP_NAME} -Wl,--whole-archive cpp_android_spec -Wl,--no-whole-archive)
+endif()
 
-find_package(SFML 2.5 COMPONENTS graphics audio REQUIRED)
-target_link_libraries(gunfire sfml-graphics sfml-audio)
+target_link_libraries(${APP_NAME} cocos2d)
+target_include_directories(${APP_NAME}
+        PRIVATE Classes
+        PRIVATE ${COCOS2DX_ROOT_PATH}/cocos/audio/include/
+)
+
+# mark app resources
+setup_cocos_app_config(${APP_NAME})
+if(APPLE)
+    set_target_properties(${APP_NAME} PROPERTIES RESOURCE "${APP_UI_RES}")
+    if(MACOSX)
+        set_target_properties(${APP_NAME} PROPERTIES
+                              MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/proj.ios_mac/mac/Info.plist"
+                              )
+    elseif(IOS)
+        cocos_pak_xcode(${APP_NAME} INFO_PLIST "iOSBundleInfo.plist.in")
+        set_xcode_property(${APP_NAME} ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon")
+    endif()
+elseif(WINDOWS)
+    cocos_copy_target_dll(${APP_NAME} COPY_TO ${APP_RES_DIR}/..)
+endif()
+
+if(LINUX OR WINDOWS)
+    cocos_copy_res(COPY_TO ${APP_RES_DIR} FOLDERS ${GAME_RES_FOLDER})
+endif()
