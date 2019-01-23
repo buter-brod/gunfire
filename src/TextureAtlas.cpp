@@ -1,5 +1,6 @@
 #include "TextureAtlas.h"
 #include <fstream>
+#include "Utils.h"
 #include "Config.h"
 #include "Log.h"
 
@@ -37,8 +38,15 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 			input.resize(imgNameLen);
 			input_file.read(&input[0], imgNameLen);
 
-			Rect texture_rect;
-			input_file >> texture_rect.left >> texture_rect.top >> texture_rect.width >> texture_rect.height;
+			int x, y, w, h;
+
+			input_file >> x >> y >> w >> h;
+
+			Utils::Rect texture_rect;
+
+			texture_rect._origin = { float(x), float(y) };
+			texture_rect._size = { float(w), float(h) };
+
 			_rects[input] = texture_rect;
 		}
 	}
@@ -49,16 +57,16 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 	return true;
 }
 
-const Rect& TextureAtlas::getRect(const std::string& name) const {
+const Utils::Rect& TextureAtlas::getRect(const std::string& name) const {
 
-	static const Rect nullRect;
+	static const Utils::Rect nullRect;
 	const auto& rectIt = _rects.find(name);
 
 	if (rectIt == _rects.end()) {
 		return nullRect;
 	}
 
-	const Rect& rect = rectIt->second;
+	const Utils::Rect& rect = rectIt->second;
 
 	return rect;
 }

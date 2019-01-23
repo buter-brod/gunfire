@@ -3,6 +3,7 @@
 #include "Config.h"
 #include "ResourceManager.h"
 #include "Game.h"
+#include "sfml_Utils.h"
 
 GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim, const GameWPtr game) :_id(id), _name(name), _idleAnimation(idleAnim), _gamePtr(game) {
 
@@ -244,7 +245,7 @@ void GameObject::updateAnimations() {
 	}
 	else {
 		_spritePtr->getSpr()->setTexture(*texturePtr->getTex());
-		_spritePtr->getSpr()->setTextureRect(textureRect.rect);
+		_spritePtr->getSpr()->setTextureRect(Utils::toSfmlRect(textureRect.rect));
 	}
 }
 

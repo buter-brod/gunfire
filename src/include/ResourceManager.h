@@ -31,14 +31,14 @@ public:
 	bool LoadAtlas(const std::string& tName, const std::string& descName);
 
 private:
-	std::unordered_map<std::string, TexturePtr> _textures;
-	std::unordered_map<std::string, TextureAtlasPtr> _atlases;
-
-	std::unordered_map<std::string, ShaderPtr> _shaders;
-
-	std::unordered_map<std::string, SoundPtr> _sounds;
 
 	ResourceManager::ResourceManager();
-
 	static std::shared_ptr<ResourceManager>& instancePtr();
+
+	template<class ResType> using ResMap = std::unordered_map<std::string, ResType>;
+
+	ResMap<TexturePtr> _textures;
+	ResMap<TextureAtlasPtr> _atlases;
+	ResMap<ShaderPtr> _shaders;
+	ResMap<SoundPtr> _sounds;
 };

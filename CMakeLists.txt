@@ -9,12 +9,19 @@ file(GLOB SRC
 	${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/include/*.h
 	)
+file(GLOB ENGINE_SPECIFIC_SRC
+	${CMAKE_CURRENT_LIST_DIR}/src/engine_specific/sfml/*.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/engine_specific/sfml/*.h
+	)
 
 add_executable(gunfire src/main.cpp)
-target_sources(gunfire PRIVATE ${SRC})
+target_sources(gunfire PRIVATE ${SRC} ${ENGINE_SPECIFIC_SRC})
 
+source_group("engine_specific" FILES ${ENGINE_SPECIFIC_SRC})
 
 INCLUDE_DIRECTORIES(src/include)
+INCLUDE_DIRECTORIES(src/engine_specific/sfml)
+
 INCLUDE_DIRECTORIES(3rdparty/thor/include)
 LINK_DIRECTORIES(3rdparty/thor/lib)
 
@@ -26,3 +33,16 @@ target_link_libraries(gunfire ${THOR_LIBRARY})
 
 find_package(SFML 2.5 COMPONENTS graphics audio REQUIRED)
 target_link_libraries(gunfire sfml-graphics sfml-audio)
+
+ADD_CUSTOM_COMMAND(
+    TARGET gunfire
+    POST_BUILD
+	
+	COMMAND ${CMAKE_COMMAND} -E copy
+${CMAKE_CURRENT_LIST_DIR}/Resources/openal32.dll
+${CMAKE_CURRENT_LIST_DIR}/bin/debug
+
+	COMMAND ${CMAKE_COMMAND} -E copy
+${CMAKE_CURRENT_LIST_DIR}/Resources/openal32.dll
+${CMAKE_CURRENT_LIST_DIR}/bin/release
+)

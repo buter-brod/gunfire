@@ -2,13 +2,13 @@
 
 #include <string>
 #include <SFML/Graphics/Texture.hpp>
-#include "Rect.h"
+#include "Utils.h"
 
 class Texture {
 
 public:
 	const sf::Texture* getTex() const;
-	bool loadFromFile(const std::string& filename, const Rect& area = Rect());
+	bool loadFromFile(const std::string& filename, const Utils::Rect& area = Utils::Rect());
 	~Texture();
 
 private:
@@ -21,7 +21,11 @@ typedef std::weak_ptr<Texture> TextureWPtr;
 
 struct TextureRect {
 	TextureWPtr texturePtr;
-	Rect rect;
+	Utils::Rect rect;
 
-	bool isEmpty() const { return rect.width == 0; }
+	bool isEmpty() const {
+		return
+			rect._size.getX() == 0.f &&
+			rect._size.getY() == 0.f;
+	}
 };

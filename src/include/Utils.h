@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 typedef unsigned long IDType;
 
@@ -25,6 +26,19 @@ namespace Utils {
 	float dt(const time_us first, const time_us second);
 	float dt(const float first, const float second);
 
+	struct Color {
+
+		Color(unsigned char r, unsigned char g, unsigned char b, unsigned char a) : _r(r), _g(g), _b(b), _a(a) {};
+		Color(unsigned char r, unsigned char g, unsigned char b) : _r(r), _g(g), _b(b), _a(255) {};
+
+		unsigned char _r{ 0 };
+		unsigned char _g{ 0 };
+		unsigned char _b{ 0 };
+		unsigned char _a{ 0 };
+	};
+
+	const std::string& rndStr(const std::vector<std::string>& vec);
+
 	class Point {
 	public:
 		Point() noexcept : _x(0.f), _y(0.f)  {}
@@ -46,7 +60,13 @@ namespace Utils {
 		Point operator* (float val) const;
 		Point operator/ (float val) const;
 
-		void rotate(const Point& pivot, const float angle);
+		bool operator==(const Point& other) const {
+			return
+				_x == other._x &&
+				_y == other._y;
+		}
+
+		void rotate(const Point& pivot, const float angleDeg);
 
 		Point normalized() const;
 		float len() const;
@@ -64,7 +84,28 @@ namespace Utils {
 		std::string strInt() const;
 
 	protected:
-		float _x, _y;
+		float _x{ 0.f };
+		float _y{ 0.f };
+	};
+
+	struct Rect {
+		Rect() {}
+		Rect(const Point& p1, const Point& p2) : _origin(p1), _size(p2) {}
+		Rect(const float v1, const float v2, const float v3, const float v4) : _origin({ v1, v2 }), _size({v3, v4}) {}
+
+		bool operator !=(const Rect& other) const {
+			const bool equal = (*this == other);
+			return !equal;
+		}
+
+		bool operator ==(const Rect& other) const{
+			return
+				(_origin == other._origin) &&
+				(_size == other._size);
+		}
+
+		Point _origin;
+		Point _size;
 	};
 
 	std::string toString(const size_t i);

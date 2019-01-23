@@ -1,4 +1,4 @@
-#include "Application.h"
+#include "sfml_Application.h"
 #include "Config.h"
 #include "Game.h"
 #include "Log.h"
@@ -23,6 +23,8 @@ void Application::freeResources() {
 	_gamePtr = nullptr;
 }
 
+void setGameRenderWindow(sf::RenderWindow* wnd);
+
 void Application::startGame() {
 
 	Log::Inst()->PutMessage("Application::startGame");
@@ -34,6 +36,8 @@ void Application::startGame() {
 
 	_gamePtr = std::make_shared<Game>();
 	_gamePtr->Init();
+
+	setGameRenderWindow(_window.get());
 }
 
 bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
@@ -53,10 +57,10 @@ void Application::handleEvent(sf::Event* event) {
 		sf::Color pauseBtnClr = sf::Color::White;
 
 		if (_gamePtr->GetPaused()) {
-			pauseBtnClr = mouseOnPauseBtn ? CfgStatic::btnPauseOnHoverClr : CfgStatic::btnPauseOnClr;
+			pauseBtnClr = Utils::toSfmlColor(mouseOnPauseBtn ? CfgStatic::btnPauseOnHoverClr : CfgStatic::btnPauseOnClr);
 		}
 		else if (!mouseOnPauseBtn) {
-			pauseBtnClr = CfgStatic::btnPauseOffNoHoverClr;
+			pauseBtnClr = Utils::toSfmlColor(CfgStatic::btnPauseOffNoHoverClr);
 		}
 
 		_pauseBtnImg->getSpr()->setColor(pauseBtnClr);
@@ -74,7 +78,7 @@ void Application::handleEvent(sf::Event* event) {
 			_gamePtr->OnCursorMoved(toGamePoint(mousePos));
 			
 			const bool mouseOnRestartBtn = isMouseOn(_restartBtnImg, mousePos);
-			_restartBtnImg->getSpr()->setColor(mouseOnRestartBtn ? sf::Color::White : CfgStatic::btnNotHoveredClr);
+			_restartBtnImg->getSpr()->setColor(mouseOnRestartBtn ? sf::Color::White : Utils::toSfmlColor(CfgStatic::btnNotHoveredClr));
 
 			refreshPauseColor();
 		}
@@ -137,24 +141,24 @@ bool Application::init() {
 
 	TexturePtr pauseBtnTex = pauseTexRect.texturePtr.lock();
 	_pauseBtnImg = std::make_shared<Sprite>(*pauseBtnTex);
-	_pauseBtnImg->getSpr()->setTextureRect(pauseTexRect.rect);
+	_pauseBtnImg->getSpr()->setTextureRect(Utils::toSfmlRect(pauseTexRect.rect));
 	_pauseBtnImg->getSpr()->setPosition(0.f, 0.f);
 
 	TexturePtr restartBtnTex = restartTexRect.texturePtr.lock();
 	_restartBtnImg = std::make_shared<Sprite>(*restartBtnTex);
-	_restartBtnImg->getSpr()->setTextureRect(restartTexRect.rect);
+	_restartBtnImg->getSpr()->setTextureRect(Utils::toSfmlRect(restartTexRect.rect));
 	_restartBtnImg->getSpr()->setPosition(CfgStatic::windowSize.getX() - _restartBtnImg->getSpr()->getTextureRect().width, 0.f);
 
-	startGame();
-
 	_window = std::make_shared<sf::RenderWindow>(sf::VideoMode(CfgStatic::windowSize.i_X(), CfgStatic::windowSize.i_Y()), CfgStatic::appTitle, sf::Style::Titlebar | sf::Style::Close);
+
+	startGame();
 
 	return true;
 }
 
 void Application::draw() {
 
-	_gamePtr->Draw(_window.get());
+	_gamePtr->Draw();
 	_window->draw(*_pauseBtnImg->getSpr());
 	_window->draw(*_restartBtnImg->getSpr());
 	_window->display();
@@ -162,8 +166,6 @@ void Application::draw() {
 
 void Application::gameLoop() {
 
-	const float dt = 1.f / CfgStatic::simulationFPS;
-	float timeAccumulator = 0.f;
 	time_us currentTime = Utils::getTime();
 	unsigned int fpsLogFramesCount = 0;
 	time_us fpsLogCountTimeStart = currentTime;
@@ -177,12 +179,8 @@ void Application::gameLoop() {
 		const time_us newTime = Utils::getTime();
 		const float frameTime = Utils::dt(newTime, currentTime);
 		currentTime = newTime;
-		timeAccumulator += frameTime;
 
-		while (timeAccumulator >= dt) {
-			_gamePtr->Update(dt);
-			timeAccumulator -= dt;
-		}
+		_gamePtr->Update(frameTime);
 
 		draw();
 

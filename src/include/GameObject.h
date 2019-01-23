@@ -97,9 +97,9 @@ protected:
 	Size _size;
 
 	float _scale       { 1.f };
-	float _rotation    { 0.f };
+	float _rotation    { 0.f }; // degrees!
 	float _speed       { 0.f };
-	float _angleSpeed  { 0.f };
+	float _angleSpeed  { 0.f }; // degrees!
 	float _acceleration{ 0.f };
 
 	bool _mirrorX{ false };

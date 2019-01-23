@@ -7,8 +7,6 @@
 #include "Enemy.h"
 #include "Bullet.h"
 
-#include <SFML/Graphics/RenderWindow.hpp>
-
 IDType Game::newID(){
 	return _nextID++;
 }
@@ -16,7 +14,6 @@ IDType Game::newID(){
 Game::Game(){
 
 	Config::Inst();
-
 	Log::Inst()->PutMessage("Game::Game");
 }
 
@@ -50,8 +47,7 @@ void Game::updateText() {
 	_scoreTxt->setString(CfgStatic::scoreTxt + std::to_string(_frags));
 }
 
-void Game::Update(const float dt) {
-
+void Game::update(const float dt) {
 	if (_paused) {
 		return;
 	}
@@ -83,40 +79,14 @@ void Game::Update(const float dt) {
 	checkCollisions();
 }
 
-void Game::Draw(sf::RenderWindow* wnd) {
+void Game::Update(const float frameDt) {
+	
+	const float dt = 1.f / CfgStatic::simulationFPS;
+	_simulationTimeAcc += frameDt;
 
-	auto drawObj = [wnd](GameObjectPtr obj) {
-		const auto& spr = obj->getSprite();
-		if (spr) {
-			sf::Shader* shader{ nullptr };
-			const auto& shPtr = obj->GetShader();
-			if (shPtr) {
-				shader = shPtr->get();
-			}
-
-			wnd->draw(*obj->getSprite()->getSpr(), shader);
-		}
-
-		const auto& particles = obj->getParticles();
-		if (particles) {
-			wnd->draw(*particles);
-		}
-	};
-
-	drawObj(_bgObject);
-	drawObj(_playerObj);
-
-	for (const auto& obj : _enemyObjects)  { drawObj(obj); }
-	for (const auto& obj : _bulletObjects) { drawObj(obj); }
-	for (const auto& obj : _effectObjects) { drawObj(obj); }
-
-	wnd->draw(*_scoreTxt);
-
-	if (getTimeRemain() > 0) {
-		wnd->draw(*_timerTxt);
-	}
-	else {
-		wnd->draw(*_gameOverText);
+	while (_simulationTimeAcc >= dt) {
+		update(dt);
+		_simulationTimeAcc -= dt;
 	}
 }
 
@@ -230,13 +200,18 @@ bool collides(GameObjectPtr obj1, GameObjectPtr obj2) {
 void Game::checkCollisions() {
 
 	for (const auto& bulletPtr : _bulletObjects) {
-		for (const auto& enemyPtr : _enemyObjects) {
 
-			if (bulletPtr->GetState() == CfgStatic::idleStateName) {
-				if (collides(bulletPtr, enemyPtr)) {
+		const bool bulletCanExplode = (bulletPtr->GetState() == CfgStatic::idleStateName);
+
+		if (bulletCanExplode) {
+			for (const auto& enemyPtr : _enemyObjects) {
+
+				const bool enemyCanExplode = (enemyPtr->GetState() == CfgStatic::idleStateName);
+
+				if (enemyCanExplode && collides(bulletPtr, enemyPtr)) {
 					onCollision(bulletPtr, enemyPtr);
 				}
-			}			
+			}
 		}
 	}
 }
@@ -293,7 +268,7 @@ void Game::initText() {
 	if (!_scoreTxt) {
 		_scoreTxt = std::make_shared<Text>();
 		_scoreTxt->setFont(*_font);
-		_scoreTxt->setFillColor(CfgStatic::scoreClr);
+		_scoreTxt->setFillColor(Utils::toSfmlColor(CfgStatic::scoreClr));
 		_scoreTxt->setPosition(CfgStatic::scorePositionX, CfgStatic::scorePositionY);
 	}
 
@@ -359,7 +334,7 @@ void Game::Init() {
 	_playerObj = std::make_shared<Player>(newID(), weak_from_this());
 	_playerObj->SetPosition({ gameSize.getX() / 2.f, gameSize.getY() - CfgStatic::playerPositionGapY });
 
-	Update(0.f);
+	update(0.f);
 }
 
 bool Game::GetPaused() const {

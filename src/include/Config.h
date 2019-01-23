@@ -1,6 +1,5 @@
 #pragma once
 #include "Utils.h"
-#include <SFML/Graphics/Color.hpp>
 #include <vector>
 #include <unordered_map>
 #include <memory>
@@ -85,21 +84,21 @@ namespace CfgStatic {
 
 	//colors 
 
-	static const sf::Color btnPauseOnClr(100, 100, 100);
-	static const sf::Color btnPauseOnHoverClr(150, 150, 150);
+	static const Utils::Color btnPauseOnClr(100, 100, 100);
+	static const Utils::Color btnPauseOnHoverClr(150, 150, 150);
 	
-	static const sf::Color btnPauseOffNoHoverClr(230, 230, 230);
+	static const Utils::Color btnPauseOffNoHoverClr(230, 230, 230);
 
-	static const sf::Color btnNotHoveredClr(230, 230, 230);
-	static const sf::Color scoreClr(0, 255, 0);
-	static const sf::Color smokeClr(192, 192, 192);
+	static const Utils::Color btnNotHoveredClr(230, 230, 230);
+	static const Utils::Color scoreClr(0, 255, 0);
+	static const Utils::Color smokeClr(192, 192, 192);
 
 	// FPS
 	
 	static const unsigned int simulationFPS = 60;
 
 	static const unsigned int bulletAnimFPS = 5;
-	static const unsigned int   boomAnimFPS = 30;
+	static const unsigned int   boomAnimFPS = 20;
 	static const unsigned int  enemyAnimFPS = 5;
 
 	const unsigned int fpsLogFramesCap = 50000;
@@ -172,6 +171,7 @@ namespace CfgStatic {
 	static const std::string cooldownStateName = "cooldown";
 	static const std::string shootingStateName = "shooting";
 	static const std::string     boomStateName = "boom";
+	static const std::string   boomedStateName = "boomed";
 	static const std::string   enemyDStateName = "dying";
 	static const std::string     deadStateName = "dead";
 }

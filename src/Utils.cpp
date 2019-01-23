@@ -3,7 +3,8 @@
 #include <random>
 #include <chrono>
 
-#include <SFML/Graphics/Transform.hpp>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 static const float RANDOM_STRENGTH = 5000.f;
 
@@ -22,6 +23,16 @@ namespace Utils {
 		return rnd0xi(2) == 0;
 	}
 	
+	const std::string& rndStr(const std::vector<std::string>& vec) {
+
+		if (vec.empty()) {
+			static const std::string errorStr = "";
+			return errorStr; // sad but error.
+		}
+
+		return vec[Utils::rnd0xi((unsigned int)vec.size())];
+	}
+
 	size_t rnd() {
 
 		static std::default_random_engine rng(std::random_device{}());
@@ -65,22 +76,30 @@ namespace Utils {
 		return ss.str();
 	}
 
+	void Point::rotate(const Point& pivot, const float angleDeg) {
+
+		*this -= pivot;
+
+		const float angle = angleDeg / 180.f * float(M_PI);
+
+		const float c = cos(angle);
+		const float s = sin(angle);
+
+		const Point posNew {
+			 _x * c - _y * s,
+			 _x * s + _y * c
+		};
+
+		*this = posNew;
+		*this += pivot;
+	}
+
 	std::string Point::str() const {
 		return std::string("(") + std::to_string(_x) + ", " + std::to_string(_y) + ")";
 	}
 
 	std::string Point::strInt() const {
 		return std::string("(") + std::to_string(int(_x)) + ", " + std::to_string(int(_y)) + ")";
-	}
-
-	void Point::rotate(const Point& pivot, const float angle) {
-		*this -= pivot;
-		sf::Transform rotateTr;
-		rotateTr.rotate(angle);
-		sf::Vector2f posV2(getX(), getY());
-		posV2 = rotateTr.transformPoint(posV2);
-		*this = { posV2.x, posV2.y };
-		*this += pivot;
 	}
 
 	Point Point::operator/(float val) const {

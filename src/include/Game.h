@@ -8,17 +8,13 @@
 
 class Sprite;
 
-namespace sf {
-	class RenderWindow;
-}
-
 class Game : public std::enable_shared_from_this<Game> {
 public:
 	Game();
 	~Game();
 
 	void Init();
-	void Draw(sf::RenderWindow* wnd);
+	void Draw();
 	void Update(const float dt);
 
 	void OnCursorMoved(const Point& pt);
@@ -36,6 +32,8 @@ public:
 protected:
 
 	/* --- gameplay specific BEGIN ---*/
+
+	void update(const float dt);
 
 	void tryShoot(const Point& whereTo);
 	void checkSpawn();
@@ -58,7 +56,8 @@ protected:
 
 	FontPtr _font;
 
-	float _simulationTime{ 0 };
+	float _simulationTime{ 0.f };
+	float _simulationTimeAcc{ 0.f };
 
 	unsigned int _frags{ 0 };
 

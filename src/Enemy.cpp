@@ -12,8 +12,7 @@ Enemy::Enemy(const IDType id, const GameWPtr game)
 	const unsigned int enemyCount = Config::Inst()->getInt("enemyCount");
 	const bool spawnSound = Utils::rnd0xi(enemyCount) == 0;
 	if (spawnSound) {
-		const unsigned int soundInd = Utils::rnd0xi((unsigned int)CfgStatic::enemySounds.size());
-		getIdleState()->_sound = CfgStatic::enemySounds[soundInd];
+		getIdleState()->_sound = Utils::rndStr(CfgStatic::enemySounds);
 	}
 
 	const float enemySpeedMin = Config::Inst()->getFloat("enemySpeedMin");
@@ -37,15 +36,15 @@ ShaderPtr Enemy::GetShader() {
 
 		const float coeff = std::min(CfgStatic::pixelizeCoeffMax, CfgStatic::pixelizeSpeed * dtFromAnimBegin + 1.f);
 
-		sf::Glsl::Vec4 texRectGlsl(
+		float texRect[4] = {
 			float(smallRect.left),
 			float(bigRect.y - smallRect.top),
 			float(smallRect.width),
-			float(smallRect.height));
+			float(smallRect.height) };
 
-		shader->get()->setUniform("bigRectSize", sf::Glsl::Vec2(bigRect));
-		shader->get()->setUniform("smallRect", texRectGlsl);
-		shader->get()->setUniform("coeff", coeff);			
+		shader->SetUniform("bigRectSize", (float)bigRect.x, (float)bigRect.y);
+		shader->SetUniform("smallRect", texRect[0], texRect[1], texRect[2], texRect[3]);
+		shader->SetUniform("coeff", coeff);			
 	}
 
 	return shader;

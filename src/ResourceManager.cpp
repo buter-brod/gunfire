@@ -1,7 +1,6 @@
 #include "ResourceManager.h"
 #include "Log.h"
 #include "Config.h"
-#include <SFML/Graphics/Texture.hpp>
 #include "TextureAtlas.h"
 
 static const TextureRect emptyTexRect = TextureRect();
@@ -67,7 +66,8 @@ const ShaderPtr ResourceManager::AddShader(const std::string& sName) {
 	}
 
 	const std::string& resPref = CfgStatic::getResourceDir();
-	ShaderPtr shPtr = std::make_shared<Shader>(sName);
+
+	ShaderPtr shPtr = Shader::Create(sName);	
 
 	const bool loadOk = shPtr->Load(resPref + sName + CfgStatic::vertExt, resPref + sName + CfgStatic::fragExt);
 	if (!loadOk) {
@@ -164,7 +164,7 @@ TextureRect ResourceManager::GetTexture(const std::string& tName, const bool onl
 		const TexturePtr& ptr = tIt->second;
 		const auto tSize = ptr->getTex()->getSize();
 
-		const Rect fullTexRect(0, 0, tSize.x, tSize.y);
+		const Utils::Rect fullTexRect(0.f, 0.f, float(tSize.x), float(tSize.y));
 		const TextureRect textureRect { ptr, fullTexRect };
 
 		return textureRect;
@@ -175,7 +175,7 @@ TextureRect ResourceManager::GetTexture(const std::string& tName, const bool onl
 			const TextureAtlas& atlas = *atlIt.second;
 			const auto& smallRect = atlas.getRect(tName);
 
-			if (smallRect != Rect()) { // found!
+			if (smallRect != Utils::Rect()) { // found!
 
 				const std::string& bigTexName = atlas.getTextureName();
 				const auto& texRectBigTex = GetTexture(bigTexName);
