@@ -62,6 +62,7 @@ namespace CfgStatic {
 
 	static const std::string smokePng = "smoke.png";
 
+	static const std::string playImgFile       = "play.png";
 	static const std::string pauseImgFile      = "pause.png";
 	static const std::string restartImgFile    = "reset.png";
 	static const std::string bulletSpr         = "bottle_fire.png";
@@ -84,11 +85,7 @@ namespace CfgStatic {
 
 	//colors 
 
-	static const Utils::Color btnPauseOnClr(100, 100, 100);
-	static const Utils::Color btnPauseOnHoverClr(150, 150, 150);
-	
-	static const Utils::Color btnPauseOffNoHoverClr(230, 230, 230);
-
+	static const Utils::Color btnPlayPauseNotHoveredClr(230, 230, 230);
 	static const Utils::Color btnNotHoveredClr(230, 230, 230);
 	static const Utils::Color scoreClr(0, 255, 0);
 	static const Utils::Color smokeClr(192, 192, 192);

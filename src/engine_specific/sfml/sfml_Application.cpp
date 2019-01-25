@@ -52,18 +52,12 @@ void Application::handleEvent(sf::Event* event) {
 		const sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
 		_gamePtr->OnCursorMoved(toGamePoint(mousePos));
 
-		const bool mouseOnPauseBtn = isMouseOn(_pauseBtnImg, mousePos);
+		const bool mouseOnPauseBtn = isMouseOn(_pauseBtnImg, mousePos) || isMouseOn(_playBtnImg, mousePos);
 
-		sf::Color pauseBtnClr = sf::Color::White;
+		auto& playPauseSpr = _gamePtr->GetPaused() ? _playBtnImg : _pauseBtnImg;
 
-		if (_gamePtr->GetPaused()) {
-			pauseBtnClr = Utils::toSfmlColor(mouseOnPauseBtn ? CfgStatic::btnPauseOnHoverClr : CfgStatic::btnPauseOnClr);
-		}
-		else if (!mouseOnPauseBtn) {
-			pauseBtnClr = Utils::toSfmlColor(CfgStatic::btnPauseOffNoHoverClr);
-		}
-
-		_pauseBtnImg->getSpr()->setColor(pauseBtnClr);
+		sf::Color playPauseBtnClr = mouseOnPauseBtn ? sf::Color::White : Utils::toSfmlColor(CfgStatic::btnPlayPauseNotHoveredClr);
+		playPauseSpr->getSpr()->setColor(playPauseBtnClr);
 	};
 
 	switch (event->type) {
@@ -78,7 +72,7 @@ void Application::handleEvent(sf::Event* event) {
 			_gamePtr->OnCursorMoved(toGamePoint(mousePos));
 			
 			const bool mouseOnRestartBtn = isMouseOn(_restartBtnImg, mousePos);
-			_restartBtnImg->getSpr()->setColor(mouseOnRestartBtn ? sf::Color::White : Utils::toSfmlColor(CfgStatic::btnNotHoveredClr));
+			_restartBtnImg->getSpr()->setColor(mouseOnRestartBtn ? sf::Color::White : Utils::toSfmlColor(CfgStatic::btnPlayPauseNotHoveredClr));
 
 			refreshPauseColor();
 		}
@@ -116,6 +110,22 @@ Point Application::toGamePoint(const sf::Vector2i pos){
 	return gamePoint;
 };
 
+SpritePtr initBtn(const std::string& sprName) {
+	SpritePtr spritePtr;
+
+	const auto& texRect = ResourceManager::Inst()->GetTexture(sprName);
+	if (texRect.texturePtr.lock() == nullptr) {
+		Log::Inst()->PutErr("Application::Run error, not found " + sprName);
+		return spritePtr;
+	}
+
+	TexturePtr btnTex = texRect.texturePtr.lock();
+	spritePtr = std::make_shared<Sprite>(*btnTex);
+	spritePtr->getSpr()->setTextureRect(Utils::toSfmlRect(texRect.rect));
+
+	return spritePtr;
+}
+
 bool Application::init() {
 
 	const bool atlasLoadedOk = ResourceManager::Inst()->LoadAtlas(CfgStatic::atlasPng, CfgStatic::atlasMtpf);
@@ -127,29 +137,26 @@ bool Application::init() {
 
 	Log::Inst()->PutMessage("LOADING GAME...");
 
-	const auto& restartTexRect = ResourceManager::Inst()->GetTexture(CfgStatic::restartImgFile);
-	if (restartTexRect.texturePtr.lock() == nullptr) {
-		Log::Inst()->PutErr("Application::Run error, not found " + CfgStatic::restartImgFile);
+	_pauseBtnImg   = initBtn(CfgStatic::pauseImgFile);
+	_playBtnImg    = initBtn(CfgStatic::playImgFile);
+	_restartBtnImg = initBtn(CfgStatic::restartImgFile);
+
+	if (_pauseBtnImg   == nullptr ||
+		_playBtnImg    == nullptr ||
+		_restartBtnImg == nullptr) {
+
+		Log::Inst()->PutErr("Application::init error, buttons not initialized... ");
 		return false;
 	}
 
-	const auto& pauseTexRect = ResourceManager::Inst()->GetTexture(CfgStatic::pauseImgFile);
-	if (pauseTexRect.texturePtr.lock() == nullptr) {
-		Log::Inst()->PutErr("Application::Run error, not found " + CfgStatic::pauseImgFile);
-		return false;
-	}
-
-	TexturePtr pauseBtnTex = pauseTexRect.texturePtr.lock();
-	_pauseBtnImg = std::make_shared<Sprite>(*pauseBtnTex);
-	_pauseBtnImg->getSpr()->setTextureRect(Utils::toSfmlRect(pauseTexRect.rect));
-	_pauseBtnImg->getSpr()->setPosition(0.f, 0.f);
-
-	TexturePtr restartBtnTex = restartTexRect.texturePtr.lock();
-	_restartBtnImg = std::make_shared<Sprite>(*restartBtnTex);
-	_restartBtnImg->getSpr()->setTextureRect(Utils::toSfmlRect(restartTexRect.rect));
+	_pauseBtnImg  ->getSpr()->setPosition(0.f, 0.f);
+	_playBtnImg   ->getSpr()->setPosition(0.f, 0.f);
 	_restartBtnImg->getSpr()->setPosition(CfgStatic::windowSize.getX() - _restartBtnImg->getSpr()->getTextureRect().width, 0.f);
 
-	_window = std::make_shared<sf::RenderWindow>(sf::VideoMode(CfgStatic::windowSize.i_X(), CfgStatic::windowSize.i_Y()), CfgStatic::appTitle, sf::Style::Titlebar | sf::Style::Close);
+	const auto& videoMode = sf::VideoMode(CfgStatic::windowSize.i_X(), CfgStatic::windowSize.i_Y());
+	const auto wndFlags = sf::Style::Titlebar | sf::Style::Close;
+
+	_window = std::make_shared<sf::RenderWindow>(videoMode, CfgStatic::appTitle, wndFlags);
 
 	startGame();
 
@@ -159,7 +166,10 @@ bool Application::init() {
 void Application::draw() {
 
 	_gamePtr->Draw();
-	_window->draw(*_pauseBtnImg->getSpr());
+
+	auto& playPauseSpr = _gamePtr->GetPaused() ? _playBtnImg : _pauseBtnImg;
+	_window->draw(*playPauseSpr->getSpr());
+		
 	_window->draw(*_restartBtnImg->getSpr());
 	_window->display();
 }

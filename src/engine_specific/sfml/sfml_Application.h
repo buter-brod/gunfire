@@ -35,5 +35,6 @@ private:
 	GamePtr _gamePtr;
 	SpritePtr _restartBtnImg;
 	SpritePtr _pauseBtnImg;
+	SpritePtr _playBtnImg;
 	WindowPtr _window{ nullptr };
 };
