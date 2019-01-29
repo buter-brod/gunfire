@@ -56,6 +56,8 @@ void Log::putMsg(const std::string& msg) {
 
 void Log::PutErr(const std::string& msg) {
 	PutMessage(Channel::ERROR, msg);
+
+	// put here something like ASSERT(false)
 }
 
 void Log::PutMessage(const std::string& msg) {

@@ -16,42 +16,40 @@ Animation::Animation(const std::string& name, unsigned int size, unsigned int fp
 
 TextureRect Animation::GetTexRectFor(float dt) {
 
+	const std::string& frameName = GetFrameName(dt);
+	TextureRect textureRect = ResourceManager::Inst()->GetTexture(frameName);
+
+	if (textureRect.isEmpty()) {
+		Log::Inst()->PutErr("Animation::getTexRectFor error, " + _name + " texture not found for dt " + std::to_string(dt));
+	}
+
+	return textureRect;
+}
+
+std::string Animation::GetFrameName(float dt) const {
+	
+	std::string frameName = _name;
+	unsigned int frameInd = getFrameIndex(dt);
+
+	if (_size > 1) {
+		const auto dotPos = frameName.find("."); // if names contain file extension, put frame number at the end of the name-part.
+		frameName.insert(dotPos, std::to_string(frameInd));
+	}
+
+	return frameName;
+}
+
+unsigned int Animation::getFrameIndex(float dt) const {
+
 	unsigned int frameInd = 0;
 
 	if (_size > 1) {
 		frameInd = unsigned(dt * _fps) % _size;
 	}
-	const TextureRect& result = getTexRectFor(frameInd);
-	return result;
+	else if (_size == 0) {
+		Log::Inst()->PutErr("Animation::getFrameIndex error, _size empty for " + _name);
+	}
+
+	return frameInd;
 }
 
-TextureRect Animation::getTexRectFor(const unsigned int index) {
-
-	TextureRect textureRect;
-
-	if (index >= _size) {
-		Log::Inst()->PutErr("Animation::GetSpriteFor error, index " + std::to_string(index) + " out of bounds ( " + _name + ")");
-		return textureRect;
-	}
-
-	std::string frameName = _name;
-
-	if (index == 0) {
-		textureRect = ResourceManager::Inst()->GetTexture(frameName, true);
-	}
-
-	if (textureRect.isEmpty()) {
-		const auto dotPos = frameName.find(".");
-
-		if (dotPos != std::string::npos) {
-			frameName.insert(dotPos, std::to_string(index));
-			textureRect = ResourceManager::Inst()->GetTexture(frameName);
-		}		
-	}
-
-	if (textureRect.isEmpty()) {
-		Log::Inst()->PutErr("Animation::load error, texture not found for frame " + frameName);
-	}
-
-	return textureRect;
-}

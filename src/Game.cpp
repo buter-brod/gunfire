@@ -191,7 +191,9 @@ bool collides(GameObjectPtr obj1, GameObjectPtr obj2) {
 	const Size& s1 = obj1->GetSize();
 	const Size& s2 = obj2->GetSize();
 	
-	const float minDist = (s1 + s2).len() / 4.f;
+	static const float minDistCoeff = 4.f;
+
+	const float minDist = (s1 + s2).len() / minDistCoeff;
 	const bool collide = d < minDist;
 
 	return collide;

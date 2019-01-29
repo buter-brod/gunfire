@@ -13,10 +13,11 @@ public:
 	unsigned int GetFPS() const { return _fps; }
 	const std::string& getName() const { return _name; }
 
+	std::string GetFrameName(float dt) const;
 	TextureRect GetTexRectFor(float dt);
 
 protected:
-	TextureRect getTexRectFor(const unsigned int index);
+	unsigned int getFrameIndex(float dt) const;
 
 private:
 	std::string _name;
