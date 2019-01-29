@@ -165,7 +165,7 @@ GameObjectPtr Game::GetObject(const IDType id) const {
 	if (objWPtrIt != _allObjects.end()) {
 
 		auto existObjectPtr = objWPtrIt->second.lock();
-		if (existObjectPtr) {
+		if (existObjectPtr) { // object is alive
 			return existObjectPtr;
 		}
 		else {
@@ -197,8 +197,6 @@ bool Game::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 	else {
 		Log::Inst()->PutErr("Game::addObject error, _allObjects already has id " + std::to_string(id));
 	}
-
-	auto asdf = GetObject(id);
 
 	return true;
 }
