@@ -47,6 +47,23 @@ void Game::updateText() {
 	_scoreTxt->setString(CfgStatic::scoreTxt + std::to_string(_frags));
 }
 
+void Game::checkAllObjectsObsolete() {
+
+	checkObjectsObsolete(_enemyObjects);
+	checkObjectsObsolete(_bulletObjects);
+	checkObjectsObsolete(_effectObjects);
+}
+
+void Game::updateAllObjects(const float dt) {
+
+	_bgObject->Update(dt);
+	_playerObj->Update(dt);
+
+	for (const auto& obj : _enemyObjects)  { obj->Update(dt); }
+	for (const auto& obj : _bulletObjects) { obj->Update(dt); }
+	for (const auto& obj : _effectObjects) { obj->Update(dt); }
+}
+
 void Game::update(const float dt) {
 	if (_paused) {
 		return;
@@ -61,21 +78,9 @@ void Game::update(const float dt) {
 	}
 
 	updateText();
-
-	_bgObject->Update(dt);
-
-	_playerObj->Update(dt);
-
-	checkObjectsObsolete(_enemyObjects);
-	checkObjectsObsolete(_bulletObjects);
-	checkObjectsObsolete(_effectObjects);
-
+	checkAllObjectsObsolete();
 	checkSpawn();
-
-	for (const auto& obj : _enemyObjects)  { obj->Update(dt); }
-	for (const auto& obj : _bulletObjects) { obj->Update(dt); }
-	for (const auto& obj : _effectObjects) { obj->Update(dt); }
-
+	updateAllObjects(dt);
 	checkCollisions();
 }
 
@@ -125,8 +130,53 @@ bool Game::isObjectObsolete(GameObjectPtr objPtr) {
 	return false;
 }
 
-void Game::checkObjectsObsolete(ObjectsArr& arr) {
-	arr.erase(std::remove_if(arr.begin(), arr.end(), [this](const GameObjectPtr& obj) { return isObjectObsolete(obj); }), arr.end());
+bool Game::checkObjectsObsolete(ObjectsArr& arr) {
+
+	std::set<IDType> obsoletes;
+
+	for (const auto& obj : arr) {
+		if (isObjectObsolete(obj)) {
+			obsoletes.insert(obj->getId());
+		}
+	}
+
+	if (obsoletes.empty()) {
+		return false;
+	}
+
+	for (const IDType obsId : obsoletes) {
+		const auto objIt = std::find_if(arr.begin(), arr.end(), [obsId](const ObjectsArr::value_type& obj) { return obj->getId() == obsId; });
+
+		if (objIt != arr.end()) {
+			removeObject(*objIt, arr);			
+		}
+		else {
+			Log::Inst()->PutErr("Game::checkObjectsObsolete error, id " + std::to_string(obsId) + " not found?! ");
+		}
+	}
+
+	return true;
+}
+
+GameObjectPtr Game::GetObject(const IDType id) const {
+
+	const auto& objWPtrIt = _allObjects.find(id);
+
+	if (objWPtrIt != _allObjects.end()) {
+
+		auto existObjectPtr = objWPtrIt->second.lock();
+		if (existObjectPtr) {
+			return existObjectPtr;
+		}
+		else {
+			Log::Inst()->PutErr("Game::GetObject error, id " + std::to_string(id) + " found in registry but object does not exist!");
+		}
+	}
+	else {
+		// that's ok, object with that id may not exist in game
+	}
+
+	return GameObjectPtr();
 }
 
 bool Game::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
@@ -138,6 +188,18 @@ bool Game::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 	}
 
 	arr.push_back(objPtr);
+
+	const IDType id = objPtr->getId();
+
+	if (_allObjects.count(id) == 0) {
+		_allObjects[id] = objPtr;
+	}
+	else {
+		Log::Inst()->PutErr("Game::addObject error, _allObjects already has id " + std::to_string(id));
+	}
+
+	auto asdf = GetObject(id);
+
 	return true;
 }
 
@@ -147,6 +209,15 @@ bool Game::removeObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 
 	if (objIt == arr.end()) {
 		return false;
+	}
+
+	const IDType id = objPtr->getId();
+
+	if (_allObjects.count(id) == 1) {
+		_allObjects.erase(id);
+	}
+	else {
+		Log::Inst()->PutErr("Game::removeObject error, _allObjects hasn't id " + std::to_string(id));
 	}
 
 	arr.erase(objIt);
@@ -252,7 +323,6 @@ void Game::tryShoot(const Point& whereTo) {
 
 	_playerObj->Shoot();
 }
-
 
 void Game::initText() {
 

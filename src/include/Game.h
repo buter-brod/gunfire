@@ -25,15 +25,14 @@ public:
 	bool GetPaused() const;
 	bool SetPaused(const bool paused);
 
+	GameObjectPtr GetObject(const IDType id) const;
+
 	float GetSimulationTime() const { return _simulationTime; };
 
 	IDType Game::newID();
 
 protected:
-
 	/* --- gameplay specific BEGIN ---*/
-
-	void update(const float dt);
 
 	void tryShoot(const Point& whereTo);
 	void checkSpawn();
@@ -52,12 +51,7 @@ protected:
 	TextPtr _scoreTxt;
 	TextPtr _gameOverText;
 
-	bool _paused{ false };
-
 	FontPtr _font;
-
-	float _simulationTime{ 0.f };
-	float _simulationTimeAcc{ 0.f };
 
 	unsigned int _frags{ 0 };
 
@@ -68,14 +62,24 @@ protected:
 	ObjectsArr _effectObjects;
 
 	/* --- gameplay specific END ---*/
+
+	bool _paused{ false };
+	float _simulationTime{ 0.f };
+	float _simulationTimeAcc{ 0.f };
+
+	std::unordered_map<IDType, GameObjectWPtr> _allObjects;
 	
-	float Game::getTimeRemain() const;
+	void update(const float dt);
+	float getTimeRemain() const;
 
 	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr);
 	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr);
 
 	bool isObjectObsolete(GameObjectPtr objPtr);
-	void checkObjectsObsolete(ObjectsArr& arr);
+	bool checkObjectsObsolete(ObjectsArr& arr);
+
+	void checkAllObjectsObsolete();
+	void updateAllObjects(const float dt);
 
 	IDType _nextID{ 1 };
 };

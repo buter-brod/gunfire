@@ -254,15 +254,15 @@ Point GameObject::getEmitterPosition() {
 }
 
 void GameObject::Update(float dt) {
-
-	auto gameLock = _gamePtr.lock();
-
-	if (!gameLock) {
-		Log::Inst()->PutMessage("GameObject::Update error, gameLock invalid");
-		return;
+	
+	{
+		auto game = _gamePtr.lock();
+		if (!game) {
+			Log::Inst()->PutMessage("GameObject::Update error, gameLock invalid");
+			return;
+		}
+		_gameSimulationTime = game->GetSimulationTime();
 	}
-
-	_gameSimulationTime = gameLock->GetSimulationTime();
 
 	if (_direction.len() == 0) {
 		Log::Inst()->PutErr("GameObject::update error, invalid direction " + std::to_string(getId()));
