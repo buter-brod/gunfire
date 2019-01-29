@@ -22,29 +22,45 @@ Enemy::Enemy(const IDType id, const GameWPtr game)
 
 	SetSpeed(speed);
 }
-ShaderPtr Enemy::GetShader() {
+
+float Enemy::GetPixelizeCoeff() const {
+
+	float coeff = 0;
 
 	const std::string& shaderName = _state->_shader;
-	ShaderPtr shader = GameObject::GetShader();
-
-	if (shader && shaderName == CfgStatic::pixelizeShader) {
-
+	if (shaderName == CfgStatic::pixelizeShader) {
 		const float time = _gameSimulationTime;
 		const float dtFromAnimBegin = Utils::dt(time, _state->_startTime);
-		const auto& bigRect = getSprite()->getSpr()->getTexture()->getSize();
-		const auto& smallRect = getSprite()->getSpr()->getTextureRect();
 
-		const float coeff = std::min(CfgStatic::pixelizeCoeffMax, CfgStatic::pixelizeSpeed * dtFromAnimBegin + 1.f);
+		coeff = std::min(CfgStatic::pixelizeCoeffMax, CfgStatic::pixelizeSpeed * dtFromAnimBegin + 1.f);
+	}
 
-		float texRect[4] = {
-			float(smallRect.left),
-			float(bigRect.y - smallRect.top),
-			float(smallRect.width),
-			float(smallRect.height) };
+	return coeff;
+}
 
-		shader->SetUniform("bigRectSize", (float)bigRect.x, (float)bigRect.y);
-		shader->SetUniform("smallRect", texRect[0], texRect[1], texRect[2], texRect[3]);
-		shader->SetUniform("coeff", coeff);			
+ShaderPtr Enemy::GetShader() {
+
+	ShaderPtr shader = GameObject::GetShader();
+	const float pCoeff = GetPixelizeCoeff();
+
+	if (pCoeff > 0.f) {
+		if (shader) {
+			const auto& bigRect = getSprite()->getSpr()->getTexture()->getSize();
+			const auto& smallRect = getSprite()->getSpr()->getTextureRect();
+
+			float texRect[4] = {
+				float(smallRect.left),
+				float(bigRect.y - smallRect.top),
+				float(smallRect.width),
+				float(smallRect.height) };
+
+			shader->SetUniform("bigRectSize", (float)bigRect.x, (float)bigRect.y);
+			shader->SetUniform("smallRect", texRect[0], texRect[1], texRect[2], texRect[3]);
+			shader->SetUniform("coeff", pCoeff);
+		}
+		else {
+			Log::Inst()->PutErr("Enemy::GetShader error, shader not found " + _state->_shader + ", but pixelaze coeff " + std::to_string(pCoeff));
+		}
 	}
 
 	return shader;

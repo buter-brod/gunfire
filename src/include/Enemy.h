@@ -12,6 +12,7 @@ public:
 	
 	void Update(float dt) override;
 	ShaderPtr GetShader() override;
+	float GetPixelizeCoeff() const;
 
 protected:
 	virtual Point getEmitterPosition();
