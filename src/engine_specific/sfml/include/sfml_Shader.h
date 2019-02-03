@@ -1,6 +1,4 @@
 #pragma once
-#include <memory>
-
 #include "Shader.h"
 #include <SFML/Graphics/Shader.hpp>
 
@@ -17,6 +15,6 @@ public:
 	void SetUniform(const std::string& name, const float v1, const float v2) override;
 	void SetUniform(const std::string& name, const float v1, const float v2, const float v3, const float v4) override;
 
-protected:
+private:
 	sf::Shader _shader;
 };

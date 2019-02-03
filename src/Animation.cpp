@@ -1,6 +1,5 @@
 #include "Animation.h"
 #include "Log.h"
-#include "ResourceManager.h"
 
 Animation::Animation(const std::string& name, unsigned int size, unsigned int fps) : _name(name), _size(size), _fps(fps) {
 
@@ -12,18 +11,6 @@ Animation::Animation(const std::string& name, unsigned int size, unsigned int fp
 		Log::Inst()->PutErr("Animation::Animation warning: if size == 1, fps should be 0... " + name);
 		_fps = 0;
 	}
-}
-
-TextureRect Animation::GetTexRectFor(float dt) {
-
-	const std::string& frameName = GetFrameName(dt);
-	TextureRect textureRect = ResourceManager::Inst()->GetTexture(frameName);
-
-	if (textureRect.isEmpty()) {
-		Log::Inst()->PutErr("Animation::getTexRectFor error, " + _name + " texture not found for dt " + std::to_string(dt));
-	}
-
-	return textureRect;
 }
 
 std::string Animation::GetFrameName(float dt) const {

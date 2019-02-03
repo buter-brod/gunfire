@@ -1,7 +1,5 @@
 #pragma once
 #include <string>
-#include <vector>
-#include "Sprite.h"
 
 const static unsigned int defaultFPS = 30;
 
@@ -14,7 +12,6 @@ public:
 	const std::string& getName() const { return _name; }
 
 	std::string GetFrameName(float dt) const;
-	TextureRect GetTexRectFor(float dt);
 
 protected:
 	unsigned int getFrameIndex(float dt) const;

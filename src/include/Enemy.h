@@ -1,21 +1,20 @@
 #pragma once
-
 #include "GameObject.h"
 #include <memory>
 
 class Enemy : public GameObject {
 
 public:
-	Enemy(const IDType id, const GameWPtr game);
+	Enemy(const IDType id);
 
 	void Boom(const Point& bulletPos);
 	
-	void Update(float dt) override;
+	void Update(const float dt, const float gameTime) override;
 	ShaderPtr GetShader() override;
 	float GetPixelizeCoeff() const;
 
 protected:
-	virtual Point getEmitterPosition();
+	virtual Point GetEmitterPosition() const override;
 
 private:
 	Point _boomPosition;

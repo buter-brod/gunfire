@@ -1,5 +1,7 @@
 #include "Log.h"
 #include <fstream>
+#include <iostream>
+
 #include "Config.h"
 
 static const bool alwaysToCout = true;
@@ -57,7 +59,9 @@ void Log::putMsg(const std::string& msg) {
 void Log::PutErr(const std::string& msg) {
 	PutMessage(Channel::ERROR, msg);
 
-	// put here something like ASSERT(false)
+#ifndef RELEASE_BUILD
+	abort();
+#endif
 }
 
 void Log::PutMessage(const std::string& msg) {

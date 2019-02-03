@@ -1,4 +1,4 @@
-#include "TextureAtlas.h"
+#include "sfml_TextureAtlas.h"
 #include <fstream>
 #include "Utils.h"
 #include "Config.h"
@@ -17,7 +17,7 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 	std::ifstream input_file(CfgStatic::getResourceDir() + descFileName, std::ifstream::in | std::ifstream::binary);
 	if (!input_file) {
 
-		Log::Inst()->PutErr("TextureAtlas::load ERROR: " + descFileName);
+		Log::Inst()->PutErr("sfml_TextureAtlas::load ERROR: " + descFileName);
 		return false;
 	}
 
@@ -42,7 +42,7 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 
 			input_file >> x >> y >> w >> h;
 
-			Utils::Rect texture_rect;
+			Rect texture_rect;
 
 			texture_rect._origin = { float(x), float(y) };
 			texture_rect._size = { float(w), float(h) };
@@ -52,21 +52,21 @@ bool TextureAtlas::load(const std::string& descFileName, const std::string& texN
 	}
 	input_file.close();
 
-	Log::Inst()->PutMessage("TextureAtlas::load success: " + descFileName + " loaded " + std::to_string(_rects.size()) + " images");
+	Log::Inst()->PutMessage("sfml_TextureAtlas::load success: " + descFileName + " loaded " + std::to_string(_rects.size()) + " images");
 
 	return true;
 }
 
-const Utils::Rect& TextureAtlas::getRect(const std::string& name) const {
+const Rect& TextureAtlas::getRect(const std::string& name) const {
 
-	static const Utils::Rect nullRect;
+	static const Rect nullRect;
 	const auto& rectIt = _rects.find(name);
 
 	if (rectIt == _rects.end()) {
 		return nullRect;
 	}
 
-	const Utils::Rect& rect = rectIt->second;
+	const Rect& rect = rectIt->second;
 
 	return rect;
 }

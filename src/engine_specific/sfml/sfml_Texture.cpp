@@ -1,17 +1,17 @@
-#include "Texture.h"
+#include "sfml_Texture.h"
 #include "Log.h"
 #include "sfml_Utils.h"
 
-const sf::Texture* Texture::getTex() const {
+const sf::Texture* sfml_Texture::getTex() const {
 	return &_tex;
 }
 
-bool Texture::loadFromFile(const std::string& filename, const Utils::Rect& area) {
+bool sfml_Texture::loadFromFile(const std::string& filename, const Rect& area) {
 
 	_name = filename;
 	return _tex.loadFromFile(filename, Utils::toSfmlRect(area));
 }
 
-Texture::~Texture() {
+sfml_Texture::~sfml_Texture() {
 	Log::Inst()->PutMessage("~Texture: " + _name);
 }

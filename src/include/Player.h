@@ -5,7 +5,7 @@
 class Player : public GameObject {
 	
 public:
-	Player(const IDType id, const GameWPtr game);
+	Player(const IDType id);
 	void Shoot();
 };
 

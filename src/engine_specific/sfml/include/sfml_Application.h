@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Point.h"
 #include <memory>
-#include "Sprite.h"
-#include "Utils.h"
 
-class Game;
-typedef std::shared_ptr<Game> GamePtr;
+class sfml_Game;
+class Sprite;
+
+typedef std::shared_ptr<Sprite> SpritePtr;
+typedef std::shared_ptr<sfml_Game> GamePtr;
 
 namespace sf {
 	class Event;
@@ -18,20 +20,17 @@ class Application {
 public:
 	Application();
 	~Application();
-
-	bool init();
-	void gameLoop();
-	void draw();
 	void Run();
 
 protected:
+	bool init();
+	void gameLoop();
+	void draw();
 	void freeResources();
 	void startGame();
 	void handleEvent(sf::Event*);
-	Point toGamePoint(const sf::Vector2i pos);
 
 private:
-
 	GamePtr _gamePtr;
 	SpritePtr _restartBtnImg;
 	SpritePtr _pauseBtnImg;

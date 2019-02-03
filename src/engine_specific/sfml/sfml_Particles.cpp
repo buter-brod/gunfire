@@ -1,6 +1,5 @@
-#include "Particles.h"
+#include "sfml_Particles.h"
 #include "Log.h"
-#include "Utils.h"
 
 #include "Thor/Math/Distributions.hpp"
 
@@ -11,7 +10,7 @@ void Particles::StopEmitters() {
 	}
 }
 
-void Particles::Update(const float dt, const Utils::Point& p) {
+void Particles::Update(const float dt, const Point& p) {
 	
 	for (const auto& e : _emitters) {
 		e->SetPosition(p);
@@ -23,7 +22,7 @@ void Particles::Update(const float dt, const Utils::Point& p) {
 bool Particles::AddEmitter(EmitterPtr emitterPtr) {
 
 	if (_emitters.count(emitterPtr) > 0) {
-		Log::Inst()->PutErr("Particles::addEmitter error, emitter already added");
+		Log::Inst()->PutErr("sfml_Particles::addEmitter error, emitter already added");
 		return false;
 	}
 

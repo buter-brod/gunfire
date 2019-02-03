@@ -37,7 +37,6 @@ void sfml_Shader::SetUniform(const std::string& name, const float v1, const floa
 	_shader.setUniform(name, sf::Glsl::Vec4(v1, v2, v3, v4));
 }
 
-
 ShaderPtr Shader::Create(const std::string& name) {
 	return std::make_shared<sfml_Shader>(name);
 }

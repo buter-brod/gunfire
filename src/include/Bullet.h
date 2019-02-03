@@ -7,11 +7,11 @@ class Bullet : public GameObject {
 
 public:
 
-	Bullet(const IDType id, const GameWPtr game);
+	Bullet(const IDType id);
 	void Boom();
 
 protected:
-	Point getEmitterPosition() override;
+	Point GetEmitterPosition() const override;
 };
 
 typedef std::shared_ptr<Bullet> BulletPtr;

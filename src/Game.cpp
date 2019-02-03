@@ -1,11 +1,13 @@
 #include "Game.h"
-#include <iostream>
+
 #include "Config.h"
 #include "Log.h"
-#include "ResourceManager.h"
-#include "Animation.h"
+#include "SoundManager.h"
 #include "Enemy.h"
 #include "Bullet.h"
+#include "Player.h"
+
+#include <algorithm>
 
 IDType Game::newID(){
 	return _nextID++;
@@ -40,33 +42,31 @@ float Game::getTimeRemain() const {
 }
 
 void Game::updateText() {
-
-	const float timeRemainSec = getTimeRemain();
-
-	_timerTxt->setString(CfgStatic::timerTxt + std::to_string(int(timeRemainSec)));
-	_scoreTxt->setString(CfgStatic::scoreTxt + std::to_string(_frags));
 }
 
 void Game::checkAllObjectsObsolete() {
 
 	checkObjectsObsolete(_enemyObjects);
 	checkObjectsObsolete(_bulletObjects);
-	checkObjectsObsolete(_effectObjects);
 }
 
 void Game::updateAllObjects(const float dt) {
 
-	_bgObject->Update(dt);
-	_playerObj->Update(dt);
+	for (auto& objW : _allObjects) {
+		auto obj = objW.second.lock();
+		
+		if (!obj) {
+			Log::Inst()->PutErr("Game::checkObjectsObsolete error, " + obj->getFullName() + " not found?! ");
+			continue;
+		}
 
-	for (const auto& obj : _enemyObjects)  { obj->Update(dt); }
-	for (const auto& obj : _bulletObjects) { obj->Update(dt); }
-	for (const auto& obj : _effectObjects) { obj->Update(dt); }
+		obj->Update(dt, _simulationTime);
+	}
 }
 
-void Game::update(const float dt) {
+bool Game::update(const float dt) {
 	if (_paused) {
-		return;
+		return false;
 	}
 
 	_simulationTime += dt;
@@ -74,25 +74,36 @@ void Game::update(const float dt) {
 	const float timeRemainSec = getTimeRemain();
 
 	if (timeRemainSec == 0.f) {
-		return;
+		return false;
+	}
+
+	if (_shootRequest.requested) {
+		tryShoot(_shootRequest.targetPt);
+		_shootRequest = { false, Point() };
 	}
 
 	updateText();
 	checkAllObjectsObsolete();
 	checkSpawn();
-	updateAllObjects(dt);
 	checkCollisions();
+	updateAllObjects(dt);
+
+	return true;
 }
 
-void Game::Update(const float frameDt) {
+bool Game::Update(const float frameDt) {
 	
+	bool updated = false;
 	const float dt = 1.f / CfgStatic::simulationFPS;
 	_simulationTimeAcc += frameDt;
 
 	while (_simulationTimeAcc >= dt) {
 		update(dt);
 		_simulationTimeAcc -= dt;
+		updated |= true;
 	}
+
+	return updated;
 }
 
 bool Game::isObjectObsolete(GameObjectPtr objPtr) {
@@ -179,6 +190,21 @@ GameObjectPtr Game::GetObject(const IDType id) const {
 	return GameObjectPtr();
 }
 
+bool Game::addObject(GameObjectPtr objPtr) {
+
+	const IDType id = objPtr->getId();
+
+	if (_allObjects.count(id) == 0) {
+		_allObjects[id] = objPtr;
+	}
+	else {
+		Log::Inst()->PutErr("Game::addObject error, _allObjects already has id " + std::to_string(id));
+		return false;
+	}
+
+	return true;
+}
+
 bool Game::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 
 	const auto& objIt = std::find(arr.begin(), arr.end(), objPtr);
@@ -188,17 +214,8 @@ bool Game::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 	}
 
 	arr.push_back(objPtr);
-
-	const IDType id = objPtr->getId();
-
-	if (_allObjects.count(id) == 0) {
-		_allObjects[id] = objPtr;
-	}
-	else {
-		Log::Inst()->PutErr("Game::addObject error, _allObjects already has id " + std::to_string(id));
-	}
-
-	return true;
+	const bool added = addObject(objPtr);
+	return added;
 }
 
 bool Game::removeObject(GameObjectPtr objPtr, ObjectsArr& arr) {
@@ -241,7 +258,7 @@ void Game::checkSpawn() {
 	const Point whereTo(center.getX(), fromY);
 	const Point direction(whereTo - from);
 
-	GameObjectPtr enemyObj = std::make_shared<Enemy>(newID(), weak_from_this());
+	GameObjectPtr enemyObj = std::make_shared<Enemy>(newID());
 
 	enemyObj->SetMirrorX(leftSide);
 	enemyObj->SetPosition(from);
@@ -298,7 +315,7 @@ void Game::onCollision(GameObjectPtr bullet, GameObjectPtr enemy) {
 	++_frags;
 }
 
-void Game::tryShoot(const Point& whereTo) {
+bool Game::tryShoot(const Point& whereTo) {
 
 	const Size& gameSize = GetSize();
 	const Point center = gameSize / 2.f;
@@ -309,10 +326,10 @@ void Game::tryShoot(const Point& whereTo) {
 	const std::string& playerStateName = _playerObj->GetState();
 
 	if (direction.getY() > 0 || playerStateName != CfgStatic::idleStateName) {
-		return;
+		return false;
 	}
 
-	GameObjectPtr bottleObj = std::make_shared<Bullet>(newID(), weak_from_this());
+	GameObjectPtr bottleObj = std::make_shared<Bullet>(newID());
 
 	bottleObj->SetPosition(from);
 	bottleObj->SetDirection(direction);
@@ -320,69 +337,34 @@ void Game::tryShoot(const Point& whereTo) {
 	addObject(bottleObj, _bulletObjects);
 
 	_playerObj->Shoot();
+
+	return true;
 }
 
 void Game::initText() {
-
-	if (!_font) {
-		_font = std::make_shared<Font>();
-		_font->loadFromFile(CfgStatic::fontName);
-	}
-
-	if (!_timerTxt) {
-		_timerTxt = std::make_shared<Text>();
-		_timerTxt->setFont(*_font);
-		_timerTxt->setPosition(CfgStatic::timerPositionX, CfgStatic::timerPositionY);
-	}
-
-	if (!_scoreTxt) {
-		_scoreTxt = std::make_shared<Text>();
-		_scoreTxt->setFont(*_font);
-		_scoreTxt->setFillColor(Utils::toSfmlColor(CfgStatic::scoreClr));
-		_scoreTxt->setPosition(CfgStatic::scorePositionX, CfgStatic::scorePositionY);
-	}
-
-	if (!_gameOverText) {
-		_gameOverText = std::make_shared<Text>();
-		_gameOverText->setFont(*_font);
-
-		const std::string& gameOverText = Config::Inst()->getString("gameOverText");
-		_gameOverText->setString(gameOverText);
-		_gameOverText->setPosition(CfgStatic::gameSize.getX() / 2.f, CfgStatic::gameSize.getY() / 2.f);
-	}
 }
 
 void Game::initSound() {
 
 	for (auto& s : CfgStatic::boomSounds) {
-		ResourceManager::Inst()->AddSound(s);
+		SoundManager::Inst()->LoadSound(s);
 	}
 
 	for (auto& s : CfgStatic::enemySounds) {
-		ResourceManager::Inst()->AddSound(s);
+		SoundManager::Inst()->LoadSound(s);
 	}	
-	
-	ResourceManager::Inst()->AddShader(CfgStatic::pixelizeShader);
 
-	ResourceManager::Inst()->AddSound(CfgStatic::readySound);
-	ResourceManager::Inst()->AddSound(CfgStatic::throwSound);
+	SoundManager::Inst()->LoadSound(CfgStatic::readySound);
+	SoundManager::Inst()->LoadSound(CfgStatic::throwSound);
 
-	auto ambientSnd = ResourceManager::Inst()->AddSound(CfgStatic::ambientSound);
-
-	if (ambientSnd) {
-		ambientSnd->Play();
-		ambientSnd->SetLoop(true);
-	}
+	SoundManager::Inst()->LoadSound(CfgStatic::ambientSound);
+	SoundManager::Inst()->PlaySound(CfgStatic::ambientSound, true);
 
 	const bool musicDisabled = Config::Inst()->getInt("noMusic") > 0;
 
 	if (!musicDisabled) {
-		auto musicSnd = ResourceManager::Inst()->AddSound(CfgStatic::musicTrack);
-
-		if (musicSnd) {
-			musicSnd->Play();
-			musicSnd->SetLoop();
-		}
+		SoundManager::Inst()->LoadSound(CfgStatic::musicTrack);
+		SoundManager::Inst()->PlaySound(CfgStatic::musicTrack, true);
 	}
 }
 
@@ -395,14 +377,15 @@ void Game::Init() {
 
 	const Size& gameSize = GetSize();
 	const Point center = gameSize / 2.f;
-	
-	ResourceManager::Inst()->AddTexture(CfgStatic::bgSprName);
 
-	_bgObject = std::make_shared<GameObject>(newID(), CfgStatic::bgName, CfgStatic::bgSprName, weak_from_this());
+	_bgObject = std::make_shared<GameObject>(newID(), CfgStatic::bgName, CfgStatic::bgSprName);
+	_bgObject->SetSize(gameSize);
 	_bgObject->SetPosition(center);
+	addObject(_bgObject);
 
-	_playerObj = std::make_shared<Player>(newID(), weak_from_this());
+	_playerObj = std::make_shared<Player>(newID());
 	_playerObj->SetPosition({ gameSize.getX() / 2.f, gameSize.getY() - CfgStatic::playerPositionGapY });
+	addObject(_playerObj);
 
 	update(0.f);
 }
@@ -441,5 +424,5 @@ void Game::OnCursorClicked(const Point& pt) {
 		return;
 	}
 
-	tryShoot(pt);
+	_shootRequest = { true, pt };
 }

@@ -1,11 +1,16 @@
 #include "Enemy.h"
 
 #include "Config.h"
-#include "ResourceManager.h"
-#include "Game.h"
+#include "Log.h"
+#include "EngineComponent.h"
+#include "Shader.h"
 
-Enemy::Enemy(const IDType id, const GameWPtr game)
-	: GameObject(id, CfgStatic::enemyName, CfgStatic::enemySpr, game) {
+#include <algorithm>
+
+Enemy::Enemy(const IDType id)
+	: GameObject(id, CfgStatic::enemyName, CfgStatic::enemySpr) {
+
+	SetSize(CfgStatic::enemySize);
 
 	AddAnimation(CfgStatic::enemySpr, CfgStatic::enemyAnimFramesCount, CfgStatic::enemyAnimFPS);
 
@@ -25,12 +30,13 @@ Enemy::Enemy(const IDType id, const GameWPtr game)
 
 float Enemy::GetPixelizeCoeff() const {
 
-	float coeff = 0;
+	float coeff = 0.f;
+	const auto& state = getState();
 
-	const std::string& shaderName = _state->_shader;
+	const std::string& shaderName = state->_shader;
 	if (shaderName == CfgStatic::pixelizeShader) {
-		const float time = _gameSimulationTime;
-		const float dtFromAnimBegin = Utils::dt(time, _state->_startTime);
+		const float time = getGameSimulationTime();
+		const float dtFromAnimBegin = Utils::dt(time, state->_startTime);
 
 		coeff = std::min(CfgStatic::pixelizeCoeffMax, CfgStatic::pixelizeSpeed * dtFromAnimBegin + 1.f);
 	}
@@ -40,68 +46,82 @@ float Enemy::GetPixelizeCoeff() const {
 
 ShaderPtr Enemy::GetShader() {
 
-	ShaderPtr shader = GameObject::GetShader();
 	const float pCoeff = GetPixelizeCoeff();
+	ShaderPtr shader = GameObject::GetShader();
 
 	if (pCoeff > 0.f) {
 		if (shader) {
-			const auto& bigRect = getSprite()->getSpr()->getTexture()->getSize();
-			const auto& smallRect = getSprite()->getSpr()->getTextureRect();
+
+			auto engineComp = GetEngineComponent();
+
+			if (!engineComp) {
+				Log::Inst()->PutErr("Enemy::GetShader error for " + getFullName() + ", engineComp not found");
+				return shader;
+			}
+
+			const Size& bigSize = engineComp->GetTextureSize();
+			const Rect& smallRect = engineComp->GetSpriteRect();
 
 			float texRect[4] = {
-				float(smallRect.left),
-				float(bigRect.y - smallRect.top),
-				float(smallRect.width),
-				float(smallRect.height) };
+				smallRect._origin.getX(),
+				bigSize.getY() - smallRect._origin.getY(),
+				smallRect._size.getX(),
+				smallRect._size.getY() };
 
-			shader->SetUniform("bigRectSize", (float)bigRect.x, (float)bigRect.y);
+			shader->SetUniform("bigRectSize", bigSize.getX(), bigSize.getY());
 			shader->SetUniform("smallRect", texRect[0], texRect[1], texRect[2], texRect[3]);
 			shader->SetUniform("coeff", pCoeff);
 		}
 		else {
-			Log::Inst()->PutErr("Enemy::GetShader error, shader not found " + _state->_shader + ", but pixelaze coeff " + std::to_string(pCoeff));
+			Log::Inst()->PutErr("Enemy::GetShader error for " + getFullName() + ", shader not found " + getShaderName() + ", but pixelaze coeff " + std::to_string(pCoeff));
 		}
 	}
 
 	return shader;
 }
 
-void Enemy::Update(float dt) {
+void Enemy::Update(const float dt, const float gameTime) {
 
-	GameObject::Update(dt);
+	GameObject::Update(dt, gameTime);
 
-	const float x = _position.getX();
+	const Point& pos = GetPosition();
+	Point dir = GetDirection();
+
+	const float x = pos.getX();
 	const float xMax = CfgStatic::gameSize.getX();
 
-	const bool needTurn = _direction.getY() == 0.f && (
-		(_direction.getX() < 0.f && x < 0.f) ||
-		(_direction.getX() > 0.f && x > xMax));
+	const bool needTurn = dir.getY() == 0.f && (
+		(dir.getX() < 0.f && x < 0.f) ||
+		(dir.getX() > 0.f && x > xMax));
 
 	if (needTurn) {
-		_direction.X() = -_direction.getX();
-		_mirrorX = !_mirrorX;
+		dir.X() = -dir.getX();
+		SetDirection(dir);
+
+		SetMirrorX(!GetMirrorX());
 	}
 
-	if (_particles) {
+	if (GetState() == CfgStatic::enemyDStateName) {
 
-		if (GetState() == CfgStatic::enemyDStateName) {
+		const float currTime = getGameSimulationTime();
+		const float stateElapsed = Utils::dt(currTime, getState()->_startTime);
+		if (stateElapsed > CfgStatic::boomLifetime) {
 
-			const float currTime = _gameSimulationTime;
-			const float stateElapsed = Utils::dt(currTime, _state->_startTime);
-			if (stateElapsed > CfgStatic::boomLifetime) {
-				_particles->StopEmitters();
+			auto engineComponent = GetEngineComponent();
+			if (engineComponent) {
+				engineComponent->StopEmitters();
 			}
 		}
 	}
 }
 
-Point Enemy::getEmitterPosition() {
+Point Enemy::GetEmitterPosition() const {
 
 	if (GetState() == CfgStatic::enemyDStateName) {
 		return _boomPosition;
 	}
 	else {
-		return GameObject::getEmitterPosition();
+		return GameObject::GetEmitterPosition();
 	}
 }
 

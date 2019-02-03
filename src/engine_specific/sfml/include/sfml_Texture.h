@@ -1,27 +1,26 @@
 #pragma once
 
-#include <string>
 #include <SFML/Graphics/Texture.hpp>
-#include "Utils.h"
+#include "Rect.h"
 
-class Texture {
+class sfml_Texture {
 
 public:
 	const sf::Texture* getTex() const;
-	bool loadFromFile(const std::string& filename, const Utils::Rect& area = Utils::Rect());
-	~Texture();
+	bool loadFromFile(const std::string& filename, const Rect& area = Rect());
+	~sfml_Texture();
 
 private:
 	sf::Texture _tex;
 	std::string _name;
 };
 
-typedef std::shared_ptr<Texture> TexturePtr;
-typedef std::weak_ptr<Texture> TextureWPtr;
+typedef std::shared_ptr<sfml_Texture> TexturePtr;
+typedef std::weak_ptr<sfml_Texture> TextureWPtr;
 
 struct TextureRect {
 	TextureWPtr texturePtr;
-	Utils::Rect rect;
+	Rect rect;
 
 	bool isEmpty() const {
 		return

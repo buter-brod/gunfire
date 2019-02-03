@@ -1,10 +1,25 @@
 #include "sfml_Application.h"
+
 #include "Config.h"
-#include "Game.h"
 #include "Log.h"
-#include "ResourceManager.h"
+
+#include "sfml_Sprite.h"
+#include "sfml_Game.h"
+#include "sfml_Utils.h"
+#include "sfml_ResourceManager.h"
+
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
+
+Point toGamePoint(const Point& pos) {
+	const Point screenPoint(float(pos.getX()), float(pos.getY()));
+	const Point gamePoint = screenPoint / CfgStatic::windowSize * CfgStatic::gameSize;
+	return gamePoint;
+};
+
+Point sfToGamePoint(const sf::Vector2i& pos) {
+	return toGamePoint({ (float)pos.x, (float)pos.y });
+}
 
 Application::Application() {
 	Log::Inst()->PutMessage("Application::Application");
@@ -14,7 +29,7 @@ Application::~Application() {
 	
 	Log::Inst()->PutMessage("Application::~Application");
 	freeResources();
-	ResourceManager::ResetInst();
+	sfml_ResourceManager::ResetInst();
 }
 
 void Application::freeResources() {
@@ -22,8 +37,6 @@ void Application::freeResources() {
 	Log::Inst()->PutMessage("Application::freeResources");
 	_gamePtr = nullptr;
 }
-
-void setGameRenderWindow(sf::RenderWindow* wnd);
 
 void Application::startGame() {
 
@@ -34,10 +47,8 @@ void Application::startGame() {
 		return;
 	}
 
-	_gamePtr = std::make_shared<Game>();
+	_gamePtr = std::make_shared<sfml_Game>(_window.get());
 	_gamePtr->Init();
-
-	setGameRenderWindow(_window.get());
 }
 
 bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
@@ -50,7 +61,7 @@ void Application::handleEvent(sf::Event* event) {
 
 	auto refreshPauseColor = [this]() {
 		const sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
-		_gamePtr->OnCursorMoved(toGamePoint(mousePos));
+		_gamePtr->OnCursorMoved(sfToGamePoint(mousePos));
 
 		const bool mouseOnPauseBtn = isMouseOn(_pauseBtnImg, mousePos) || isMouseOn(_playBtnImg, mousePos);
 
@@ -69,7 +80,7 @@ void Application::handleEvent(sf::Event* event) {
 		case sf::Event::MouseMoved: {
 			const sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
 			
-			_gamePtr->OnCursorMoved(toGamePoint(mousePos));
+			_gamePtr->OnCursorMoved(sfToGamePoint(mousePos));
 			
 			const bool mouseOnRestartBtn = isMouseOn(_restartBtnImg, mousePos);
 			_restartBtnImg->getSpr()->setColor(mouseOnRestartBtn ? sf::Color::White : Utils::toSfmlColor(CfgStatic::btnPlayPauseNotHoveredClr));
@@ -98,22 +109,17 @@ void Application::handleEvent(sf::Event* event) {
 				break;
 			}
 
-			_gamePtr->OnCursorClicked(toGamePoint(mousePos));
+			_gamePtr->OnCursorClicked(sfToGamePoint(mousePos));
 		}
 		break;
 	}
 }
 
-Point Application::toGamePoint(const sf::Vector2i pos){
-	const Point screenPoint = Point(float(pos.x), float(pos.y));
-	const Point gamePoint = screenPoint / CfgStatic::windowSize * _gamePtr->GetSize();
-	return gamePoint;
-};
 
 SpritePtr initBtn(const std::string& sprName) {
 	SpritePtr spritePtr;
 
-	const auto& texRect = ResourceManager::Inst()->GetTexture(sprName);
+	const auto& texRect = sfml_ResourceManager::Inst()->GetTexture(sprName);
 	if (texRect.texturePtr.lock() == nullptr) {
 		Log::Inst()->PutErr("Application::Run error, not found " + sprName);
 		return spritePtr;
@@ -128,7 +134,7 @@ SpritePtr initBtn(const std::string& sprName) {
 
 bool Application::init() {
 
-	const bool atlasLoadedOk = ResourceManager::Inst()->LoadAtlas(CfgStatic::atlasPng, CfgStatic::atlasMtpf);
+	const bool atlasLoadedOk = sfml_ResourceManager::Inst()->LoadAtlas(CfgStatic::atlasPng, CfgStatic::atlasMtpf);
 
 	if (!atlasLoadedOk) {
 		Log::Inst()->PutErr("Application::Run error, unable to load atlas");
@@ -190,21 +196,25 @@ void Application::gameLoop() {
 		const float frameTime = Utils::dt(newTime, currentTime);
 		currentTime = newTime;
 
-		_gamePtr->Update(frameTime);
+		const bool updated = _gamePtr->Update(frameTime);
+		const bool needDraw = CfgStatic::drawFPSUnlimited || updated;
 
-		draw();
+		if (needDraw) {
 
-		if (fpsLogFramesCount > CfgStatic::fpsLogFramesCap) { //FPS counter
+			draw();
 
-			const float elapsed = Utils::dt(currentTime, fpsLogCountTimeStart);
-			fpsLogCountTimeStart = currentTime;
-			fpsLogFramesCount = 0;
-			const auto currFPS = CfgStatic::fpsLogFramesCap / elapsed;
-			Log::Inst()->PutMessage("FPS: " + std::to_string(int(currFPS)));
-		}
-		else {
-			fpsLogFramesCount++;
-		}
+			if (fpsLogFramesCount > CfgStatic::fpsLogFramesCap) { //FPS counter
+
+				const float elapsed = Utils::dt(currentTime, fpsLogCountTimeStart);
+				fpsLogCountTimeStart = currentTime;
+				fpsLogFramesCount = 0;
+				const auto currFPS = (unsigned int)roundf(CfgStatic::fpsLogFramesCap / elapsed);
+				Log::Inst()->PutMessage("FPS: " + std::to_string(currFPS));
+			}
+			else {
+				fpsLogFramesCount++;
+			}
+		}		
 	}
 }
 

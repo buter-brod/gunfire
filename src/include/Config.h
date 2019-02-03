@@ -1,5 +1,7 @@
 #pragma once
+#include "Rect.h"
 #include "Utils.h"
+
 #include <vector>
 #include <unordered_map>
 #include <memory>
@@ -30,6 +32,12 @@ namespace CfgStatic {
 
 	static const Size gameSize(1024, 768);
 	static const Size windowSize = gameSize;
+
+	// object sizes
+
+	static const Size playerSize(330, 287);
+	static const Size bulletSize(79, 77);
+	static const Size enemySize(224, 137);
 
 	// files
 
@@ -92,13 +100,15 @@ namespace CfgStatic {
 
 	// FPS
 	
+	static const bool drawFPSUnlimited = true; // if set to false, drawing FPS will be the same as simulationFPS
+
 	static const unsigned int simulationFPS = 60;
 
 	static const unsigned int bulletAnimFPS = 5;
 	static const unsigned int   boomAnimFPS = 20;
 	static const unsigned int  enemyAnimFPS = 5;
 
-	const unsigned int fpsLogFramesCap = 50000;
+	const unsigned int fpsLogFramesCap = 15000;
 
 	// animation
 
@@ -116,7 +126,7 @@ namespace CfgStatic {
 	// text
 
 	static const std::string appTitle = "gunfire";
-	static const std::string timerTxt = "Time left: ";
+	static const std::string timerTxt = "Time before arrest: ";
 	static const std::string scoreTxt = "Score: ";
 	
 	// object names
@@ -157,7 +167,7 @@ namespace CfgStatic {
 	static const float scorePositionX       = 850;
 	static const float scorePositionY       = 700;
 
-	const float timerPositionX              = 80;
+	const float timerPositionX              = 50;
 	const float timerPositionY              = 700;
 
 	static const float smokeMaxDeflect      = 15.f;

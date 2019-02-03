@@ -1,10 +1,8 @@
 #include "Utils.h"
+
 #include <sstream>
 #include <random>
 #include <chrono>
-
-#define _USE_MATH_DEFINES
-#include <math.h>
 
 static const float RANDOM_STRENGTH = 5000.f;
 
@@ -74,92 +72,5 @@ namespace Utils {
 		std::stringstream ss;
 		ss << i;
 		return ss.str();
-	}
-
-	void Point::rotate(const Point& pivot, const float angleDeg) {
-
-		*this -= pivot;
-
-		const float angle = angleDeg / 180.f * float(M_PI);
-
-		const float c = cos(angle);
-		const float s = sin(angle);
-
-		const Point posNew {
-			 _x * c - _y * s,
-			 _x * s + _y * c
-		};
-
-		*this = posNew;
-		*this += pivot;
-	}
-
-	std::string Point::str() const {
-		return std::string("(") + std::to_string(_x) + ", " + std::to_string(_y) + ")";
-	}
-
-	std::string Point::strInt() const {
-		return std::string("(") + std::to_string(int(_x)) + ", " + std::to_string(int(_y)) + ")";
-	}
-
-	Point Point::operator/(float val) const {
-		return Point(_x / val, _y / val);
-	}
-
-	Point Point::operator*(float val) const {
-		return Point(_x * val, _y * val);
-	}
-
-	Point Point::operator+(const Point& p) const {
-		return Point(_x + p.getX(), _y + p.getY());
-	}
-
-	Point Point::operator*(const Point& p) const {
-		return Point(_x * p.getX(), _y * p.getY());
-	}
-
-	Point Point::operator/(const Point& p) const {
-		return Point(_x / p.getX(), _y / p.getY());
-	}
-
-	Point Point::operator-(const Point& p) const {
-		return Point(_x - p.getX(), _y - p.getY());
-	}
-
-	void Point::operator+=(const Point& p) {
-		_x += p.getX();
-		_y += p.getY();
-	}
-
-	void Point::operator-=(const Point& p) {
-		_x -= p.getX();
-		_y -= p.getY();
-	}
-
-	Point Point::operator-() const {
-		return Point(-getX(), -getY());
-	}
-
-	void Point::operator*=(const Point& p) {
-		_x *= p.getX();
-		_y *= p.getY();
-	}
-
-	void Point::operator/=(const Point& p) {
-		_x /= p.getX();
-		_y /= p.getY();
-	}
-
-	void Point::operator*=(float val) {
-		_x *= val;
-		_y *= val;
-	}
-
-	Point Point::normalized() const {
-		return (*this * (1.0f / len()));
-	}
-
-	float Point::len() const {
-		return sqrt(_x *_x + _y * _y);
 	}
 }

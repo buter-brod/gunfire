@@ -1,26 +1,30 @@
-#include "ResourceManager.h"
+#include "sfml_ResourceManager.h"
+
 #include "Log.h"
 #include "Config.h"
-#include "TextureAtlas.h"
+#include "Shader.h"
+
+#include "sfml_TextureAtlas.h"
+#include "sfml_Sound.h"
 
 static const TextureRect emptyTexRect = TextureRect();
 
-std::shared_ptr<ResourceManager>& ResourceManager::instancePtr() {
-	static std::shared_ptr<ResourceManager> instancePtr {nullptr};
+std::shared_ptr<sfml_ResourceManager>& sfml_ResourceManager::instancePtr() {
+	static std::shared_ptr<sfml_ResourceManager> instancePtr {nullptr};
 	return instancePtr;
 }
 
-ResourceManager* ResourceManager::Inst() {
+sfml_ResourceManager* sfml_ResourceManager::Inst() {
 
 	auto& ptr = instancePtr();
 	if (ptr == nullptr) {
-		ptr.reset(new ResourceManager());
+		ptr.reset(new sfml_ResourceManager());
 	}
 
 	return ptr.get();
 }
 
-void ResourceManager::ResetInst() {
+void sfml_ResourceManager::ResetInst() {
 	
 	auto& ptr = instancePtr();
 	if (ptr != nullptr) {
@@ -28,15 +32,15 @@ void ResourceManager::ResetInst() {
 	}
 }
 
-ResourceManager::ResourceManager() {
+sfml_ResourceManager::sfml_ResourceManager() {
 	Log::Inst()->PutMessage("ResourceManager::ResourceManager");
 }
 
-ResourceManager::~ResourceManager() {
+sfml_ResourceManager::~sfml_ResourceManager() {
 	Log::Inst()->PutMessage("~ResourceManager");
 }
 
-bool ResourceManager::LoadAtlas(const std::string& tName, const std::string& descName) {
+bool sfml_ResourceManager::LoadAtlas(const std::string& tName, const std::string& descName) {
 
 	TextureAtlasPtr atlasPtr = std::make_shared<TextureAtlas>();
 	const bool loaded = atlasPtr->load(descName, tName);
@@ -55,7 +59,7 @@ bool ResourceManager::LoadAtlas(const std::string& tName, const std::string& des
 	return true;
 }
 
-const ShaderPtr ResourceManager::AddShader(const std::string& sName) {
+const ShaderPtr sfml_ResourceManager::AddShader(const std::string& sName) {
 
 	const auto& shIt = _shaders.find(sName);
 
@@ -80,7 +84,8 @@ const ShaderPtr ResourceManager::AddShader(const std::string& sName) {
 
 	return shPtr;
 }
-const ShaderPtr ResourceManager::GetShader(const std::string& sName, const bool onlyTry) {
+
+const ShaderPtr sfml_ResourceManager::GetShader(const std::string& sName, const bool onlyTry) {
 
 	const auto& shIt = _shaders.find(sName);
 
@@ -95,45 +100,7 @@ const ShaderPtr ResourceManager::GetShader(const std::string& sName, const bool 
 	return shIt->second;
 }
 
-const SoundPtr ResourceManager::AddSound(const std::string& sName) {
-
-	const auto& sndIt = _sounds.find(sName);
-
-	if (sndIt != _sounds.end()) {
-		const SoundPtr foundSndPtr = sndIt->second;
-		Log::Inst()->PutMessage("ResourceManager::AddSound: sound already added " + sName);
-		return foundSndPtr;
-	}
-
-	SoundPtr sndPtr = std::make_shared<Sound>();
-
-	const bool loadOk = sndPtr->load(CfgStatic::getResourceDir() + CfgStatic::getSoundDir() + sName);
-	if (!loadOk) {
-		Log::Inst()->PutErr("ResourceManager::AddSound error: unable to load " + sName);
-		return SoundPtr();
-	}
-
-	_sounds[sName] = sndPtr;
-	Log::Inst()->PutMessage("ResourceManager::AddSound: sound added successfully: " + sName);
-
-	return sndPtr;
-}
-const SoundPtr ResourceManager::GetSound(const std::string& sName, const bool onlyTry) {
-
-	const auto& sndIt = _sounds.find(sName);
-
-	if (sndIt == _sounds.end()) {
-
-		if (!onlyTry) {
-			Log::Inst()->PutErr("ResourceManager::GetSound error, not found sound " + sName);
-		}
-		return SoundPtr();
-	}
-
-	return sndIt->second;
-}
-
-const TexturePtr ResourceManager::AddTexture(const std::string& tName) {
+const TexturePtr sfml_ResourceManager::AddTexture(const std::string& tName) {
 
 	const auto& texIt = _textures.find(tName);
 
@@ -143,7 +110,7 @@ const TexturePtr ResourceManager::AddTexture(const std::string& tName) {
 		return foundTexPtr;
 	}
 
-	TexturePtr texPtr = std::make_shared<Texture>();
+	TexturePtr texPtr = std::make_shared<sfml_Texture>();
 	const bool loadOk = texPtr->loadFromFile(CfgStatic::getResourceDir() + tName);
 	if (!loadOk) {
 		Log::Inst()->PutErr("ResourceManager::AddTexture error: unable to load " + tName);
@@ -156,7 +123,7 @@ const TexturePtr ResourceManager::AddTexture(const std::string& tName) {
 	return texPtr;
 }
 
-TextureRect ResourceManager::GetTexture(const std::string& tName, const bool onlyTry) {
+TextureRect sfml_ResourceManager::GetTexture(const std::string& tName, const bool onlyTry) {
 
 	const auto& tIt = _textures.find(tName);
 
@@ -164,7 +131,7 @@ TextureRect ResourceManager::GetTexture(const std::string& tName, const bool onl
 		const TexturePtr& ptr = tIt->second;
 		const auto tSize = ptr->getTex()->getSize();
 
-		const Utils::Rect fullTexRect(0.f, 0.f, float(tSize.x), float(tSize.y));
+		const Rect fullTexRect(0.f, 0.f, float(tSize.x), float(tSize.y));
 		const TextureRect textureRect { ptr, fullTexRect };
 
 		return textureRect;
@@ -175,7 +142,7 @@ TextureRect ResourceManager::GetTexture(const std::string& tName, const bool onl
 			const TextureAtlas& atlas = *atlIt.second;
 			const auto& smallRect = atlas.getRect(tName);
 
-			if (smallRect != Utils::Rect()) { // found!
+			if (smallRect != Rect()) { // found!
 
 				const std::string& bigTexName = atlas.getTextureName();
 				const auto& texRectBigTex = GetTexture(bigTexName);
@@ -198,7 +165,7 @@ TextureRect ResourceManager::GetTexture(const std::string& tName, const bool onl
 	return emptyTexRect;
 }
 
-bool ResourceManager::RemoveTexture(const std::string& tName) {
+bool sfml_ResourceManager::RemoveTexture(const std::string& tName) {
 
 	const auto& tIt = _textures.find(tName);
 	if (tIt == _textures.end()) {

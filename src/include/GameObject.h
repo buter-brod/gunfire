@@ -1,11 +1,20 @@
 #pragma once
-#include "Animation.h"
+#include "Point.h"
+
 #include <unordered_map>
-#include "Utils.h"
-#include "Shader.h"
-#include "Particles.h"
+#include <memory>
+
+class Shader;
+class Animation;
+class EngineComponent;
+
+typedef std::shared_ptr<EngineComponent> EngineComponentPtr;
+typedef std::shared_ptr<Shader> ShaderPtr;
+typedef std::shared_ptr<Animation> AnimationPtr;
 
 static const float basedOnAnimation{ -1.f };
+
+typedef unsigned long IDType;
 
 class Game;
 typedef std::weak_ptr<Game> GameWPtr;
@@ -13,15 +22,14 @@ typedef std::weak_ptr<Game> GameWPtr;
 class GameObject {
 
 public:
-	GameObject(const IDType id, const std::string& name, const std::string& idleAnim, const GameWPtr game);
+	GameObject(const IDType id, const std::string& name, const std::string& idleAnim);
 
 	virtual ~GameObject();
 
 	AnimationPtr AddAnimation(const std::string& name);
 	AnimationPtr AddAnimation(const std::string& name, const unsigned int framesCount, const unsigned int fps);
-	AnimationPtr GetAnimation(const std::string& animName, const bool onlyTry = false);
 	
-	virtual void Update(float dt);
+	virtual void Update(const float dt, const float gameTime);
 
 	void SetScale(const float scale);
 	void SetSize(const Size& sz);
@@ -31,23 +39,37 @@ public:
 	void SetAngleSpeed(const float s);
 	void SetMirrorX(const bool mirrorX);
 
+	std::string GetCurrentSpriteName() const;
+	virtual Point GetEmitterPosition() const;
+
 	struct State;
 	typedef std::shared_ptr<State> StatePtr;
 
 	void ChangeState(StatePtr newState);
 	const std::string GetState() const;
 
+	std::string getFullName() const;
+
 	StatePtr getIdleState() { return _idleState; }
 
-	const Point& GetPosition() const { return _position; }
+	const Point& GetPosition()  const { return _position; }
 	const Point& GetDirection() const { return _direction; }
-	const Size& GetSize() const { return _size; }
-	const float GetSpeed() const { return _speed; }
-	virtual ShaderPtr GetShader();
-
+	const Size& GetSize()       const { return _size; }
+	
 	IDType getId() const { return _id; }
-	SpritePtr getSprite() { return _spritePtr; }
-	ParticlesPtr getParticles();
+
+	bool  GetMirrorX()    const { return _mirrorX; }
+	float GetSpeed()      const { return _speed; }
+	float GetScale()      const { return _scale; }
+	float GetRotation()   const { return _rotation; }
+
+	std::string getShaderName() const;
+	std::string getParticlesName() const;
+
+	EngineComponentPtr GetEngineComponent() const;
+	void SetEngineComponent(EngineComponentPtr component);
+
+	virtual ShaderPtr GetShader();
 
 	struct State {
 
@@ -72,23 +94,20 @@ public:
 	};
 
 protected:
-
-	void updateScale();
+	inline StatePtr getState() const { return _state; };
+	inline float getGameSimulationTime() const { return _gameSimulationTime; }
 	void updateState();
-	void updateAnimations();
 
-	virtual Point getEmitterPosition();
-
+	AnimationPtr getAnimation(const std::string& animName, const bool onlyTry = false) const;
 	virtual void onStateUpdate(const StatePtr prevState);
 
-	GameWPtr _gamePtr;
-
+private:
 	float _gameSimulationTime{ 0.f };
 
 	StatePtr _state;
 	StatePtr _idleState;
-	SpritePtr _spritePtr;
-	ParticlesPtr _particles;
+
+	EngineComponentPtr _engineComponent{ nullptr };
 
 	std::unordered_map<std::string, AnimationPtr> _animations;
 

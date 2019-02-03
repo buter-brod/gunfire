@@ -9,9 +9,12 @@ file(GLOB SRC
 	${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/include/*.h
 	)
+	
+set(ENGINE_SPECIFIC_DIR ${CMAKE_CURRENT_LIST_DIR}/src/engine_specific/sfml)
+
 file(GLOB ENGINE_SPECIFIC_SRC
-	${CMAKE_CURRENT_LIST_DIR}/src/engine_specific/sfml/*.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/engine_specific/sfml/*.h
+	${ENGINE_SPECIFIC_DIR}/*.cpp
+	${ENGINE_SPECIFIC_DIR}/include/*.h
 	)
 
 add_executable(gunfire src/main.cpp)
@@ -20,7 +23,7 @@ target_sources(gunfire PRIVATE ${SRC} ${ENGINE_SPECIFIC_SRC})
 source_group("engine_specific" FILES ${ENGINE_SPECIFIC_SRC})
 
 INCLUDE_DIRECTORIES(src/include)
-INCLUDE_DIRECTORIES(src/engine_specific/sfml)
+INCLUDE_DIRECTORIES(src/engine_specific/sfml/include)
 
 INCLUDE_DIRECTORIES(3rdparty/thor/include)
 LINK_DIRECTORIES(3rdparty/thor/lib)

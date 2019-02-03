@@ -1,21 +1,25 @@
 #pragma once
 #include "Utils.h"
-#include <map>
-#include "GameObject.h"
+#include "Point.h"
+
 #include <deque>
-#include "Text.h"
-#include "Player.h"
+#include <unordered_map>
 
-class Sprite;
+class GameObject;
+class Player;
 
-class Game : public std::enable_shared_from_this<Game> {
+typedef std::shared_ptr<Player> PlayerPtr;
+typedef std::shared_ptr<GameObject> GameObjectPtr;
+typedef std::weak_ptr<GameObject> GameObjectWPtr;
+
+class Game {
 public:
 	Game();
 	~Game();
 
-	void Init();
-	void Draw();
-	void Update(const float dt);
+	virtual void Init();
+	virtual void Draw() = 0;
+	bool Update(const float dt);
 
 	void OnCursorMoved(const Point& pt);
 	void OnCursorClicked(const Point& pt);
@@ -31,47 +35,54 @@ public:
 
 	IDType Game::newID();
 
+	typedef std::unordered_map<IDType, GameObjectWPtr> ObjectsMap;
+
 protected:
 	/* --- gameplay specific BEGIN ---*/
 
-	void tryShoot(const Point& whereTo);
+	bool tryShoot(const Point& whereTo);
 	void checkSpawn();
 
 	void checkCollisions();
 	void onCollision(GameObjectPtr bullet, GameObjectPtr enemy);
 
-	void initText();
-	void initSound();
-	void updateText();
+	virtual void initText();
+	virtual void initSound();
+	virtual void updateText();
+
+	unsigned int getFrags() const { return _frags; }
+
+	GameObjectPtr getBGObject() const { return _bgObject; }
+	PlayerPtr getPlayerObject() const { return _playerObj; }
+
+	typedef std::deque<GameObjectPtr> ObjectsArr;
+
+	const ObjectsArr& getEnemyObjects() const  { return _enemyObjects; }
+	const ObjectsArr& getBulletObjects() const { return _bulletObjects; }
+
+private:
 
 	GameObjectPtr _bgObject;
 	PlayerPtr _playerObj;
 
-	TextPtr _timerTxt;
-	TextPtr _scoreTxt;
-	TextPtr _gameOverText;
-
-	FontPtr _font;
-
+	struct {
+		bool requested{ false };
+		Point targetPt;
+	} _shootRequest;
+	
+		
 	unsigned int _frags{ 0 };
-
-	typedef std::deque<GameObjectPtr> ObjectsArr;
 
 	ObjectsArr _enemyObjects;
 	ObjectsArr _bulletObjects;
-	ObjectsArr _effectObjects;
 
 	/* --- gameplay specific END ---*/
 
-	bool _paused{ false };
-	float _simulationTime{ 0.f };
-	float _simulationTimeAcc{ 0.f };
-
-	std::unordered_map<IDType, GameObjectWPtr> _allObjects;
-	
-	void update(const float dt);
+protected:
+	virtual bool update(const float dt);
 	float getTimeRemain() const;
 
+	bool addObject(GameObjectPtr objPtr);
 	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr);
 	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr);
 
@@ -80,6 +91,16 @@ protected:
 
 	void checkAllObjectsObsolete();
 	void updateAllObjects(const float dt);
+
+	const ObjectsMap& getAllObjects() const { return _allObjects; }
+
+private:
+
+	bool _paused{ false };
+	float _simulationTime{ 0.f };
+	float _simulationTimeAcc{ 0.f };
+
+	ObjectsMap _allObjects;
 
 	IDType _nextID{ 1 };
 };

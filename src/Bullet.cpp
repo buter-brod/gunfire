@@ -1,10 +1,12 @@
 #include "Bullet.h"
 
-#include "Bullet.h"
+#include "EngineComponent.h"
 #include "Config.h"
 
-Bullet::Bullet(const IDType id, const GameWPtr game)
-	: GameObject(id, CfgStatic::bulletName, CfgStatic::bulletSpr, game) {
+Bullet::Bullet(const IDType id)
+	: GameObject(id, CfgStatic::bulletName, CfgStatic::bulletSpr) {
+
+	SetSize(CfgStatic::bulletSize);
 
 	getIdleState()->_particles = "smoke";
 
@@ -54,18 +56,21 @@ void Bullet::Boom() {
 	SetSpeed(0.f);
 	SetAngleSpeed(0.f);
 
-	if (_particles) {
-		_particles->StopEmitters();
+	auto engineComponent = GetEngineComponent();
+	if (engineComponent) {
+		engineComponent->StopEmitters();
 	}
 }
 
-Point Bullet::getEmitterPosition() {
+Point Bullet::GetEmitterPosition() const {
 	
-	Point emitterPos = _position;
+	const float rotation = GetRotation();
+	const Point pos = GetPosition();
+	Point emitterPos = pos;
 
 	// smoke should go from the bottle neck
 	emitterPos.Y() -= GetSize().getY() / 2.f;
-	emitterPos.rotate(_position, _rotation);
+	emitterPos.rotate(pos, rotation);
 
 	return emitterPos;
 }

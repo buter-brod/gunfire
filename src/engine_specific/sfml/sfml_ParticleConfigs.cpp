@@ -1,13 +1,12 @@
-#include "Particles.h"
+#include "sfml_Particles.h"
 
-#include "ResourceManager.h"
+#include "sfml_ResourceManager.h"
+#include "sfml_Utils.h"
 #include "Config.h"
 
 #include "Thor/Particles/Affectors.hpp"
 #include "Thor/Math/Distributions.hpp"
 #include "Thor/Animations/FadeAnimation.hpp"
-
-#include "sfml_Utils.h"
 
 ParticlesPtr Particles::Build(const std::string& config) {
 
@@ -15,7 +14,7 @@ ParticlesPtr Particles::Build(const std::string& config) {
 
 	if (config == "smoke") {
 
-		const auto& texRect = ResourceManager::Inst()->GetTexture(CfgStatic::smokePng);
+		const auto& texRect = sfml_ResourceManager::Inst()->GetTexture(CfgStatic::smokePng);
 
 		if (texRect.isEmpty()) {
 			return particlesPtr;
@@ -49,7 +48,7 @@ ParticlesPtr Particles::Build(const std::string& config) {
 
 	else if (config == "boom") {
 
-		const auto& texRect = ResourceManager::Inst()->GetTexture(CfgStatic::smokePng);
+		const auto& texRect = sfml_ResourceManager::Inst()->GetTexture(CfgStatic::smokePng);
 
 		if (texRect.isEmpty()) {
 			return particlesPtr;

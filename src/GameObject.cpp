@@ -1,15 +1,12 @@
 #include "GameObject.h"
+
 #include "Log.h"
 #include "Config.h"
-#include "ResourceManager.h"
-#include "Game.h"
-#include "sfml_Utils.h"
+#include "SoundManager.h"
+#include "Animation.h"
+#include "EngineComponent.h"
 
-GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim, const GameWPtr game) :_id(id), _name(name), _idleAnimation(idleAnim), _gamePtr(game) {
-
-	if (!_gamePtr.lock()) {
-		Log::Inst()->PutErr("GameObject::GameObject " + Utils::toString(id) + " trying to create with empty game");
-	}
+GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
 
 	if (!_idleState) {
 		_idleState = State::New(CfgStatic::idleStateName);
@@ -18,36 +15,26 @@ GameObject::GameObject(const IDType id, const std::string& name, const std::stri
 }
 
 GameObject::~GameObject() {
-	Log::Inst()->PutMessage("~GameObject " + _name + " id " + std::to_string(_id));
+	Log::Inst()->PutMessage("~GameObject " + getFullName());
 }
 
-void GameObject::SetPosition(const Point& pt) {
-	_position = pt;
+void GameObject::SetSize(const Size& sz)        { _size = sz;         }
+void GameObject::SetPosition(const Point& pt)   { _position = pt;     }
+void GameObject::SetMirrorX(const bool mirrorX) { _mirrorX = mirrorX; }
+void GameObject::SetScale(const float scale)    { _scale = scale;     }
+void GameObject::SetDirection(const Point& d)   { _direction = d;     }
+void GameObject::SetSpeed(const float s)        { _speed = s;         }
+void GameObject::SetAngleSpeed(const float s)   { _angleSpeed = s;    }
+
+void GameObject::SetEngineComponent(EngineComponentPtr component) {
+	if (_engineComponent != nullptr) {
+		Log::Inst()->PutErr("GameObject::SetEngineComponent error, engineComponent is already set");
+	}
+
+	_engineComponent = component;
 }
 
-void GameObject::SetSize(const Size& sz) {
-	_size = sz;
-}
-
-void GameObject::SetMirrorX(const bool mirrorX) {
-	_mirrorX = mirrorX;
-}
-
-void GameObject::SetScale(const float scale) {
-	_scale = scale;
-}
-
-void GameObject::SetDirection(const Point& d) {
-	_direction = d;
-}
-
-void GameObject::SetSpeed(const float s) {
-	_speed = s;
-}
-
-void GameObject::SetAngleSpeed(const float s) {
-	_angleSpeed = s;
-}
+EngineComponentPtr GameObject::GetEngineComponent() const { return _engineComponent; };
 
 AnimationPtr GameObject::AddAnimation(const std::string& name) {
 	return AddAnimation(name, 1, 0);
@@ -71,10 +58,9 @@ AnimationPtr GameObject::AddAnimation(const std::string& name, const unsigned in
 	return animPtr;
 }
 
-AnimationPtr GameObject::GetAnimation(const std::string& animName, const bool onlyTry) {
+AnimationPtr GameObject::getAnimation(const std::string& animName, const bool onlyTry) const {
 
 	const auto& animIt = _animations.find(animName);
-
 	if (animIt == _animations.end()) {
 
 		if (!onlyTry) {
@@ -85,38 +71,11 @@ AnimationPtr GameObject::GetAnimation(const std::string& animName, const bool on
 	return animIt->second;
 }
 
-void GameObject::updateScale() {
-
-	if (_spritePtr == nullptr) {
-		return;
-	}
-
-	const auto& tRect = _spritePtr->getSpr()->getTextureRect();
-
-	if (_size.len() == 0.f) {
-		_size = { float(tRect.width), float(tRect.height) }; // will use texture size
-	}
-
-	_spritePtr->getSpr()->setScale(
-		_size.getX() / tRect.width * _scale * (_mirrorX ? -1.f : 1.f),
-		_size.getY() / tRect.height * _scale);
-
-	const Size halfSize(float(tRect.width) / 2.f, float(tRect.height) / 2.f);
-	_spritePtr->getSpr()->setOrigin(halfSize.getX(), halfSize.getY());
-}
-
 void GameObject::onStateUpdate(const StatePtr prevState) {
 
 	auto soundFunc = [](const std::string& soundName) {
 		if (!soundName.empty()) {
-			SoundPtr soundPtr = ResourceManager::Inst()->GetSound(soundName);
-
-			if (!soundPtr) {
-				Log::Inst()->PutErr("GameObject::onStateUpdate unable to play sound " + soundName);
-			}
-			else {
-				soundPtr->Play();
-			}
+			SoundManager::Inst()->PlaySound(soundName);
 		}
 	};
 
@@ -126,14 +85,14 @@ void GameObject::onStateUpdate(const StatePtr prevState) {
 
 	soundFunc(_state->_sound);
 
-	if (!prevState || prevState->_particles != _state->_particles) {
+	/*if (!prevState || prevState->_particles != _state->_particles) {
 		_particles = Particles::Build(_state->_particles);
-	}
+	}*/
 }
 
 void GameObject::ChangeState(StatePtr newState) {
 
-	Log::Inst()->PutMessage("object " + _name + " id " + std::to_string(_id) + " will change state from " + (_state ? _state->_name : "(none)") + " to " + newState->_name);
+	Log::Inst()->PutMessage("object " + getFullName() + " will change state from " + (_state ? _state->_name : "(none)") + " to " + newState->_name);
 
 	StatePtr prevState = _state;
 	_state = newState;
@@ -151,7 +110,7 @@ void GameObject::updateState() {
 
 	if (!_state) {
 		
-		AnimationPtr idleAnimPtr = GetAnimation(_idleAnimation, true);
+		AnimationPtr idleAnimPtr = getAnimation(_idleAnimation, true);
 		if (!idleAnimPtr) {
 			AddAnimation(_idleAnimation);
 		}
@@ -164,7 +123,7 @@ void GameObject::updateState() {
 	if (!_state->_animation.empty()) {
 
 		if (duration == basedOnAnimation) {
-			AnimationPtr animation = GetAnimation(_state->_animation);
+			AnimationPtr animation = getAnimation(_state->_animation);
 
 			if (animation == nullptr) {
 				Log::Inst()->PutErr("GameObject::updateState error, state " + _state->_name + " animation " + _state->_animation);
@@ -191,83 +150,79 @@ void GameObject::updateState() {
 	}
 }
 
-ParticlesPtr GameObject::getParticles() {
+std::string GameObject::getParticlesName() const {
+	std::string pName;
 
-	return _particles;
+	if (_state) {
+		pName = _state->_particles;
+	}
+
+	return pName;
+}
+
+std::string GameObject::getShaderName() const {
+
+	std::string shName;
+
+	if (_state) {
+		shName = _state->_shader;
+	}
+
+	return shName;
 }
 
 ShaderPtr GameObject::GetShader() {
 
-	const std::string& shaderName = _state->_shader;
 	ShaderPtr shader;
 
-	if (!shaderName.empty()) {
-		
-		shader = ResourceManager::Inst()->GetShader(shaderName);
-
-		if (!shader) {
-			Log::Inst()->PutErr("GameObject::GetShader error: unable to get " + shaderName);
-		}
+	if (_engineComponent) {
+		shader = _engineComponent->GetShader();
 	}
-	
+
 	return shader;
 }
 
-void GameObject::updateAnimations() {
-		
-	if (_state->_animation.empty()) {
+std::string GameObject::GetCurrentSpriteName() const {
 
-		if (_spritePtr) {
-			_spritePtr = nullptr;
-		}
-		return;
+	if (_state == nullptr || _state->_animation.empty()) {
+		return "";
 	}
-
-	AnimationPtr animation = GetAnimation(_state->_animation);
-
+	
+	const AnimationPtr animation = getAnimation(_state->_animation);
 	if (animation == nullptr) {
-		Log::Inst()->PutErr("GameObject::update error, animation broken :(");
-		return;
+		Log::Inst()->PutErr("GameObject::GetCurrentSpriteNam error, animation broken :( " + getFullName());
+		return "";
 	}
 
 	const float time = _gameSimulationTime;
 	const float dtFromAnimBegin = Utils::dt(time, _state->_startTime);
-	const auto& textureRect = animation->GetTexRectFor(dtFromAnimBegin);
-	const auto& texturePtr = textureRect.texturePtr.lock();
 
-	if (texturePtr == nullptr) {
-		Log::Inst()->PutErr("GameObject::update error, animation texture not found? " + animation->getName());
-		return;
-	}
-
-	if (_spritePtr == nullptr) {
-		_spritePtr = std::make_shared<Sprite>(*texturePtr, textureRect.rect);
-	}
-	else {
-		_spritePtr->getSpr()->setTexture(*texturePtr->getTex());
-		_spritePtr->getSpr()->setTextureRect(Utils::toSfmlRect(textureRect.rect));
-	}
+	const std::string& frameName = animation->GetFrameName(dtFromAnimBegin);
+	return frameName;
 }
 
-Point GameObject::getEmitterPosition() {
+Point GameObject::GetEmitterPosition() const {
 	return _position;
 }
 
-void GameObject::Update(float dt) {
+std::string GameObject::getFullName() const {
+	return _name + std::to_string(getId());
+}
+
+void GameObject::Update(float dt, const float gameTime) {
 	
-	{
-		auto game = _gamePtr.lock();
-		if (!game) {
-			Log::Inst()->PutMessage("GameObject::Update error, gameLock invalid");
-			return;
-		}
-		_gameSimulationTime = game->GetSimulationTime();
-	}
+	_gameSimulationTime = gameTime;
 
 	if (_direction.len() == 0) {
-		Log::Inst()->PutErr("GameObject::update error, invalid direction " + std::to_string(getId()));
+		Log::Inst()->PutErr("GameObject::update error, invalid direction " + getFullName());
 	}
-	
+
+	if (_size.isEmpty() && _engineComponent != nullptr) {
+		const Size& sizeFromEngine = _engineComponent->GetSpriteSize();
+		Log::Inst()->PutMessage("GameObject " + getFullName() + " size not set, will get it from engine: " + sizeFromEngine.strInt());
+		_size = sizeFromEngine;
+	}
+
 	_speed += _acceleration * dt;
 	_position += _direction.normalized() * _speed * dt;
 
@@ -275,16 +230,8 @@ void GameObject::Update(float dt) {
 	_rotation += fmod(_angleSpeed * dt, angleFullRound);
 
 	updateState();
-	updateAnimations();
-	updateScale();
 
-	if (_spritePtr) {
-		_spritePtr->getSpr()->setRotation(_rotation);
-		_spritePtr->getSpr()->setPosition(_position.getX(), _position.getY());
-	}
-
-	if (_particles) {
-		const Point emitterPos = getEmitterPosition();
-		_particles->Update(dt, emitterPos);
+	if (_engineComponent) {
+		_engineComponent->Update(dt);
 	}
 }
