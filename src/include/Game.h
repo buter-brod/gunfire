@@ -72,6 +72,7 @@ private:
 	
 		
 	unsigned int _frags{ 0 };
+	float _bonusTime{ 0.f };
 
 	ObjectsArr _enemyObjects;
 	ObjectsArr _bulletObjects;

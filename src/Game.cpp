@@ -33,8 +33,10 @@ float Game::getTimeRemain() const {
 	const float elapsed_s = _simulationTime;
 	const unsigned int roundDuration = Config::Inst()->getInt("roundDuration");
 
-	if (roundDuration > elapsed_s) {
-		const auto timeRemain = roundDuration - elapsed_s;
+	const unsigned int roundWithBonusTime = roundDuration + (unsigned int)_bonusTime;
+
+	if (roundWithBonusTime > elapsed_s) {
+		const auto timeRemain = roundWithBonusTime - elapsed_s;
 		return timeRemain;
 	}
 	
@@ -313,6 +315,10 @@ void Game::onCollision(GameObjectPtr bullet, GameObjectPtr enemy) {
 	bulletPtr->Boom();	
 
 	++_frags;
+
+	const float bonusTimePerFrag = Config::Inst()->getFloat("bonusTimePerFrag");
+
+	_bonusTime += bonusTimePerFrag;
 }
 
 bool Game::tryShoot(const Point& whereTo) {
