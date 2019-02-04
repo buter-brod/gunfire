@@ -8,7 +8,9 @@ class Bullet : public GameObject {
 public:
 
 	Bullet(const IDType id);
+	
 	void Boom();
+	virtual bool RequestKill(const std::string& reason) override;
 
 protected:
 	Point GetEmitterPosition() const override;

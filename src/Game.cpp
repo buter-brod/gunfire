@@ -114,10 +114,15 @@ bool Game::isObjectObsolete(GameObjectPtr objPtr) {
 		return true;
 	}
 
+	if (objPtr->GetState() == CfgStatic::leavingStateName) {
+
+		// don't touch me yet, I'm doing something before I can be finally removed!
+		return false;
+	}
+
 	const Point& pos = objPtr->GetPosition();
 	const Point& dir = objPtr->GetDirection();
 	const Point& sz  = objPtr->GetSize();
-	const Point& hsz = sz / 2.f;
 
 	const Size& gameSize = GetSize();
 	const Point center = gameSize / 2.f;
@@ -126,17 +131,20 @@ bool Game::isObjectObsolete(GameObjectPtr objPtr) {
 	const bool movingOut = (pos + dir - center).len() >= (pos - center).len();
 
 	if (movingOut) {
-
 		// not visible by game bounds
 		const bool outOfBounds =
-			pos.getX() < -hsz.getX() ||
-			pos.getY() < -hsz.getY() ||
+			pos.getX() < -sz.getX() ||
+			pos.getY() < -sz.getY() ||
 
-			pos.getX() > gameSize.getX() + hsz.getX() ||
-			pos.getY() > gameSize.getY() + hsz.getY();
+			pos.getX() > gameSize.getX() + sz.getX() ||
+			pos.getY() > gameSize.getY() + sz.getY();
 
 		if (outOfBounds) {
-			return true;
+			const bool canBeDestroyedNow = objPtr->RequestKill("flying out of bounds");
+
+			if (canBeDestroyedNow) {
+				return true;
+			}
 		}
 	}
 

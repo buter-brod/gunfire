@@ -39,6 +39,12 @@ public:
 	void SetAngleSpeed(const float s);
 	void SetMirrorX(const bool mirrorX);
 
+	/* call this to check whether object can be removed from scene immediately. 
+	Returns TRUE if it's ok to remove it now,
+	returns FALSE if it wants to do something first. (in this case correct removal time will be managed via "deadState")
+	*/
+	virtual bool RequestKill(const std::string& reason);
+
 	std::string GetCurrentSpriteName() const;
 	virtual Point GetEmitterPosition() const;
 

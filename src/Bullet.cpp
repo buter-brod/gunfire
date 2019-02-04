@@ -2,6 +2,7 @@
 
 #include "EngineComponent.h"
 #include "Config.h"
+#include "Log.h"
 
 Bullet::Bullet(const IDType id)
 	: GameObject(id, CfgStatic::bulletName, CfgStatic::bulletSpr) {
@@ -18,6 +19,29 @@ Bullet::Bullet(const IDType id)
 
 	SetSpeed(speed);
 	SetAngleSpeed(angleSpeed);
+}
+
+bool Bullet::RequestKill(const std::string& reason) {
+
+	GameObject::StatePtr deadState = GameObject::State::New(CfgStatic::deadStateName);
+	GameObject::StatePtr leavingState = GameObject::State::New(CfgStatic::leavingStateName);
+
+	leavingState->_nextState = deadState;
+
+	// should linger for some time to let all the smoke disappear
+	leavingState->_duration = CfgStatic::smokeLifetime;
+	leavingState->_particles = "smoke";
+
+	Log::Inst()->PutMessage("Bullet::RequestKill " + getFullName() + ", reason: " + reason);
+
+	ChangeState(leavingState);
+
+	auto engineComponent = GetEngineComponent();
+	if (engineComponent) {
+		engineComponent->StopEmitters();
+	}
+
+	return false;
 }
 
 void Bullet::Boom() {

@@ -1,4 +1,3 @@
-0. Custom throw strength
-1. Add time when hit a cop car
-2. Splash screen
-3. move 80% of static config to file
+2. splash/GameOver screen
+3. move some static config to file or at least to cpp
+4. separate lib for game logic

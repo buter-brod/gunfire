@@ -176,7 +176,8 @@ namespace CfgStatic {
 	static const std::string shootingStateName = "shooting";
 	static const std::string     boomStateName = "boom";
 	static const std::string   boomedStateName = "boomed";
-	static const std::string   enemyDStateName = "dying";
+	static const std::string    dyingStateName = "dying";
+	static const std::string  leavingStateName = "leaving";
 	static const std::string     deadStateName = "dead";
 }
 

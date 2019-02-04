@@ -101,7 +101,7 @@ void Enemy::Update(const float dt, const float gameTime) {
 		SetMirrorX(!GetMirrorX());
 	}
 
-	if (GetState() == CfgStatic::enemyDStateName) {
+	if (GetState() == CfgStatic::dyingStateName) {
 
 		const float currTime = getGameSimulationTime();
 		const float stateElapsed = Utils::dt(currTime, getState()->_startTime);
@@ -117,7 +117,7 @@ void Enemy::Update(const float dt, const float gameTime) {
 
 Point Enemy::GetEmitterPosition() const {
 
-	if (GetState() == CfgStatic::enemyDStateName) {
+	if (GetState() == CfgStatic::dyingStateName) {
 		return _boomPosition;
 	}
 	else {
@@ -134,12 +134,12 @@ void Enemy::Boom(const Point& bulletPos) {
 	SetSpeed(CfgStatic::boomAcceleration);
 	SetAngleSpeed((Utils::rndYesNo() ? 1.f : -1.f) *  CfgStatic::boomAngleSpeed);
 
-	GameObject::StatePtr enemyDeadState = GameObject::State::New(CfgStatic::enemyDStateName);
-	enemyDeadState->_animation = getIdleState()->_animation;
-	enemyDeadState->_shader = CfgStatic::pixelizeShader;
-	enemyDeadState->_particles = "boom";
+	GameObject::StatePtr enemyDyingState = GameObject::State::New(CfgStatic::dyingStateName);
+	enemyDyingState->_animation = getIdleState()->_animation;
+	enemyDyingState->_shader = CfgStatic::pixelizeShader;
+	enemyDyingState->_particles = "boom";
 
-	ChangeState(enemyDeadState);
+	ChangeState(enemyDyingState);
 
 	_boomPosition = bulletPos;
 }

@@ -84,10 +84,6 @@ void GameObject::onStateUpdate(const StatePtr prevState) {
 	}
 
 	soundFunc(_state->_sound);
-
-	/*if (!prevState || prevState->_particles != _state->_particles) {
-		_particles = Particles::Build(_state->_particles);
-	}*/
 }
 
 void GameObject::ChangeState(StatePtr newState) {
@@ -219,7 +215,7 @@ void GameObject::Update(float dt, const float gameTime) {
 
 	if (_size.isEmpty() && _engineComponent != nullptr) {
 		const Size& sizeFromEngine = _engineComponent->GetSpriteSize();
-		Log::Inst()->PutMessage("GameObject " + getFullName() + " size not set, will get it from engine: " + sizeFromEngine.strInt());
+		Log::Inst()->PutMessage("GameObject " + getFullName() + " size not set, will get it from engine: " + sizeFromEngine.strInt() + " but that's not cool, you know");
 		_size = sizeFromEngine;
 	}
 
@@ -234,4 +230,10 @@ void GameObject::Update(float dt, const float gameTime) {
 	if (_engineComponent) {
 		_engineComponent->Update(dt);
 	}
+}
+
+bool GameObject::RequestKill(const std::string& reason) {
+	
+	// by default, any object can be destroyed without any waiting
+	return true;
 }
