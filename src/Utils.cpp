@@ -3,6 +3,7 @@
 #include <sstream>
 #include <random>
 #include <chrono>
+#include <iomanip>
 
 static const float RANDOM_STRENGTH = 5000.f;
 
@@ -66,6 +67,12 @@ namespace Utils {
 		const auto usDelta = first - second;
 		const float dtSeconds = usDelta;
 		return dtSeconds;
+	}
+
+	std::string fToString(const float val, unsigned int signs) {
+		std::stringstream ss;
+		ss << std::fixed << std::setprecision(signs) << val;
+		return ss.str();
 	}
 
 	std::string toString(const size_t i) {

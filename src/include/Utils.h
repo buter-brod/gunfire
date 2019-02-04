@@ -40,4 +40,5 @@ namespace Utils {
 	const std::string& rndStr(const std::vector<std::string>& vec);
 
 	std::string toString(const size_t i);
+	std::string fToString(const float val, unsigned int signs = 2);
 }
