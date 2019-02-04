@@ -161,9 +161,6 @@ namespace CfgStatic {
 	static const float enemyPositionGapYMin = 80;
 	static const float enemyPositionGapYMax = 280;
 
-	static const float playerPositionGapY   = 145;
-	static const float bulletPositionGapY   = 290;
-
 	static const float scorePositionX       = 850;
 	static const float scorePositionY       = 700;
 

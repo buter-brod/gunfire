@@ -326,7 +326,7 @@ bool Game::tryShoot(const Point& whereTo) {
 	const Size& gameSize = GetSize();
 	const Point center = gameSize / 2.f;
 
-	const Point from(center.getX(), gameSize.getY() - CfgStatic::bulletPositionGapY);
+	const Point from(center.getX(), gameSize.getY() - CfgStatic::playerSize.getY());
 	const Point direction(whereTo - from);
 
 	const std::string& playerStateName = _playerObj->GetState();
@@ -390,7 +390,7 @@ void Game::Init() {
 	addObject(_bgObject);
 
 	_playerObj = std::make_shared<Player>(newID());
-	_playerObj->SetPosition({ gameSize.getX() / 2.f, gameSize.getY() - CfgStatic::playerPositionGapY });
+	_playerObj->SetPosition({ gameSize.getX() / 2.f, gameSize.getY() - CfgStatic::playerSize.getY() / 2.f });
 	addObject(_playerObj);
 
 	update(0.f);
