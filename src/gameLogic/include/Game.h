@@ -7,10 +7,12 @@
 
 class GameObject;
 class Player;
+class SoundManager;
 
 typedef std::shared_ptr<Player> PlayerPtr;
 typedef std::shared_ptr<GameObject> GameObjectPtr;
 typedef std::weak_ptr<GameObject> GameObjectWPtr;
+typedef std::weak_ptr<SoundManager> SoundManagerWPtr;
 
 class Game {
 public:
@@ -102,6 +104,8 @@ private:
 	float _simulationTimeAcc{ 0.f };
 
 	ObjectsMap _allObjects;
+
+	SoundManagerWPtr _soundMgr;
 
 	IDType _nextID{ 1 };
 };

@@ -2,10 +2,10 @@
 
 #include "Config.h"
 #include "Log.h"
-#include "SoundManager.h"
 #include "Enemy.h"
 #include "Bullet.h"
 #include "Player.h"
+#include "SoundManager.h"
 
 #include <algorithm>
 
@@ -361,24 +361,24 @@ void Game::initText() {
 void Game::initSound() {
 
 	for (auto& s : CfgStatic::boomSounds) {
-		SoundManager::Inst()->LoadSound(s);
+		SoundManager::LoadSound(s);
 	}
 
 	for (auto& s : CfgStatic::enemySounds) {
-		SoundManager::Inst()->LoadSound(s);
+		SoundManager::LoadSound(s);
 	}	
 
-	SoundManager::Inst()->LoadSound(CfgStatic::readySound);
-	SoundManager::Inst()->LoadSound(CfgStatic::throwSound);
+	SoundManager::LoadSound(CfgStatic::readySound);
+	SoundManager::LoadSound(CfgStatic::throwSound);
 
-	SoundManager::Inst()->LoadSound(CfgStatic::ambientSound);
-	SoundManager::Inst()->PlaySound(CfgStatic::ambientSound, true);
+	SoundManager::LoadSound(CfgStatic::ambientSound);
+	SoundManager::PlaySound(CfgStatic::ambientSound, true);
 
 	const bool musicDisabled = Config::Inst()->getInt("noMusic") > 0;
 
 	if (!musicDisabled) {
-		SoundManager::Inst()->LoadSound(CfgStatic::musicTrack);
-		SoundManager::Inst()->PlaySound(CfgStatic::musicTrack, true);
+		SoundManager::LoadSound(CfgStatic::musicTrack);
+		SoundManager::PlaySound(CfgStatic::musicTrack, true);
 	}
 }
 

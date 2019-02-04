@@ -7,6 +7,7 @@
 #include "sfml_Game.h"
 #include "sfml_Utils.h"
 #include "sfml_ResourceManager.h"
+#include "sfml_SoundManager.h"
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
@@ -46,6 +47,8 @@ void Application::startGame() {
 		Log::Inst()->PutErr("Application::startGame error, game is running already");
 		return;
 	}
+
+	sfml_SoundManager::Create();
 
 	_gamePtr = std::make_shared<sfml_Game>(_window.get());
 	_gamePtr->Init();

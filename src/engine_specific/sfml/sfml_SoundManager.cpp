@@ -4,8 +4,8 @@
 #include "Config.h"
 #include "Log.h"
 
-std::shared_ptr<SoundManager>& SoundManager::instancePtr() {
-	static std::shared_ptr<SoundManager> instancePtr{ nullptr };
+std::shared_ptr<sfml_SoundManager>& sfml_SoundManager::instancePtr() {
+	static std::shared_ptr<sfml_SoundManager> instancePtr{ nullptr };
 	return instancePtr;
 }
 
@@ -17,17 +17,17 @@ sfml_SoundManager::sfml_SoundManager(){
 	Log::Inst()->PutMessage("sfml_SoundManager");
 }
 
-SoundManager* SoundManager::Inst() {
+void sfml_SoundManager::Create() {
 
 	auto& ptr = instancePtr();
 	if (ptr == nullptr) {
 		ptr.reset(new sfml_SoundManager());
 	}
 
-	return ptr.get();
+	setSoundMgr(ptr);
 }
 
-bool sfml_SoundManager::LoadSound(const std::string& sName) {
+bool sfml_SoundManager::loadSound(const std::string& sName) {
 
 	const auto& sndIt = _sounds.find(sName);
 
@@ -66,7 +66,7 @@ const SoundPtr sfml_SoundManager::getSound(const std::string& sName, const bool 
 	return sndIt->second;
 }
 
-bool sfml_SoundManager::PlaySound(const std::string& sName, const bool loop) {
+bool sfml_SoundManager::playSound(const std::string& sName, const bool loop) {
 
 	const SoundPtr snd = getSound(sName);
 	if (snd) {

@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include "Log.h"
 
 #include <sstream>
 #include <random>

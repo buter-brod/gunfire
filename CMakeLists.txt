@@ -5,9 +5,9 @@ project(gunfire)
 set(SFML_STATIC_LIBRARIES TRUE)
 set(SFML_DIR 3rdparty/SFML/lib/cmake/SFML)
 
-file(GLOB SRC 
-	${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/include/*.h
+file(GLOB GAMELOGIC_SRC 
+	${CMAKE_CURRENT_LIST_DIR}/src/gameLogic/*.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/gameLogic/include/*.h
 	)
 	
 set(ENGINE_SPECIFIC_DIR ${CMAKE_CURRENT_LIST_DIR}/src/engine_specific/sfml)
@@ -17,12 +17,14 @@ file(GLOB ENGINE_SPECIFIC_SRC
 	${ENGINE_SPECIFIC_DIR}/include/*.h
 	)
 
+add_library(gameLogic STATIC ${GAMELOGIC_SRC} )
+
 add_executable(gunfire src/main.cpp)
-target_sources(gunfire PRIVATE ${SRC} ${ENGINE_SPECIFIC_SRC})
+target_sources(gunfire PRIVATE ${ENGINE_SPECIFIC_SRC})
 
 source_group("engine_specific" FILES ${ENGINE_SPECIFIC_SRC})
 
-INCLUDE_DIRECTORIES(src/include)
+INCLUDE_DIRECTORIES(src/gameLogic/include)
 INCLUDE_DIRECTORIES(src/engine_specific/sfml/include)
 
 INCLUDE_DIRECTORIES(3rdparty/thor/include)
@@ -31,6 +33,7 @@ LINK_DIRECTORIES(3rdparty/thor/lib)
 find_library(THOR_LIBRARY_D thor-s-d.lib HINTS 3rdparty/thor/lib)
 find_library(THOR_LIBRARY thor-s.lib HINTS 3rdparty/thor/lib)
 
+target_link_libraries(gunfire gameLogic)
 target_link_libraries(gunfire debug ${THOR_LIBRARY_D})
 target_link_libraries(gunfire ${THOR_LIBRARY})
 

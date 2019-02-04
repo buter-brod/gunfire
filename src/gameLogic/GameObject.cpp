@@ -2,9 +2,9 @@
 
 #include "Log.h"
 #include "Config.h"
-#include "SoundManager.h"
 #include "Animation.h"
 #include "EngineComponent.h"
+#include "SoundManager.h"
 
 GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
 
@@ -75,7 +75,7 @@ void GameObject::onStateUpdate(const StatePtr prevState) {
 
 	auto soundFunc = [](const std::string& soundName) {
 		if (!soundName.empty()) {
-			SoundManager::Inst()->PlaySound(soundName);
+			SoundManager::PlaySound(soundName);
 		}
 	};
 
