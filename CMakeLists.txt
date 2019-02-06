@@ -1,47 +1,70 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(gunfire)
+project(cleansingFire)
 
 set(SFML_STATIC_LIBRARIES TRUE)
+
 set(SFML_DIR 3rdparty/SFML/lib/cmake/SFML)
 
-file(GLOB GAMELOGIC_SRC 
-	${CMAKE_CURRENT_LIST_DIR}/src/gameLogic/*.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/gameLogic/include/*.h
+set(CLEANSINGFIRE_DIR ${CMAKE_CURRENT_LIST_DIR}/src/cleansingFire)
+set(MAVERICK_DIR ${CMAKE_CURRENT_LIST_DIR}/src/maverick)
+
+file(GLOB MAVERICK_SRC 
+	${MAVERICK_DIR}/*.cpp
+	${MAVERICK_DIR}/include/*.h
 	)
 	
-set(ENGINE_SPECIFIC_DIR ${CMAKE_CURRENT_LIST_DIR}/src/engine_specific/sfml)
-
-file(GLOB ENGINE_SPECIFIC_SRC
-	${ENGINE_SPECIFIC_DIR}/*.cpp
-	${ENGINE_SPECIFIC_DIR}/include/*.h
+file(GLOB MAVERICK_SFML_SRC 
+	${MAVERICK_DIR}/specific/sfml/*.cpp
+	${MAVERICK_DIR}/specific/sfml/include/*.h
+	)
+	
+file(GLOB CLEANSINGFIRE_SRC 
+	${CLEANSINGFIRE_DIR}/*.cpp
+	${CLEANSINGFIRE_DIR}/include/*.h
+	)
+	
+file(GLOB CLEANSINGFIRE_SFML_SRC 
+	${CLEANSINGFIRE_DIR}/specific/sfml/*.cpp
+	${CLEANSINGFIRE_DIR}/specific/sfml/include/*.h
 	)
 
-add_library(gameLogic STATIC ${GAMELOGIC_SRC} )
+add_library(maverick STATIC ${MAVERICK_SRC} )
+add_library(maverick_sfml STATIC ${MAVERICK_SFML_SRC} )
+add_library(cleansingFireLogic STATIC ${CLEANSINGFIRE_SRC} )
+add_library(cleansingFire_sfml STATIC ${CLEANSINGFIRE_SFML_SRC} )
 
-add_executable(gunfire src/main.cpp)
-target_sources(gunfire PRIVATE ${ENGINE_SPECIFIC_SRC})
+target_compile_definitions(maverick_sfml PRIVATE SFML_STATIC)
+target_compile_definitions(cleansingFire_sfml PRIVATE SFML_STATIC)
 
-source_group("engine_specific" FILES ${ENGINE_SPECIFIC_SRC})
+add_executable(cleansingFire src/main.cpp)
 
-INCLUDE_DIRECTORIES(src/gameLogic/include)
-INCLUDE_DIRECTORIES(src/engine_specific/sfml/include)
+INCLUDE_DIRECTORIES(${MAVERICK_DIR}/include)
+INCLUDE_DIRECTORIES(${MAVERICK_DIR}/specific/sfml/include)
 
+INCLUDE_DIRECTORIES(${CLEANSINGFIRE_DIR}/include)
+INCLUDE_DIRECTORIES(${CLEANSINGFIRE_DIR}/specific/sfml/include)
+
+INCLUDE_DIRECTORIES(3rdparty/SFML/include)
 INCLUDE_DIRECTORIES(3rdparty/thor/include)
 LINK_DIRECTORIES(3rdparty/thor/lib)
 
 find_library(THOR_LIBRARY_D thor-s-d.lib HINTS 3rdparty/thor/lib)
 find_library(THOR_LIBRARY thor-s.lib HINTS 3rdparty/thor/lib)
 
-target_link_libraries(gunfire gameLogic)
-target_link_libraries(gunfire debug ${THOR_LIBRARY_D})
-target_link_libraries(gunfire ${THOR_LIBRARY})
-
 find_package(SFML 2.5 COMPONENTS graphics audio REQUIRED)
-target_link_libraries(gunfire sfml-graphics sfml-audio)
+target_link_libraries(cleansingFire sfml-graphics sfml-audio)
+
+target_link_libraries(cleansingFire maverick)
+target_link_libraries(cleansingFire maverick_sfml)
+target_link_libraries(cleansingFire cleansingFireLogic)
+target_link_libraries(cleansingFire cleansingFire_sfml)
+
+target_link_libraries(cleansingFire debug ${THOR_LIBRARY_D})
+target_link_libraries(cleansingFire ${THOR_LIBRARY})
 
 ADD_CUSTOM_COMMAND(
-    TARGET gunfire
+    TARGET cleansingFire
     POST_BUILD
 	
 	COMMAND ${CMAKE_COMMAND} -E copy

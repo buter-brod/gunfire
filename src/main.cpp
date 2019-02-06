@@ -1,8 +1,8 @@
-#include "sfml_Application.h"
+#include "sfml_cleansingFireApplication.h"
 
 int main() {
 	
-	Application app;
+	sfml_cleansingFireApplication app;
 	app.Run();
 
 	return 0;

@@ -5,41 +5,46 @@
 
 #include "sfml_Sprite.h"
 #include "sfml_Game.h"
-#include "sfml_Utils.h"
 #include "sfml_ResourceManager.h"
 #include "sfml_SoundManager.h"
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
+static bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
+	const sf::Vector2f mousePosF(float(pos.x), float(pos.y));
+	const bool result = spr->getSpr()->getGlobalBounds().contains(mousePosF);
+	return result;
+}
+
 Point toGamePoint(const Point& pos) {
 	const Point screenPoint(float(pos.getX()), float(pos.getY()));
 	const Point gamePoint = screenPoint / CfgStatic::windowSize * CfgStatic::gameSize;
 	return gamePoint;
-};
+}
 
-Point sfToGamePoint(const sf::Vector2i& pos) {
+static Point sfToGamePoint(const sf::Vector2i& pos) {
 	return toGamePoint({ (float)pos.x, (float)pos.y });
 }
 
-Application::Application() {
+sfml_Application::sfml_Application() {
 	Log::Inst()->PutMessage("Application::Application");
 }
 
-Application::~Application() {
-	
+sfml_Application::~sfml_Application() {
+
 	Log::Inst()->PutMessage("Application::~Application");
 	freeResources();
 	sfml_ResourceManager::ResetInst();
 }
 
-void Application::freeResources() {
+void sfml_Application::freeResources() {
 
 	Log::Inst()->PutMessage("Application::freeResources");
 	_gamePtr = nullptr;
 }
 
-void Application::startGame() {
+void sfml_Application::startGame() {
 
 	Log::Inst()->PutMessage("Application::startGame");
 
@@ -50,29 +55,14 @@ void Application::startGame() {
 
 	sfml_SoundManager::Create();
 
-	_gamePtr = std::make_shared<sfml_Game>(_window.get());
+	_gamePtr = createGame();
 	_gamePtr->Init();
 }
 
-bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
-	const sf::Vector2f mousePosF(float(pos.x), float(pos.y));
-	const bool result = spr->getSpr()->getGlobalBounds().contains(mousePosF);
-	return result;	
-}
+bool sfml_Application::onMouseMoved(const int x, const int y) { return false; }
+bool sfml_Application::onMousePressed(const int x, const int y) { return false; }
 
-void Application::handleEvent(sf::Event* event) {
-
-	auto refreshPauseColor = [this]() {
-		const sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
-		_gamePtr->OnCursorMoved(sfToGamePoint(mousePos));
-
-		const bool mouseOnPauseBtn = isMouseOn(_pauseBtnImg, mousePos) || isMouseOn(_playBtnImg, mousePos);
-
-		auto& playPauseSpr = _gamePtr->GetPaused() ? _playBtnImg : _pauseBtnImg;
-
-		sf::Color playPauseBtnClr = mouseOnPauseBtn ? sf::Color::White : Utils::toSfmlColor(CfgStatic::btnPlayPauseNotHoveredClr);
-		playPauseSpr->getSpr()->setColor(playPauseBtnClr);
-	};
+void sfml_Application::handleEvent(sf::Event* event) {
 
 	switch (event->type) {
 		case sf::Event::Closed: {
@@ -82,44 +72,26 @@ void Application::handleEvent(sf::Event* event) {
 
 		case sf::Event::MouseMoved: {
 			const sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
-			
 			_gamePtr->OnCursorMoved(sfToGamePoint(mousePos));
-			
-			const bool mouseOnRestartBtn = isMouseOn(_restartBtnImg, mousePos);
-			_restartBtnImg->getSpr()->setColor(mouseOnRestartBtn ? sf::Color::White : Utils::toSfmlColor(CfgStatic::btnPlayPauseNotHoveredClr));
-
-			refreshPauseColor();
+			onMouseMoved(mousePos.x, mousePos.y);
+			break;
 		}
-		break;
 
 		case sf::Event::MouseButtonPressed: {
 			const sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
 
-			const bool mouseOnRestartBtn = isMouseOn(_restartBtnImg, mousePos);
-			if (mouseOnRestartBtn) {
-				freeResources();
-				startGame();
-				refreshPauseColor();
-				break;
+			const bool handledByApp = onMousePressed(mousePos.x, mousePos.y);
+
+			if (!handledByApp) {
+				_gamePtr->OnCursorClicked(sfToGamePoint(mousePos));
 			}
-
-			const bool mouseOnPauseBtn = isMouseOn(_pauseBtnImg, mousePos);
-			if (mouseOnPauseBtn) {
-
-				const bool wasPaused = _gamePtr->GetPaused();
-				_gamePtr->SetPaused(!wasPaused);
-				refreshPauseColor();
-				break;
-			}
-
-			_gamePtr->OnCursorClicked(sfToGamePoint(mousePos));
-		}
-		break;
+			
+			break;
+		}										
 	}
 }
 
-
-SpritePtr initBtn(const std::string& sprName) {
+SpritePtr sfml_Application::initBtn(const std::string& sprName) {
 	SpritePtr spritePtr;
 
 	const auto& texRect = sfml_ResourceManager::Inst()->GetTexture(sprName);
@@ -135,55 +107,42 @@ SpritePtr initBtn(const std::string& sprName) {
 	return spritePtr;
 }
 
-bool Application::init() {
+bool sfml_Application::init() {
 
 	const bool atlasLoadedOk = sfml_ResourceManager::Inst()->LoadAtlas(CfgStatic::atlasPng, CfgStatic::atlasMtpf);
 
 	if (!atlasLoadedOk) {
-		Log::Inst()->PutErr("Application::Run error, unable to load atlas");
+		Log::Inst()->PutErr("sfml_Application::Run error, unable to load atlas");
 		return false;
 	}
 
 	Log::Inst()->PutMessage("LOADING GAME...");
 
-	_pauseBtnImg   = initBtn(CfgStatic::pauseImgFile);
-	_playBtnImg    = initBtn(CfgStatic::playImgFile);
-	_restartBtnImg = initBtn(CfgStatic::restartImgFile);
-
-	if (_pauseBtnImg   == nullptr ||
-		_playBtnImg    == nullptr ||
-		_restartBtnImg == nullptr) {
-
-		Log::Inst()->PutErr("Application::init error, buttons not initialized... ");
-		return false;
-	}
-
-	_pauseBtnImg  ->getSpr()->setPosition(0.f, 0.f);
-	_playBtnImg   ->getSpr()->setPosition(0.f, 0.f);
-	_restartBtnImg->getSpr()->setPosition(CfgStatic::windowSize.getX() - _restartBtnImg->getSpr()->getTextureRect().width, 0.f);
-
 	const auto& videoMode = sf::VideoMode(CfgStatic::windowSize.i_X(), CfgStatic::windowSize.i_Y());
 	const auto wndFlags = sf::Style::Titlebar | sf::Style::Close;
 
-	_window = std::make_shared<sf::RenderWindow>(videoMode, CfgStatic::appTitle, wndFlags);
+	initSpecial();
 
+	_window = std::make_shared<sf::RenderWindow>(videoMode, CfgStatic::appTitle, wndFlags);
 	startGame();
 
 	return true;
 }
 
-void Application::draw() {
+void sfml_Application::drawSpecial() {}
+
+bool sfml_Application::initSpecial() {
+	return true;
+}
+
+void sfml_Application::draw() {
 
 	_gamePtr->Draw();
-
-	auto& playPauseSpr = _gamePtr->GetPaused() ? _playBtnImg : _pauseBtnImg;
-	_window->draw(*playPauseSpr->getSpr());
-		
-	_window->draw(*_restartBtnImg->getSpr());
+	drawSpecial();
 	_window->display();
 }
 
-void Application::gameLoop() {
+void sfml_Application::gameLoop() {
 
 	time_us currentTime = Utils::getTime();
 	unsigned int fpsLogFramesCount = 0;
@@ -203,7 +162,6 @@ void Application::gameLoop() {
 		const bool needDraw = CfgStatic::drawFPSUnlimited || updated;
 
 		if (needDraw) {
-
 			draw();
 
 			if (fpsLogFramesCount > CfgStatic::fpsLogFramesCap) { //FPS counter
@@ -217,17 +175,17 @@ void Application::gameLoop() {
 			else {
 				fpsLogFramesCount++;
 			}
-		}		
+		}
 	}
 }
 
-void Application::Run() {
-	
+void sfml_Application::Run() {
+
 	const bool initOk = init();
 
 	if (!initOk) {
 		return;
 	}
-	
+
 	gameLoop();
 }

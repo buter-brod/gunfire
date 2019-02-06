@@ -1,3 +1,4 @@
+#pragma once
 #include "Utils.h"
 
 #include <SFML/Graphics/Rect.hpp>
