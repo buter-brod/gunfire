@@ -52,10 +52,12 @@ void sfml_cleansingFireGame::drawSpecific() {
 
 	wnd->draw(*_scoreTxt);
 
+	const bool playerVisible = getPlayerObject()->GetState() != CfgStatic::deadStateName;
+
 	if (getTimeRemain() > 0) {
 		wnd->draw(*_timerTxt);
 	}
-	else {
+	else if (playerVisible){
 		wnd->draw(*_gameOverText);
 	}
 }

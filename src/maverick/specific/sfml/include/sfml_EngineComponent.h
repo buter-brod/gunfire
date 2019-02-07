@@ -11,7 +11,7 @@ typedef std::shared_ptr<Particles> ParticlesPtr;
 class sfml_EngineComponent : public EngineComponent {
 public:
 
-	sfml_EngineComponent(GameObjectPtr objPtr) : EngineComponent(objPtr) {}
+	explicit sfml_EngineComponent(GameObjectPtr objPtr) : EngineComponent(objPtr) {}
 
 	void Update(const float dt) override;
 	virtual Rect GetSpriteRect() const override;

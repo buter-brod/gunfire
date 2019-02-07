@@ -17,7 +17,7 @@ typedef std::shared_ptr<sf::Text> TextPtr;
 
 class sfml_cleansingFireGame : public CleansingFireGame, public sfml_Game {
 public:
-	sfml_cleansingFireGame(sf::RenderWindow*);
+	explicit sfml_cleansingFireGame(sf::RenderWindow*);
 	~sfml_cleansingFireGame();
 
 	virtual void Init() override;

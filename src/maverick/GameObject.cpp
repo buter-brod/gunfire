@@ -5,6 +5,9 @@
 #include "Animation.h"
 #include "EngineComponent.h"
 #include "SoundManager.h"
+#include "ShaderHelper.h"
+
+#include <algorithm>
 
 GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
 
@@ -96,6 +99,10 @@ void GameObject::ChangeState(StatePtr newState) {
 	onStateUpdate(prevState);
 }
 
+const std::string GameObject::GetAnimation() const {
+	return _state ? _state->_animation : "";
+}
+
 const std::string GameObject::GetState() const {
 	return _state ? _state->_name : "";
 }
@@ -146,6 +153,31 @@ void GameObject::updateState() {
 	}
 }
 
+float GameObject::GetEffectCoeff(const float maxDuration, const float minVal, const float maxVal) const {
+
+	float coeff = minVal;
+	const auto& state = getState();
+
+	if (!state) {
+		Log::Inst()->PutErr("GameObject::GetEffectCoeff error, no valid state. obj=" + getFullName());
+		return coeff;
+	}
+	
+	const float time = getGameSimulationTime();
+	const float dtFromAnimBegin = Utils::dt(time, state->_startTime);
+
+	const float progress = std::min<float>(1.f, dtFromAnimBegin / maxDuration);
+	const float dVal = maxVal - minVal;
+
+	if (dVal < 0) {
+		Log::Inst()->PutErr("GameObject::GetEffectCoeff error, wrong min/max values. obj=" + getFullName());
+		return coeff;
+	}
+
+	coeff += progress * dVal;
+	return coeff;
+}
+
 std::string GameObject::getParticlesName() const {
 	std::string pName;
 
@@ -173,6 +205,10 @@ ShaderPtr GameObject::GetShader() {
 
 	if (_engineComponent) {
 		shader = _engineComponent->GetShader();
+
+		if (_state) {
+			ConfigureShader(_state->_shader, this);
+		}	
 	}
 
 	return shader;

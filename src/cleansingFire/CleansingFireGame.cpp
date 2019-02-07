@@ -40,22 +40,43 @@ void CleansingFireGame::checkAllObjectsObsolete() {
 	checkObjectsObsolete(_bulletObjects);
 }
 
+bool CleansingFireGame::isGaveOver() const {
+
+	if (_playerObj) {
+		const std::string& playerState = _playerObj->GetState();
+		const bool playerAlive = playerState != CfgStatic::dyingStateName && playerState != CfgStatic::deadStateName;;
+		return !playerAlive;
+	}
+
+	return true;
+}
+
 bool CleansingFireGame::updateSpecific(const float dt) {
 
 	const float timeRemainSec = getTimeRemain();
 
-	if (timeRemainSec == 0.f) {
-		return false;
-	}
+	if (timeRemainSec > 0.f) {
+		if (_shootRequest.requested) {
+			tryShoot(_shootRequest.targetPt);
+			_shootRequest = { false, Point() };
+		}
 
-	if (_shootRequest.requested) {
-		tryShoot(_shootRequest.targetPt);
-		_shootRequest = { false, Point() };
+		updateText();
+		checkSpawn();
+		checkCollisions();
 	}
+	else {
 
-	updateText();
-	checkSpawn();
-	checkCollisions();
+		if (!isGaveOver()) {
+			onGameOver();
+			return true;
+		}
+
+		const std::string& playerState = _playerObj->GetState();
+		if (playerState == CfgStatic::deadStateName) {
+			// show outro
+		}
+	}
 
 	return true;
 }
@@ -101,6 +122,35 @@ bool CleansingFireGame::isObjectObsolete(GameObjectPtr objPtr) {
 	}
 
 	return false;
+}
+
+void CleansingFireGame::onGameOver() {
+
+	auto dieFunc = [](GameObjectPtr obj) {
+		const std::string& currAnim = obj->GetAnimation();
+
+		obj->SetSpeed(0.f);
+		obj->SetAngleSpeed(0.f);
+
+		GameObject::StatePtr dyingState = GameObject::State::New(CfgStatic::dyingStateName);
+		dyingState->_animation = currAnim;
+		dyingState->_shader = CfgStatic::pixelizeShader;
+
+		dyingState->_duration = CfgStatic::outroEffectDuration;
+		dyingState->_nextState = GameObject::State::New(CfgStatic::deadStateName);
+
+		obj->ChangeState(dyingState);
+	};
+
+	for (auto obj : _enemyObjects) {
+		dieFunc(obj);
+	}
+
+	for (auto obj : _bulletObjects) {
+		dieFunc(obj);
+	}
+
+	dieFunc(_playerObj);
 }
 
 void CleansingFireGame::checkSpawn() {
@@ -248,11 +298,11 @@ void CleansingFireGame::Init() {
 	_bgObject = std::make_shared<GameObject>(newID(), CfgStatic::bgName, CfgStatic::bgSprName);
 	_bgObject->SetSize(gameSize);
 	_bgObject->SetPosition(center);
-	addObject(_bgObject);
+	addObjectWeak(_bgObject);
 
 	_playerObj = std::make_shared<Player>(newID());
 	_playerObj->SetPosition({ gameSize.getX() / 2.f, gameSize.getY() - CfgStatic::playerSize.getY() / 2.f });
-	addObject(_playerObj);
+	addObjectWeak(_playerObj);
 
 	Game::Init();
 }
@@ -266,6 +316,7 @@ void CleansingFireGame::OnCursorMoved(const Point& pt) {
 	}
 
 	const bool onLeftSide = pt.getX() < GetSize().getX() / 2.f;
+
 	_playerObj->SetMirrorX(onLeftSide);
 }
 

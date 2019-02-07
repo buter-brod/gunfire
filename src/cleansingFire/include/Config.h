@@ -118,6 +118,7 @@ namespace CfgStatic {
 	
 	// time
 
+	static const float outroEffectDuration = 3.f;
 	static const float throwDuration{ 0.5f };
 	static const float cooldown{ 1.5f };
 	static const float smokeLifetime{ 1.f };
@@ -147,7 +148,7 @@ namespace CfgStatic {
 	static const float bulletSpeedMax      = 300.f;
 	static const float bulletSpeed         = 200.f;
 
-	static const float pixelizeSpeed       = 5.f;
+	static const float pixelizeDuration =    4.f;
 	static const float pixelizeCoeffMax    = 15.f;
 	
 	static const float smokeFadeIn         = 0.15f;

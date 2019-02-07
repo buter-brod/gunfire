@@ -41,9 +41,10 @@ protected:
 	virtual bool update(const float dt);
 	virtual bool updateSpecific(const float dt);
 
-	bool addObject(GameObjectPtr objPtr);
 	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr);
 	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr);
+
+	bool addObjectWeak(GameObjectPtr objPtr);
 
 	virtual bool isObjectObsolete(GameObjectPtr objPtr);
 	bool checkObjectsObsolete(ObjectsArr& arr);

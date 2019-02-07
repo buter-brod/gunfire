@@ -6,7 +6,7 @@ class sfml_Shader : public Shader {
 
 public:
 
-	sfml_Shader(const std::string& name);
+	explicit sfml_Shader(const std::string& name);
 
 	sf::Shader* get() { return &_shader; }
 	bool Load(const std::string& vF, const std::string& fF) override;

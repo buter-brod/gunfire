@@ -53,7 +53,7 @@ bool Game::update(const float dt) {
 
 	_simulationTime += dt;
 
-	const bool updated = updateSpecific(dt);
+	updateSpecific(dt);
 
 	checkAllObjectsObsolete();
 	updateAllObjects(dt);
@@ -134,7 +134,7 @@ GameObjectPtr Game::GetObject(const IDType id) const {
 	return GameObjectPtr();
 }
 
-bool Game::addObject(GameObjectPtr objPtr) {
+bool Game::addObjectWeak(GameObjectPtr objPtr) {
 
 	const IDType id = objPtr->getId();
 
@@ -158,7 +158,7 @@ bool Game::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 	}
 
 	arr.push_back(objPtr);
-	const bool added = addObject(objPtr);
+	const bool added = addObjectWeak(objPtr);
 	return added;
 }
 

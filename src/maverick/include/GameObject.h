@@ -53,6 +53,9 @@ public:
 
 	void ChangeState(StatePtr newState);
 	const std::string GetState() const;
+	const std::string GetAnimation() const;
+	
+	float GameObject::GetEffectCoeff(const float maxDuration, const float minVal, const float maxVal) const;
 
 	std::string getFullName() const;
 

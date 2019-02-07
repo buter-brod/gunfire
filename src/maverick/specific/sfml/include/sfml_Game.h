@@ -8,7 +8,7 @@ namespace sf {
 class sfml_Game : virtual public Game {
 
 public:
-	sfml_Game(sf::RenderWindow*);
+	explicit sfml_Game(sf::RenderWindow*);
 	~sfml_Game();
 
 	virtual void Init() override;

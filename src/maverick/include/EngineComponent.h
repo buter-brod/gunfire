@@ -13,7 +13,7 @@ typedef std::shared_ptr<GameObject> GameObjectPtr;
 class EngineComponent {
 
 public:
-	EngineComponent(GameObjectPtr objPtr) : _gameObjectWPtr(objPtr) {}
+	explicit EngineComponent(GameObjectPtr objPtr) : _gameObjectWPtr(objPtr) {}
 	virtual ~EngineComponent() {}
 
 	virtual void Update(const float dt);

@@ -18,11 +18,15 @@ protected:
 	bool tryShoot(const Point& whereTo);
 	void checkSpawn();
 
+	bool isGaveOver() const;
+
 	void checkCollisions();
 	void onCollision(GameObjectPtr bullet, GameObjectPtr enemy);
 
 	bool isObjectObsolete(GameObjectPtr objPtr) override;
 	void checkAllObjectsObsolete() override;
+
+	void onGameOver();
 
 	virtual void initText();
 	virtual void initSound();
@@ -38,7 +42,7 @@ protected:
 	const ObjectsArr& getEnemyObjects() const  { return _enemyObjects; }
 	const ObjectsArr& getBulletObjects() const { return _bulletObjects; }
 
-	virtual bool updateSpecific(const float dt);
+	virtual bool updateSpecific(const float dt) override;
 	float getTimeRemain() const;
 
 private:

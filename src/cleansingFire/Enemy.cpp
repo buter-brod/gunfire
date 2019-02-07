@@ -28,58 +28,6 @@ Enemy::Enemy(const IDType id)
 	SetSpeed(speed);
 }
 
-float Enemy::GetPixelizeCoeff() const {
-
-	float coeff = 0.f;
-	const auto& state = getState();
-
-	const std::string& shaderName = state->_shader;
-	if (shaderName == CfgStatic::pixelizeShader) {
-		const float time = getGameSimulationTime();
-		const float dtFromAnimBegin = Utils::dt(time, state->_startTime);
-
-		coeff = std::min(CfgStatic::pixelizeCoeffMax, CfgStatic::pixelizeSpeed * dtFromAnimBegin + 1.f);
-	}
-
-	return coeff;
-}
-
-ShaderPtr Enemy::GetShader() {
-
-	const float pCoeff = GetPixelizeCoeff();
-	ShaderPtr shader = GameObject::GetShader();
-
-	if (pCoeff > 0.f) {
-		if (shader) {
-
-			auto engineComp = GetEngineComponent();
-
-			if (!engineComp) {
-				Log::Inst()->PutErr("Enemy::GetShader error for " + getFullName() + ", engineComp not found");
-				return shader;
-			}
-
-			const Size& bigSize = engineComp->GetTextureSize();
-			const Rect& smallRect = engineComp->GetSpriteRect();
-
-			float texRect[4] = {
-				smallRect._origin.getX(),
-				bigSize.getY() - smallRect._origin.getY(),
-				smallRect._size.getX(),
-				smallRect._size.getY() };
-
-			shader->SetUniform("bigRectSize", bigSize.getX(), bigSize.getY());
-			shader->SetUniform("smallRect", texRect[0], texRect[1], texRect[2], texRect[3]);
-			shader->SetUniform("coeff", pCoeff);
-		}
-		else {
-			Log::Inst()->PutErr("Enemy::GetShader error for " + getFullName() + ", shader not found " + getShaderName() + ", but pixelaze coeff " + std::to_string(pCoeff));
-		}
-	}
-
-	return shader;
-}
-
 void Enemy::Update(const float dt, const float gameTime) {
 
 	GameObject::Update(dt, gameTime);
