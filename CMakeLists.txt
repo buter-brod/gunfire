@@ -39,6 +39,10 @@ target_compile_definitions(cleansingFire_sfml PRIVATE SFML_STATIC)
 
 add_executable(cleansingFireApp src/main.cpp)
 
+set_property(DIRECTORY ${CMAKE_CURRENT_LIST_DIR} PROPERTY VS_STARTUP_PROJECT cleansingFireApp)
+
+set(VS_STARTUP_PROJECT cleansingFireApp)
+
 INCLUDE_DIRECTORIES(${MAVERICK_DIR}/include)
 INCLUDE_DIRECTORIES(${MAVERICK_DIR}/specific/sfml/include)
 

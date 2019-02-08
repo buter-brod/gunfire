@@ -1,19 +1,11 @@
 #pragma once
+#include "MiscForward.h"
 #include "Rect.h"
-
-#include <memory>
-
-class GameObject;
-class Shader;
-
-typedef std::shared_ptr<Shader> ShaderPtr;
-typedef std::weak_ptr<GameObject> GameObjectWPtr;
-typedef std::shared_ptr<GameObject> GameObjectPtr;
 
 class EngineComponent {
 
 public:
-	explicit EngineComponent(GameObjectPtr objPtr) : _gameObjectWPtr(objPtr) {}
+	explicit EngineComponent(GameObjectWPtr objPtr) : _gameObjectWPtr(objPtr) {}
 	virtual ~EngineComponent() {}
 
 	virtual void Update(const float dt);

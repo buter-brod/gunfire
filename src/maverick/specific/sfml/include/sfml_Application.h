@@ -1,13 +1,9 @@
 #pragma once
 
+#include "MiscForward.h"
 #include "Point.h"
-#include <memory>
 
-//class sfml_Game;
-class Game;
 class Sprite;
-
-typedef std::shared_ptr<Game> GamePtr;
 typedef std::shared_ptr<Sprite> SpritePtr;
 
 namespace sf {

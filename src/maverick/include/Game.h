@@ -1,16 +1,8 @@
 #pragma once
-#include "Utils.h"
+#include "MiscForward.h"
 #include "Point.h"
 
-#include <deque>
-#include <unordered_map>
-
-class GameObject;
-class SoundManager;
-
-typedef std::shared_ptr<GameObject> GameObjectPtr;
-typedef std::weak_ptr<GameObject> GameObjectWPtr;
-typedef std::weak_ptr<SoundManager> SoundManagerWPtr;
+typedef std::unordered_map<std::string, GameObjectCArrPtrVec> ObjListsPerComponentMap;
 
 class Game {
 public:
@@ -20,49 +12,55 @@ public:
 	virtual void Init();
 	virtual void Draw() = 0;
 	virtual bool Update(const float dt);
+	IDType NewID();
 
-	virtual void OnCursorMoved(const Point& pt) = 0;
-	virtual void OnCursorClicked(const Point& pt) = 0;
-
-	Size GetSize() const;
+	virtual void OnCursorMoved(const Point& pt);
+	virtual void OnCursorClicked(const Point& pt);
 
 	bool GetPaused() const;
 	bool SetPaused(const bool paused);
-	IDType Game::newID();
 
-	GameObjectPtr GetObject(const IDType id) const;
 	float GetSimulationTime() const { return _simulationTime; };
 
-	typedef std::unordered_map<IDType, GameObjectWPtr> ObjectsMap;
-
 protected:
-	typedef std::deque<GameObjectPtr> ObjectsArr;
+	Size getSize() const;
 
 	virtual bool update(const float dt);
-	virtual bool updateSpecific(const float dt);
+	virtual bool updateGameplay(const float dt);
 
-	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr);
-	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr);
+	const std::vector<GameObjectWPtr>& getObjects() const;
+	ObjListsPerComponentMap getObjectLists() const;
 
-	bool addObjectWeak(GameObjectPtr objPtr);
+	template <class CompType> std::shared_ptr<CompType> addGameplayComponent() {
+		auto compPtr = std::make_shared<CompType>(getSize());
+		addGameplayComponent(compPtr);
+		compPtr->Init();
+		return compPtr;
+	}
 
-	virtual bool isObjectObsolete(GameObjectPtr objPtr);
-	bool checkObjectsObsolete(ObjectsArr& arr);
+	bool addGameplayComponent(GameplayComponentPtr component);
 
-	virtual void checkAllObjectsObsolete();
-	void updateAllObjects(const float dt);
+	GameplayComponentPtr getGameplayComponent(const std::string& name) const;
+	std::vector<std::string> getGameplayComponentNames() const;
+
+	void invalidateCache();
 
 	float getSimulationTime() const { return _simulationTime; }
 
-	const ObjectsMap& getAllObjects() const { return _allObjects; }
-
 private:
 	bool _paused{ false };
+	
 	float _simulationTime{ 0.f };
 	float _simulationTimeAcc{ 0.f };
-	ObjectsMap _allObjects;
+
+	mutable std::vector<GameObjectWPtr> _objectsCache;
+
+	std::unordered_map<std::string, GameplayComponentPtr> _gameplayComponents;
+
 	SoundManagerWPtr _soundMgr;
 	IDType _nextID{ 1 };
+
+	friend class GameplayComponent;
 };
 
 

@@ -3,8 +3,6 @@
 #include <string>
 #include <vector>
 
-typedef unsigned long IDType;
-
 // time in microseconds since epoch
 typedef unsigned long long time_us;
 

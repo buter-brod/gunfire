@@ -1,7 +1,4 @@
 #pragma once
-#include <memory>
-#include <string>
+#include "MiscForward.h"
 
-class GameObject;
-
-bool ConfigureShader(const std::string& shaderName, GameObject* obj);
+bool ConfigureShader(const std::string& shaderName, const GameObject* obj);

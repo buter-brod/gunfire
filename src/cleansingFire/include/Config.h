@@ -126,7 +126,7 @@ namespace CfgStatic {
 
 	// text
 
-	static const std::string appTitle = "gunfire";
+	static const std::string appTitle = "cleansingFire";
 	static const std::string timerTxt = "Time before arrest: ";
 	static const std::string scoreTxt = "Score: ";
 	
@@ -173,12 +173,14 @@ namespace CfgStatic {
 	//states
 
 	static const std::string     idleStateName = "idle";
+	static const std::string     deadStateName = "dead";
+
 	static const std::string cooldownStateName = "cooldown";
 	static const std::string shootingStateName = "shooting";
 	static const std::string     boomStateName = "boom";
 	static const std::string   boomedStateName = "boomed";
 	static const std::string    dyingStateName = "dying";
 	static const std::string  leavingStateName = "leaving";
-	static const std::string     deadStateName = "dead";
+	
 }
 

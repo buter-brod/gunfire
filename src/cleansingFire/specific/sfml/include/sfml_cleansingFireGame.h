@@ -1,21 +1,18 @@
 #pragma once
-#include "CleansingFireGame.h"
 #include "sfml_Game.h"
-
-#ifdef _WINDOWS
-#pragma warning(disable: 4250)
-// MSVS displays annoying warning even when with valid virtual inheritance usage
-#endif
 
 namespace sf {
 	class Font;
 	class Text;
 }
 
+class CFGameplayComponent;
+typedef std::shared_ptr<CFGameplayComponent> CFGameplayComponentPtr;
+
 typedef std::shared_ptr<sf::Font> FontPtr;
 typedef std::shared_ptr<sf::Text> TextPtr;
 
-class sfml_cleansingFireGame : public CleansingFireGame, public sfml_Game {
+class sfml_cleansingFireGame : public sfml_Game{
 public:
 	explicit sfml_cleansingFireGame(sf::RenderWindow*);
 	~sfml_cleansingFireGame();
@@ -23,11 +20,15 @@ public:
 	virtual void Init() override;
 
 protected:
-	virtual void initText() override;
-	virtual void updateText() override;
-	virtual void drawSpecific() override;
+	virtual void initText();
+	virtual void updateText();
+	virtual void Draw() override;
+
+	virtual bool update(const float dt) override;
 
 private:
+	CFGameplayComponentPtr _gameplayPtr;
+
 	TextPtr _timerTxt;
 	TextPtr _scoreTxt;
 	TextPtr _gameOverText;

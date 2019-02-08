@@ -1,9 +1,9 @@
 #pragma once
 #include "EngineComponent.h"
-#include <memory>
+#include "MiscForward.h"
 
-class Particles;
 class Sprite;
+class Particles;
 
 typedef std::shared_ptr<Sprite> SpritePtr;
 typedef std::shared_ptr<Particles> ParticlesPtr;
@@ -11,7 +11,7 @@ typedef std::shared_ptr<Particles> ParticlesPtr;
 class sfml_EngineComponent : public EngineComponent {
 public:
 
-	explicit sfml_EngineComponent(GameObjectPtr objPtr) : EngineComponent(objPtr) {}
+	explicit sfml_EngineComponent(GameObjectWPtr objPtr) : EngineComponent(objPtr) {}
 
 	void Update(const float dt) override;
 	virtual Rect GetSpriteRect() const override;

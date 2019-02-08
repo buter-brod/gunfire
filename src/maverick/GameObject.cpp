@@ -199,16 +199,14 @@ std::string GameObject::getShaderName() const {
 	return shName;
 }
 
-ShaderPtr GameObject::GetShader() {
+ShaderPtr GameObject::GetShader() const {
 
 	ShaderPtr shader;
-
-	if (_engineComponent) {
+	if (_state && !_state->_shader.empty() && _engineComponent) {
+		
 		shader = _engineComponent->GetShader();
-
-		if (_state) {
-			ConfigureShader(_state->_shader, this);
-		}	
+		ConfigureShader(_state->_shader, this);
+		//todo: how to avoid calling this every frame?
 	}
 
 	return shader;

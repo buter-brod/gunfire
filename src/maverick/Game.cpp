@@ -1,48 +1,79 @@
 #include "Game.h"
 
+#include "GameplayComponent.h"
 #include "Config.h"
 #include "Log.h"
-#include "SoundManager.h"
-#include "GameObject.h"
 
-#include <algorithm>
-
-IDType Game::newID() {
+IDType Game::NewID() {
 	return _nextID++;
 }
 
 Game::Game() {
-
 	Config::Inst();
 	Log::Inst()->PutMessage("Game::Game");
 }
 
 Game::~Game() {
-
 	Log::Inst()->PutMessage("Game::~Game");
 }
 
-Size Game::GetSize() const {
+Size Game::getSize() const {
 	return CfgStatic::gameSize;
 }
 
-void Game::checkAllObjectsObsolete() {}
+void Game::OnCursorMoved(const Point& pt) {
 
-void Game::updateAllObjects(const float dt) {
+	for (auto& cmpPair : _gameplayComponents) {
+		cmpPair.second->OnCursorMoved(pt);
+	}
+}
+void Game::OnCursorClicked(const Point& pt) {
 
-	for (auto& objW : _allObjects) {
-		auto obj = objW.second.lock();
-
-		if (!obj) {
-			Log::Inst()->PutErr("Game::checkObjectsObsolete error, " + obj->getFullName() + " not found?! ");
-			continue;
-		}
-
-		obj->Update(dt, _simulationTime);
+	for (auto& cmpPair : _gameplayComponents) {
+		cmpPair.second->OnCursorClicked(pt);
 	}
 }
 
-bool Game::updateSpecific(const float dt) {
+bool Game::addGameplayComponent(GameplayComponentPtr component) {
+
+	const std::string& name = component->GetName();
+
+	if (_gameplayComponents.count(name) > 0) {
+		Log::Inst()->PutErr("Game::addGameplayComponent error, already exists: " + name);
+		return false;
+	}
+
+	component->SetObjInvalidateFunc(std::bind(&Game::invalidateCache, this));
+	component->SetIDFunc(std::bind(&Game::NewID, this));
+
+	_gameplayComponents.emplace(name, component);
+	return true;
+}
+
+void Game::invalidateCache() {
+	_objectsCache.clear();
+}
+
+GameplayComponentPtr Game::getGameplayComponent(const std::string& name) const {
+	
+	GameplayComponentPtr ptr;
+
+	auto& cmpIt = _gameplayComponents.find(name);
+	if (cmpIt != _gameplayComponents.end()) {
+		ptr = cmpIt->second;
+	}
+	else {
+		Log::Inst()->PutErr("Game::getGameplayComponent error, " + name + " not found ");
+	}
+
+	return ptr;
+}
+
+bool Game::updateGameplay(const float dt) {
+
+	for (auto& cmpPair : _gameplayComponents) {
+		cmpPair.second->Update(dt);
+	}
 	return true;
 }
 
@@ -52,12 +83,7 @@ bool Game::update(const float dt) {
 	}
 
 	_simulationTime += dt;
-
-	updateSpecific(dt);
-
-	checkAllObjectsObsolete();
-	updateAllObjects(dt);
-	
+	updateGameplay(dt);
 	return true;
 }
 
@@ -76,115 +102,58 @@ bool Game::Update(const float frameDt) {
 	return updated;
 }
 
-bool Game::isObjectObsolete(GameObjectPtr objPtr) {
+const std::vector<GameObjectWPtr>& Game::getObjects() const {
 
-	if (objPtr->GetState() == CfgStatic::deadStateName) {
-		return true;
+	if (_objectsCache.size() > 0) {
+		// no objects added/deleted since last time, returning cached values
+		return _objectsCache;
 	}
 
-	return false;
-}
+	const auto& listPerComponentMap = getObjectLists();
 
-bool Game::checkObjectsObsolete(ObjectsArr& arr) {
+	for (const auto compList : listPerComponentMap) {
+		const auto& objLists = compList.second;
 
-	std::set<IDType> obsoletes;
+		for (const auto objList : objLists) {
 
-	for (const auto& obj : arr) {
-		if (isObjectObsolete(obj)) {
-			obsoletes.insert(obj->getId());
+			for (const auto& objPair : *objList) {
+				const auto obj = objPair.second;
+				_objectsCache.push_back(obj);
+			}
 		}
 	}
 
-	if (obsoletes.empty()) {
-		return false;
-	}
-
-	for (const IDType obsId : obsoletes) {
-		const auto objIt = std::find_if(arr.begin(), arr.end(), [obsId](const ObjectsArr::value_type& obj) { return obj->getId() == obsId; });
-
-		if (objIt != arr.end()) {
-			removeObject(*objIt, arr);
-		}
-		else {
-			Log::Inst()->PutErr("Game::checkObjectsObsolete error, id " + std::to_string(obsId) + " not found?! ");
-		}
-	}
-
-	return true;
+	return _objectsCache;
 }
 
-GameObjectPtr Game::GetObject(const IDType id) const {
+ObjListsPerComponentMap Game::getObjectLists() const {
+	ObjListsPerComponentMap lists;
 
-	const auto& objWPtrIt = _allObjects.find(id);
-
-	if (objWPtrIt != _allObjects.end()) {
-
-		auto existObjectPtr = objWPtrIt->second.lock();
-		if (existObjectPtr) { // object is alive
-			return existObjectPtr;
-		}
-		else {
-			Log::Inst()->PutErr("Game::GetObject error, id " + std::to_string(id) + " found in registry but object does not exist!");
-		}
-	}
-	else {
-		// that's ok, object with that id may not exist in game
+	for (auto componentPair : _gameplayComponents) {
+		const auto component = componentPair.second;
+		const std::string& name = componentPair.first;
+		const auto& compLists = component->GetObjectLists();
+		lists.emplace(name, compLists);
 	}
 
-	return GameObjectPtr();
-}
-
-bool Game::addObjectWeak(GameObjectPtr objPtr) {
-
-	const IDType id = objPtr->getId();
-
-	if (_allObjects.count(id) == 0) {
-		_allObjects[id] = objPtr;
-	}
-	else {
-		Log::Inst()->PutErr("Game::addObject error, _allObjects already has id " + std::to_string(id));
-		return false;
-	}
-
-	return true;
-}
-
-bool Game::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
-
-	const auto& objIt = std::find(arr.begin(), arr.end(), objPtr);
-
-	if (objIt != arr.end()) {
-		return false;
-	}
-
-	arr.push_back(objPtr);
-	const bool added = addObjectWeak(objPtr);
-	return added;
-}
-
-bool Game::removeObject(GameObjectPtr objPtr, ObjectsArr& arr) {
-
-	const auto& objIt = std::find(arr.begin(), arr.end(), objPtr);
-
-	if (objIt == arr.end()) {
-		return false;
-	}
-
-	const IDType id = objPtr->getId();
-
-	if (_allObjects.count(id) == 1) {
-		_allObjects.erase(id);
-	}
-	else {
-		Log::Inst()->PutErr("Game::removeObject error, _allObjects hasn't id " + std::to_string(id));
-	}
-
-	arr.erase(objIt);
-	return true;
+	return lists;
 }
 
 void Game::Init() {
 	update(0.f);
+}
+
+std::vector<std::string> Game::getGameplayComponentNames() const {
+
+	std::vector<std::string> names;
+
+	// may apply additional sorting if need, but for now random order is ok
+
+	for (auto gp : _gameplayComponents) {
+		names.push_back(gp.first);
+	}
+
+	return names;
 }
 
 bool Game::GetPaused() const {

@@ -1,7 +1,8 @@
 #include "sfml_cleansingFireGame.h"
 #include "Log.h"
 #include "Config.h"
-#include "Player.h"
+
+#include "CFGameplayComponent.h"
 
 #include "sfml_Text.h"
 #include "sfml_ResourceManager.h"
@@ -10,11 +11,22 @@
 #include "SFML/Graphics/RenderWindow.hpp"
 
 sfml_cleansingFireGame::sfml_cleansingFireGame(sf::RenderWindow* rWnd) : sfml_Game(rWnd) {
-	Log::Inst()->PutMessage("sfml_Game");
+	Log::Inst()->PutMessage("sfml_cleansingFireGame");
 }
 
 sfml_cleansingFireGame::~sfml_cleansingFireGame() {
-	Log::Inst()->PutMessage("~sfml_Game");
+	Log::Inst()->PutMessage("~sfml_cleansingFireGame");
+}
+
+bool sfml_cleansingFireGame::update(const float dt) {
+
+	const bool updated = sfml_Game::update(dt);
+	if (updated) {
+		updateText();
+		return true;
+	}
+
+	return false;
 }
 
 void sfml_cleansingFireGame::Init() {
@@ -23,19 +35,21 @@ void sfml_cleansingFireGame::Init() {
 	sfml_ResourceManager::Inst()->AddTexture(CfgStatic::bgSprName);
 	sfml_ResourceManager::Inst()->AddShader(CfgStatic::pixelizeShader);
 
-	CleansingFireGame::Init();
+	_gameplayPtr = addGameplayComponent<CFGameplayComponent>();
+
+	initText();
 	sfml_Game::Init();
 }
 
 void sfml_cleansingFireGame::updateText() {
 
-	const float timeRemainSec = getTimeRemain();
+	const float timeRemainSec = _gameplayPtr->GetTimeRemain();
 
 	_timerTxt->setString(CfgStatic::timerTxt + std::to_string(int(timeRemainSec)));
-	_scoreTxt->setString(CfgStatic::scoreTxt + std::to_string(getFrags()));
+	_scoreTxt->setString(CfgStatic::scoreTxt + std::to_string(_gameplayPtr->GetFrags()));
 }
 
-void sfml_cleansingFireGame::drawSpecific() {
+void sfml_cleansingFireGame::Draw() {
 
 	sf::RenderWindow* wnd = getRenderWindow();
 
@@ -44,20 +58,14 @@ void sfml_cleansingFireGame::drawSpecific() {
 		return;
 	}
 
-	drawObject(getBGObject());
-	drawObject(getPlayerObject());
-
-	for (const auto& obj : getEnemyObjects())  { drawObject(obj); }
-	for (const auto& obj : getBulletObjects()) { drawObject(obj); }
+	sfml_Game::Draw();
 
 	wnd->draw(*_scoreTxt);
 
-	const bool playerVisible = getPlayerObject()->GetState() != CfgStatic::deadStateName;
-
-	if (getTimeRemain() > 0) {
+	if (_gameplayPtr->GetTimeRemain() > 0) {
 		wnd->draw(*_timerTxt);
 	}
-	else if (playerVisible){
+	else {
 		wnd->draw(*_gameOverText);
 	}
 }

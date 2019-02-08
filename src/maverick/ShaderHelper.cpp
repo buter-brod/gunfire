@@ -5,7 +5,7 @@
 #include "Log.h"
 #include "EngineComponent.h"
 
-bool ConfigureShader(const std::string& shaderName, GameObject* obj) {
+bool ConfigureShader(const std::string& shaderName, const GameObject* obj) {
 
 	if (shaderName == CfgStatic::pixelizeShader) {
 

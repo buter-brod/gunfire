@@ -1,23 +1,8 @@
 #pragma once
+#include "MiscForward.h"
 #include "Point.h"
 
-#include <unordered_map>
-#include <memory>
-
-class Shader;
-class Animation;
-class EngineComponent;
-
-typedef std::shared_ptr<EngineComponent> EngineComponentPtr;
-typedef std::shared_ptr<Shader> ShaderPtr;
-typedef std::shared_ptr<Animation> AnimationPtr;
-
 static const float basedOnAnimation{ -1.f };
-
-typedef unsigned long IDType;
-
-class Game;
-typedef std::weak_ptr<Game> GameWPtr;
 
 class GameObject {
 
@@ -78,7 +63,7 @@ public:
 	EngineComponentPtr GetEngineComponent() const;
 	void SetEngineComponent(EngineComponentPtr component);
 
-	virtual ShaderPtr GetShader();
+	virtual ShaderPtr GetShader() const;
 
 	struct State {
 
@@ -137,6 +122,3 @@ private:
 	std::string _name;
 	std::string _idleAnimation;
 };
-
-typedef std::shared_ptr<GameObject> GameObjectPtr;
-typedef std::weak_ptr<GameObject> GameObjectWPtr;
