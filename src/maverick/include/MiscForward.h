@@ -1,5 +1,7 @@
+#pragma once
+
 #include <memory>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 typedef unsigned long IDType;
@@ -21,10 +23,11 @@ typedef std::shared_ptr<Game> GamePtr;
 typedef std::shared_ptr<EngineComponent> EngineComponentPtr;
 typedef std::shared_ptr<Shader> ShaderPtr;
 typedef std::shared_ptr<Animation> AnimationPtr;
+typedef std::weak_ptr<Animation> AnimationWPtr;
 typedef std::shared_ptr<GameObject> GameObjectPtr;
 typedef std::shared_ptr<GameplayComponent> GameplayComponentPtr;
 
-typedef std::unordered_map<IDType, GameObjectPtr> ObjectsArr;
+typedef std::map<IDType, GameObjectPtr> ObjectsArr;
 
 typedef std::vector<ObjectsArr*> GameObjectArrPtrVec;
 typedef std::vector<const ObjectsArr*> GameObjectCArrPtrVec;

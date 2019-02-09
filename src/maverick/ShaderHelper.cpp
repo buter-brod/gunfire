@@ -7,9 +7,15 @@
 
 bool ConfigureShader(const std::string& shaderName, const GameObject* obj) {
 
+	/* 
+	 * todo: figure something out with fat SetUniform call per object every frame
+	 * ..as this method is a bottleneck in unlimited FPS mode.
+	 but since shader programs are to be shared between objects, we have no options but to call this every frame.
+	 */
+
 	if (shaderName == CfgStatic::pixelizeShader) {
 
-		auto engineComp = obj->GetEngineComponent();
+		const auto engineComp = obj->GetEngineComponent();
 		ShaderPtr shader = engineComp->GetShader();
 		
 		if (!engineComp) {

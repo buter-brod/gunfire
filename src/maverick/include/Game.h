@@ -2,12 +2,12 @@
 #include "MiscForward.h"
 #include "Point.h"
 
-typedef std::unordered_map<std::string, GameObjectCArrPtrVec> ObjListsPerComponentMap;
+typedef std::map<std::string, GameObjectCArrPtrVec> ObjListsPerComponentMap;
 
 class Game {
 public:
 	Game();
-	~Game();
+	virtual ~Game();
 
 	virtual void Init();
 	virtual void Draw() = 0;
@@ -23,7 +23,7 @@ public:
 	float GetSimulationTime() const { return _simulationTime; };
 
 protected:
-	Size getSize() const;
+	const Size& getSize() const;
 
 	virtual bool update(const float dt);
 	virtual bool updateGameplay(const float dt);
@@ -41,9 +41,8 @@ protected:
 	bool addGameplayComponent(GameplayComponentPtr component);
 
 	GameplayComponentPtr getGameplayComponent(const std::string& name) const;
-	std::vector<std::string> getGameplayComponentNames() const;
 
-	void invalidateCache();
+	void invalidateCache() const;
 
 	float getSimulationTime() const { return _simulationTime; }
 
@@ -55,7 +54,7 @@ private:
 
 	mutable std::vector<GameObjectWPtr> _objectsCache;
 
-	std::unordered_map<std::string, GameplayComponentPtr> _gameplayComponents;
+	std::map<std::string, GameplayComponentPtr> _gameplayComponents;
 
 	SoundManagerWPtr _soundMgr;
 	IDType _nextID{ 1 };

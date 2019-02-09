@@ -3,8 +3,8 @@
 #include "Utils.h"
 
 #include <vector>
-#include <unordered_map>
 #include <memory>
+#include <map>
 
 //#define RELEASE_BUILD
 
@@ -21,7 +21,7 @@ public:
 private:
 	Config();
 	void init();
-	std::unordered_map <std::string, std::string> _values;
+	std::map<std::string, std::string> _values;
 
 	static std::shared_ptr<Config>& instancePtr();
 };
@@ -100,7 +100,6 @@ namespace CfgStatic {
 
 	// FPS
 	
-	static const bool drawFPSUnlimited = true; // if set to false, drawing FPS will be the same as simulationFPS
 
 	static const unsigned int simulationFPS = 60;
 
@@ -108,7 +107,7 @@ namespace CfgStatic {
 	static const unsigned int   boomAnimFPS = 20;
 	static const unsigned int  enemyAnimFPS = 5;
 
-	const unsigned int fpsLogFramesCap = 15000;
+	const float fpsLogTime = 3.f;
 
 	// animation
 
@@ -119,8 +118,6 @@ namespace CfgStatic {
 	// time
 
 	static const float outroEffectDuration = 3.f;
-	static const float throwDuration{ 0.5f };
-	static const float cooldown{ 1.5f };
 	static const float smokeLifetime{ 1.f };
 	static const float boomLifetime{ 0.15f };
 

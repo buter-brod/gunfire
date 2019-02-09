@@ -12,9 +12,9 @@ Log* Log::Inst() {
 	return instance;
 }
 
-Log::Log() {
+Log::Log() noexcept {
 
-	if (!CfgStatic::logFile.empty()) {
+	if (!CfgStatic::logFile.empty()) { 
 		std::ofstream logFileStream(CfgStatic::logFile);
 
 		if (logFileStream.good()) {
@@ -40,7 +40,7 @@ std::set<Log::Channel> Log::getEnabledChannels() {
 
 void Log::putMsg(const std::string& msg) {
 	
-	if (CfgStatic::logFile.empty() || alwaysToCout) {
+	if (CfgStatic::logFile.empty() || alwaysToCout) { 
 		std::cout << msg;
 	}
 	

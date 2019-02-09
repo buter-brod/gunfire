@@ -1,6 +1,6 @@
 #pragma once
 #include "SoundManager.h"
-#include <unordered_map>
+#include <map>
 
 class Sound;
 typedef std::shared_ptr<Sound> SoundPtr;
@@ -18,10 +18,10 @@ public:
 	~sfml_SoundManager();
 
 protected:
-	const SoundPtr getSound(const std::string& sName, const bool onlyTry = false);
+	SoundPtr getSound(const std::string& sName, const bool onlyTry = false);
 
 private:
 	sfml_SoundManager();
-	std::unordered_map<std::string, SoundPtr> _sounds;
+	std::map<std::string, SoundPtr> _sounds;
 	static std::shared_ptr<sfml_SoundManager>& instancePtr();
 };

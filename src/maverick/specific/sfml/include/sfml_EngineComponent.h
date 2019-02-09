@@ -1,6 +1,7 @@
 #pragma once
 #include "EngineComponent.h"
 #include "MiscForward.h"
+#include "sfml_Texture.h"
 
 class Sprite;
 class Particles;
@@ -30,6 +31,7 @@ protected:
 private:
 	SpritePtr _spritePtr;
 	ParticlesPtr _particlesPtr;
+	TextureRect _latestTexRect;
 
 	std::string _textureName;
 	std::string _shaderName;

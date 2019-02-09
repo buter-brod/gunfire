@@ -20,7 +20,7 @@ public:
 	virtual bool Update(const float dt) override;
 
 	unsigned int GetFrags() const { return _frags; }
-	float GetTimeRemain() const;	
+	float GetTimeRemain() const;
 
 protected:
 	bool tryShoot(const Point& whereTo);
@@ -29,7 +29,7 @@ protected:
 	void checkCollisions();
 	void onCollision(GameObjectPtr bullet, GameObjectPtr enemy);
 
-	bool isObjectObsolete(GameObjectPtr objPtr);
+	bool isObjectObsolete(GameObjectPtr objPtr) override;
 
 	bool isGameOverAnimStarted() const;
 	void startGameOverAnim();
@@ -37,11 +37,14 @@ protected:
 	
 	virtual void initSound();
 
+	float getTimeRemain() const;
+
 	virtual GameObjectArrPtrVec getObjectLists() override;
 
 private:
 	GameObjectWPtr _bgWPtr;
 	PlayerWPtr _playerWPtr;
+	mutable float _timeRemain { -1.f };
 
 	struct {
 		bool requested{ false };

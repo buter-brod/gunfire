@@ -29,9 +29,9 @@ GameObjectArrPtrVec CFGameplayComponent::getObjectLists() {
 
 bool CFGameplayComponent::Update(const float dt) {
 
-	const float timeRemainSec = GetTimeRemain();
+	_timeRemain = getTimeRemain();
 
-	if (timeRemainSec > 0.f) {
+	if (_timeRemain > 0.f) {
 		if (_shootRequest.requested) {
 			tryShoot(_shootRequest.targetPt);
 			_shootRequest = { false, Point() };
@@ -47,7 +47,7 @@ bool CFGameplayComponent::Update(const float dt) {
 			
 		}
 		else {
-			auto playerPtr = _playerWPtr.lock();
+			const auto playerPtr = _playerWPtr.lock();
 			if (!playerPtr) {
 				// show outro
 			}
@@ -57,6 +57,28 @@ bool CFGameplayComponent::Update(const float dt) {
 	GameplayComponent::Update(dt);
 
 	return true;
+}
+
+bool isMovingOut(const Point& p, const Point& dir) {
+	
+	/*todo: check if sqrt is fast enough on different platforms!
+	may also use this version, if something goes wrong with sqrt perfomance.. (MSVS'17 - ok)
+
+	const auto sign = [](const float val) -> bool {return val >= 0.f; };
+
+	const float px = p.getX();
+	const float py = p.getY();
+
+	const float dx = dir.getX();
+	const float dy = dir.getY();
+
+	const bool away = 
+		(sign(px) == sign(dx)) || 
+		(sign(py) == sign(dy));
+	 */
+
+	const bool away = p.len() < (p + dir).len();
+	return away;
 }
 
 bool CFGameplayComponent::isObjectObsolete(GameObjectPtr objPtr) {
@@ -78,19 +100,22 @@ bool CFGameplayComponent::isObjectObsolete(GameObjectPtr objPtr) {
 	const Size& gameSize = CfgStatic::gameSize;
 	const Point center = gameSize / 2.f;
 
-	// object is either not moving or moving to somewhere far from center
-	const bool movingOut = (pos + dir - center).len() >= (pos - center).len();
+	const bool outOfBounds =
+		pos.getX() < -sz.getX() ||
+		pos.getY() < -sz.getY() ||
 
-	if (movingOut) {
+		pos.getX() > gameSize.getX() + sz.getX() ||
+		pos.getY() > gameSize.getY() + sz.getY();
+
+	if (outOfBounds) {
 		// not visible by game bounds
-		const bool outOfBounds =
-			pos.getX() < -sz.getX() ||
-			pos.getY() < -sz.getY() ||
 
-			pos.getX() > gameSize.getX() + sz.getX() ||
-			pos.getY() > gameSize.getY() + sz.getY();
+		const bool notMoving = objPtr->GetSpeed() == 0.f;
 
-		if (outOfBounds) {
+		// object is either not moving or moving to somewhere far from center
+		const bool isAway = notMoving || isMovingOut((pos - center), dir);
+
+		if (isAway) {
 			const bool canBeDestroyedNow = objPtr->RequestKill("flying out of bounds");
 
 			if (canBeDestroyedNow) {
@@ -102,8 +127,7 @@ bool CFGameplayComponent::isObjectObsolete(GameObjectPtr objPtr) {
 	return false;
 }
 
-float CFGameplayComponent::GetTimeRemain() const {
-
+float CFGameplayComponent::getTimeRemain() const {
 	const float elapsed_s = getSimulationTime();
 	const unsigned int roundDuration = Config::Inst()->getInt("roundDuration");
 
@@ -114,12 +138,21 @@ float CFGameplayComponent::GetTimeRemain() const {
 		return timeRemain;
 	}
 
-	return 0;
+	return 0.f;
+}
+
+float CFGameplayComponent::GetTimeRemain() const {
+
+	if (_timeRemain < 0.f){
+		_timeRemain = getTimeRemain();
+	}
+
+	return _timeRemain;
 }
 
 bool CFGameplayComponent::isGameOverAnimStarted() const {
 
-	auto playerPtr = _playerWPtr.lock();
+	const auto playerPtr = _playerWPtr.lock();
 
 	if (playerPtr) {
 		const std::string& playerState = playerPtr->GetState();
@@ -154,7 +187,7 @@ void CFGameplayComponent::startGameOverAnim() {
 	const auto& arrs = getObjectLists();
 
 	for (auto& arr : arrs) {
-		for (auto obj : *arr) {
+		for (auto& obj : *arr) {
 			setGameOverAnimFor(obj.second);
 		}
 	}
@@ -186,7 +219,7 @@ void CFGameplayComponent::checkSpawn() {
 	}
 }
 
-bool collides(GameObjectPtr obj1, GameObjectPtr obj2) {
+bool collides(const GameObjectPtr& obj1, const GameObjectPtr& obj2) {
 
 	const Point& p1 = obj1->GetPosition();
 	const Point& p2 = obj2->GetPosition();
@@ -207,13 +240,13 @@ bool collides(GameObjectPtr obj1, GameObjectPtr obj2) {
 void CFGameplayComponent::checkCollisions() {
 
 	for (const auto& bulletPair : _bulletObjects) {
-		auto bulletPtr = bulletPair.second;
+		const auto& bulletPtr = bulletPair.second;
 
 		const bool bulletCanExplode = (bulletPtr->GetState() == CfgStatic::idleStateName);
 
 		if (bulletCanExplode) {
 			for (const auto& enemyPair : _enemyObjects) {
-				auto enemyPtr = enemyPair.second;
+				const auto& enemyPtr = enemyPair.second;
 
 				const bool enemyCanExplode = (enemyPtr->GetState() == CfgStatic::idleStateName);
 
@@ -332,7 +365,7 @@ void CFGameplayComponent::OnCursorMoved(const Point& pt) {
 
 	auto playerPtr = _playerWPtr.lock();
 
-	if (playerPtr) {
+	if (playerPtr && !isGameOverAnimStarted()) {
 		const bool onLeftSide = pt.getX() < getSize().getX() / 2.f;
 		playerPtr->SetMirrorX(onLeftSide);
 	}

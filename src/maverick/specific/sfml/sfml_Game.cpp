@@ -2,12 +2,10 @@
 #include "Log.h"
 #include "Config.h"
 #include "GameObject.h"
-#include "GameplayComponent.h"
 
 #include "sfml_EngineComponent.h"
 #include "sfml_Particles.h"
 #include "sfml_Shader.h"
-#include "sfml_ResourceManager.h"
 #include "sfml_Sprite.h"
 
 #include "SFML/Graphics/RenderWindow.hpp"
@@ -36,7 +34,7 @@ bool sfml_Game::update(const float dt) {
 
 	const auto& objects = getObjects();
 
-	for (auto objW : objects) {
+	for (const auto& objW : objects) {
 		const auto obj = objW.lock();
 
 		if (!obj) {
@@ -55,10 +53,10 @@ bool sfml_Game::update(const float dt) {
 	return true;
 }
 
-bool sfml_Game::drawObject(const GameObject* obj) {
+bool sfml_Game::drawObject(const GameObject* obj) const {
 
 	auto engineComponent = obj->GetEngineComponent();
-	sfml_EngineComponent* sfmlComponent = static_cast<sfml_EngineComponent*>(engineComponent.get());
+	auto sfmlComponent = static_cast<sfml_EngineComponent*>(engineComponent.get());
 
 	if (!sfmlComponent) {
 		Log::Inst()->PutErr("sfml_Game::drawObject error, unable to get sfmlComponent for " + obj->getFullName());
@@ -89,7 +87,7 @@ void sfml_Game::Draw() {
 
 	const auto& objects = getObjects();
 
-	for (auto objW : objects) {
+	for (const auto& objW : objects) {
 		const auto& obj = objW.lock();
 
 		if (!obj) {

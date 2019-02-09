@@ -87,11 +87,13 @@ void sfml_Application::handleEvent(sf::Event* event) {
 			}
 			
 			break;
-		}										
+		}
+		default: {
+		}
 	}
 }
 
-SpritePtr sfml_Application::initBtn(const std::string& sprName) {
+SpritePtr sfml_Application::initBtn(const std::string& sprName) const {
 	SpritePtr spritePtr;
 
 	const auto& texRect = sfml_ResourceManager::Inst()->GetTexture(sprName);
@@ -100,7 +102,7 @@ SpritePtr sfml_Application::initBtn(const std::string& sprName) {
 		return spritePtr;
 	}
 
-	TexturePtr btnTex = texRect.texturePtr.lock();
+	const TexturePtr btnTex = texRect.texturePtr.lock();
 	spritePtr = std::make_shared<Sprite>(*btnTex);
 	spritePtr->getSpr()->setTextureRect(Utils::toSfmlRect(texRect.rect));
 
@@ -148,29 +150,36 @@ void sfml_Application::gameLoop() {
 	unsigned int fpsLogFramesCount = 0;
 	time_us fpsLogCountTimeStart = currentTime;
 
+	const bool fpsUnlimited = Config::Inst()->getInt("drawFPSUnlimited") > 0;
+
 	while (_window->isOpen()) {
-		sf::Event event;
-		while (_window->pollEvent(event)) {
-			handleEvent(&event);
-		}
 
 		const time_us newTime = Utils::getTime();
 		const float frameTime = Utils::dt(newTime, currentTime);
 		currentTime = newTime;
 
 		const bool updated = _gamePtr->Update(frameTime);
-		const bool needDraw = CfgStatic::drawFPSUnlimited || updated;
+		const bool needDraw = fpsUnlimited || updated;
+
+		if (updated){
+			sf::Event event;
+			while (_window->pollEvent(event)) {
+				handleEvent(&event);
+			}			
+		}
 
 		if (needDraw) {
 			draw();
 
-			if (fpsLogFramesCount > CfgStatic::fpsLogFramesCap) { //FPS counter
+			const float elapsed = Utils::dt(currentTime, fpsLogCountTimeStart);
 
-				const float elapsed = Utils::dt(currentTime, fpsLogCountTimeStart);
+			if (elapsed > CfgStatic::fpsLogTime) { //FPS counter
+				
+				const auto currFPS = (unsigned int)roundf(fpsLogFramesCount / elapsed);
+				Log::Inst()->PutMessage("FPS: " + std::to_string(currFPS));
+
 				fpsLogCountTimeStart = currentTime;
 				fpsLogFramesCount = 0;
-				const auto currFPS = (unsigned int)roundf(CfgStatic::fpsLogFramesCap / elapsed);
-				Log::Inst()->PutMessage("FPS: " + std::to_string(currFPS));
 			}
 			else {
 				fpsLogFramesCount++;

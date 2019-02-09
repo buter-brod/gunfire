@@ -35,7 +35,7 @@ protected:
 	GamePtr getGamePtr() const { return _gamePtr; }
 	WindowPtr getWindowPtr() const { return _window; }
 
-	SpritePtr initBtn(const std::string& sprName);
+	SpritePtr initBtn(const std::string& sprName) const;
 
 	virtual void handleEvent(sf::Event*);
 

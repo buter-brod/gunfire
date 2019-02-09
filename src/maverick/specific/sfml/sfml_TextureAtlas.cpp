@@ -1,6 +1,5 @@
 #include "sfml_TextureAtlas.h"
 #include <fstream>
-#include "Utils.h"
 #include "Config.h"
 #include "Log.h"
 

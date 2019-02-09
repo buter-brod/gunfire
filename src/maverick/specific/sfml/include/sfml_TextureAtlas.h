@@ -2,7 +2,7 @@
 #include "Rect.h"
 
 #include <string>
-#include <unordered_map>
+#include <map>
 
 class TextureAtlas {
 public:
@@ -12,5 +12,5 @@ public:
 
 private:
 	std::string _textureName;
-	std::unordered_map<std::string, Rect> _rects;
+	std::map<std::string, Rect> _rects;
 };

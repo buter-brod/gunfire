@@ -32,28 +32,28 @@ std::string Point::strInt() const {
 	return std::string("(") + std::to_string(int(_x)) + ", " + std::to_string(int(_y)) + ")";
 }
 
-Point Point::operator/(float val) const {
-	return Point(_x / val, _y / val);
+Point Point::operator/(const float val) const {
+	return { _x / val, _y / val };
 }
 
-Point Point::operator*(float val) const {
-	return Point(_x * val, _y * val);
+Point Point::operator*(const float val) const {
+	return { _x * val, _y * val };
 }
 
 Point Point::operator+(const Point& p) const {
-	return Point(_x + p.getX(), _y + p.getY());
+	return { _x + p.getX(), _y + p.getY() };
 }
 
 Point Point::operator*(const Point& p) const {
-	return Point(_x * p.getX(), _y * p.getY());
+	return { _x * p.getX(), _y * p.getY() };
 }
 
 Point Point::operator/(const Point& p) const {
-	return Point(_x / p.getX(), _y / p.getY());
+	return { _x / p.getX(), _y / p.getY() };
 }
 
 Point Point::operator-(const Point& p) const {
-	return Point(_x - p.getX(), _y - p.getY());
+	return { _x - p.getX(), _y - p.getY() };
 }
 
 void Point::operator+=(const Point& p) {
@@ -67,7 +67,7 @@ void Point::operator-=(const Point& p) {
 }
 
 Point Point::operator-() const {
-	return Point(-getX(), -getY());
+	return { -getX(), -getY() };
 }
 
 void Point::operator*=(const Point& p) {
@@ -90,5 +90,9 @@ Point Point::normalized() const {
 }
 
 float Point::len() const {
-	return sqrt(_x *_x + _y * _y);
+
+	const float sq = (_x * _x + _y * _y);
+	const float ln = sqrt(sq);
+
+	return ln;
 }

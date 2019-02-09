@@ -12,13 +12,13 @@ public:
 	~sfml_Game();
 
 	virtual void Init() override;
-	virtual void Draw();
+	virtual void Draw() override;
 
 protected:
 	virtual bool update(const float dt) override;
-	bool drawObject(const GameObject* obj);
+	bool drawObject(const GameObject* obj) const;
 
-	sf::RenderWindow* getRenderWindow() { return _renderWindow; }
+	sf::RenderWindow* getRenderWindow() const { return _renderWindow; }
 
 private:
 	sf::RenderWindow* _renderWindow{ nullptr };

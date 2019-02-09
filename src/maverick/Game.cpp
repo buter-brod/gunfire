@@ -17,7 +17,7 @@ Game::~Game() {
 	Log::Inst()->PutMessage("Game::~Game");
 }
 
-Size Game::getSize() const {
+const Size& Game::getSize() const {
 	return CfgStatic::gameSize;
 }
 
@@ -50,7 +50,7 @@ bool Game::addGameplayComponent(GameplayComponentPtr component) {
 	return true;
 }
 
-void Game::invalidateCache() {
+void Game::invalidateCache() const {
 	_objectsCache.clear();
 }
 
@@ -58,7 +58,7 @@ GameplayComponentPtr Game::getGameplayComponent(const std::string& name) const {
 	
 	GameplayComponentPtr ptr;
 
-	auto& cmpIt = _gameplayComponents.find(name);
+	const auto& cmpIt = _gameplayComponents.find(name);
 	if (cmpIt != _gameplayComponents.end()) {
 		ptr = cmpIt->second;
 	}
@@ -104,14 +104,14 @@ bool Game::Update(const float frameDt) {
 
 const std::vector<GameObjectWPtr>& Game::getObjects() const {
 
-	if (_objectsCache.size() > 0) {
+	if (!_objectsCache.empty()) {
 		// no objects added/deleted since last time, returning cached values
 		return _objectsCache;
 	}
 
 	const auto& listPerComponentMap = getObjectLists();
 
-	for (const auto compList : listPerComponentMap) {
+	for (const auto& compList : listPerComponentMap) {
 		const auto& objLists = compList.second;
 
 		for (const auto objList : objLists) {
@@ -129,7 +129,7 @@ const std::vector<GameObjectWPtr>& Game::getObjects() const {
 ObjListsPerComponentMap Game::getObjectLists() const {
 	ObjListsPerComponentMap lists;
 
-	for (auto componentPair : _gameplayComponents) {
+	for (const auto& componentPair : _gameplayComponents) {
 		const auto component = componentPair.second;
 		const std::string& name = componentPair.first;
 		const auto& compLists = component->GetObjectLists();
@@ -141,19 +141,6 @@ ObjListsPerComponentMap Game::getObjectLists() const {
 
 void Game::Init() {
 	update(0.f);
-}
-
-std::vector<std::string> Game::getGameplayComponentNames() const {
-
-	std::vector<std::string> names;
-
-	// may apply additional sorting if need, but for now random order is ok
-
-	for (auto gp : _gameplayComponents) {
-		names.push_back(gp.first);
-	}
-
-	return names;
 }
 
 bool Game::GetPaused() const {

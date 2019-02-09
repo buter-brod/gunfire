@@ -26,5 +26,5 @@ protected:
 
 private:
 
-	Log();
+	Log() noexcept;
 };

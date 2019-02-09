@@ -1,10 +1,8 @@
 #include "GameplayComponent.h"
 #include "GameObject.h"
-#include "Game.h"
+
 #include "Log.h"
 #include "Config.h"
-
-#include <algorithm>
 
 GameplayComponent::GameplayComponent(const Size& sz) : _size(sz) {
 }
@@ -141,13 +139,7 @@ bool GameplayComponent::Update(const float dt) {
 GameObjectCArrPtrVec GameplayComponent::GetObjectLists() {
 	
 	const auto& lists = getObjectLists();
-	GameObjectCArrPtrVec cLists;
-
-	for (const auto& list : lists) {
-		cLists.push_back(list);
-	}
-
-	return cLists;
+	return { lists.begin(), lists.end() };
 }
 
 GameObjectArrPtrVec GameplayComponent::getObjectLists() {

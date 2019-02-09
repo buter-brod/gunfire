@@ -1,11 +1,7 @@
 #include "Enemy.h"
 
 #include "Config.h"
-#include "Log.h"
 #include "EngineComponent.h"
-#include "Shader.h"
-
-#include <algorithm>
 
 Enemy::Enemy(const IDType id)
 	: GameObject(id, CfgStatic::enemyName, CfgStatic::enemySpr) {
@@ -38,7 +34,7 @@ void Enemy::Update(const float dt, const float gameTime) {
 	const float x = pos.getX();
 	const float xMax = CfgStatic::gameSize.getX();
 
-	const bool needTurn = dir.getY() == 0.f && (
+	const bool needTurn = dir.getY() == 0.f && ( 
 		(dir.getX() < 0.f && x < 0.f) ||
 		(dir.getX() > 0.f && x > xMax));
 

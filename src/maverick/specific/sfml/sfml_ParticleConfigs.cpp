@@ -23,7 +23,7 @@ ParticlesPtr Particles::Build(const std::string& config) {
 		particlesPtr = std::make_shared<ParticlesPtr::element_type>();
 
 		particlesPtr->setTexture(*texRect.texturePtr.lock()->getTex());
-		unsigned int index0 = particlesPtr->addTextureRect(Utils::toSfmlRect(texRect.rect));
+		const unsigned int index0 = particlesPtr->addTextureRect(Utils::toSfmlRect(texRect.rect));
 
 		EmitterPtr emitter = std::make_shared<EmitterPtr::element_type>();
 
@@ -42,7 +42,7 @@ ParticlesPtr Particles::Build(const std::string& config) {
 
 		particlesPtr->AddEmitter(emitter);
 
-		thor::FadeAnimation fader(CfgStatic::smokeFadeIn, CfgStatic::smokeFadeOut);
+		const thor::FadeAnimation fader(CfgStatic::smokeFadeIn, CfgStatic::smokeFadeOut);
 		particlesPtr->addAffector(thor::AnimationAffector(fader));
 	}
 
@@ -59,8 +59,8 @@ ParticlesPtr Particles::Build(const std::string& config) {
 		particlesPtr->setTexture(*texRect.texturePtr.lock()->getTex());
 		const unsigned int index0 = particlesPtr->addTextureRect(Utils::toSfmlRect(texRect.rect));
 
-		sf::Color fireColor1(25, 25, 25);
-		sf::Color fireColor2(255, 255, 165);
+		const sf::Color fireColor1(25, 25, 25);
+		const sf::Color fireColor2(255, 255, 165);
 
 		EmitterPtr emitter1 = std::make_shared<EmitterPtr::element_type>();
 		EmitterPtr emitter2 = std::make_shared<EmitterPtr::element_type>();
@@ -86,7 +86,7 @@ ParticlesPtr Particles::Build(const std::string& config) {
 		e1Ptr->setParticleRotation(thor::Distributions::uniform(0.f, 360.f));
 		e2Ptr->setParticleRotation(thor::Distributions::uniform(0.f, 360.f));
 
-		thor::FadeAnimation fader(0.05f, 0.55f);
+		const thor::FadeAnimation fader(0.05f, 0.55f);
 		particlesPtr->addAffector(thor::AnimationAffector(fader));
 		
 		particlesPtr->AddEmitter(emitter1);

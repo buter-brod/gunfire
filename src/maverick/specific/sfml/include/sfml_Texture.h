@@ -6,6 +6,7 @@
 class sfml_Texture {
 
 public:
+	sfml_Texture() = default;
 	const sf::Texture* getTex() const;
 	bool loadFromFile(const std::string& filename, const Rect& area = Rect());
 	~sfml_Texture();

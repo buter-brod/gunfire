@@ -15,7 +15,7 @@ Config::Config() {
 
 std::string Config::getString(const std::string& key) const {
 
-	auto& valIt = _values.find(key);
+	const auto valIt = _values.find(key);
 
 	if (valIt == _values.end()) {
 		Log::Inst()->PutErr("Config::getString error, unable to read key " + key);
@@ -54,7 +54,7 @@ float Config::getFloat(const std::string& key) const {
 }
 
 std::string & ltrim(std::string & str) {
-	auto it2 = std::find_if(str.begin(), str.end(), [](char ch) { return ch != ' ';});
+	const auto it2 = std::find_if(str.begin(), str.end(), [](char ch) { return ch != ' ';});
 	str.erase(str.begin(), it2);
 	return str;
 }
@@ -77,7 +77,7 @@ void Config::init() {
 
 	while (std::getline(input, line)) {
 
-		const auto eqPos = line.find("=");
+		const auto eqPos = line.find('=');
 
 		if (line.empty() || line[0] == '#') {
 			continue;

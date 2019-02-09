@@ -23,7 +23,7 @@ Bullet::Bullet(const IDType id)
 
 bool Bullet::RequestKill(const std::string& reason) {
 
-	GameObject::StatePtr deadState = GameObject::State::New(CfgStatic::deadStateName);
+	const GameObject::StatePtr deadState = GameObject::State::New(CfgStatic::deadStateName);
 	GameObject::StatePtr leavingState = GameObject::State::New(CfgStatic::leavingStateName);
 
 	leavingState->_nextState = deadState;

@@ -28,7 +28,7 @@ static bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
 
 void sfml_cleansingFireApplication::refreshPauseColor() {
 
-	auto window = getWindowPtr();
+	const auto window = getWindowPtr();
 	auto gamePtr = getGamePtr();
 
 	const sf::Vector2i mousePos = sf::Mouse::getPosition(*window);

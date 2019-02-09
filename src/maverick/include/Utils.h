@@ -8,10 +8,10 @@ typedef unsigned long long time_us;
 
 namespace Utils {
 	float rnd01();
-	float rnd0xf(float x);
-	unsigned int rnd0xi(unsigned int x);
+	float rnd0xf(const float x);
+	unsigned int rnd0xi(const unsigned int x);
 	bool  rndYesNo();
-	float rndfMinMax(float min, float max);
+	float rndfMinMax(const float min, const float max);
 
 	/*
 	rnd01  is random value 0..1

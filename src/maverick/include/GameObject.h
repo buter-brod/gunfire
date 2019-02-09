@@ -30,21 +30,21 @@ public:
 	*/
 	virtual bool RequestKill(const std::string& reason);
 
-	std::string GetCurrentSpriteName() const;
+	const std::string& GetCurrentSpriteName() const;
 	virtual Point GetEmitterPosition() const;
 
 	struct State;
 	typedef std::shared_ptr<State> StatePtr;
 
-	void ChangeState(StatePtr newState);
-	const std::string GetState() const;
-	const std::string GetAnimation() const;
-	
-	float GameObject::GetEffectCoeff(const float maxDuration, const float minVal, const float maxVal) const;
+	void ChangeState(const StatePtr& newState);
 
+	const std::string& GetState() const;
+	const std::string& GetAnimation() const;
 	std::string getFullName() const;
+	
+	float GetEffectCoeff(const float maxDuration, const float minVal, const float maxVal) const;
 
-	StatePtr getIdleState() { return _idleState; }
+	StatePtr getIdleState() const { return _idleState; }
 
 	const Point& GetPosition()  const { return _position; }
 	const Point& GetDirection() const { return _direction; }
@@ -57,8 +57,8 @@ public:
 	float GetScale()      const { return _scale; }
 	float GetRotation()   const { return _rotation; }
 
-	std::string getShaderName() const;
-	std::string getParticlesName() const;
+	const std::string& getShaderName() const;
+	const std::string& getParticlesName() const;
 
 	EngineComponentPtr GetEngineComponent() const;
 	void SetEngineComponent(EngineComponentPtr component);
@@ -90,10 +90,10 @@ public:
 protected:
 	inline StatePtr getState() const { return _state; };
 	inline float getGameSimulationTime() const { return _gameSimulationTime; }
-	void updateState();
+	bool updateState();
 
 	AnimationPtr getAnimation(const std::string& animName, const bool onlyTry = false) const;
-	virtual void onStateUpdate(const StatePtr prevState);
+	virtual void onStateUpdate(const StatePtr& prevState);
 
 private:
 	float _gameSimulationTime{ 0.f };
@@ -103,7 +103,7 @@ private:
 
 	EngineComponentPtr _engineComponent{ nullptr };
 
-	std::unordered_map<std::string, AnimationPtr> _animations;
+	std::map<std::string, AnimationPtr> _animations;
 
 	Point _position;
 	Point _direction{0.f, 1.f};
@@ -116,6 +116,8 @@ private:
 	float _acceleration{ 0.f };
 
 	bool _mirrorX{ false };
+
+	mutable AnimationWPtr _latestAnimation;
 
 	IDType _id{ 0 };
 

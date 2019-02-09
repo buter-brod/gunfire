@@ -51,7 +51,7 @@ bool sfml_SoundManager::loadSound(const std::string& sName) {
 	return true;
 }
 
-const SoundPtr sfml_SoundManager::getSound(const std::string& sName, const bool onlyTry) {
+SoundPtr sfml_SoundManager::getSound(const std::string& sName, const bool onlyTry) {
 
 	const auto& sndIt = _sounds.find(sName);
 

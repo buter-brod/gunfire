@@ -26,8 +26,8 @@ public:
 
 	bool operator==(const Point& other) const {
 		return
-			_x == other._x &&
-			_y == other._y;
+			_x == other._x && 
+			_y == other._y; 
 	}
 
 	void rotate(const Point& pivot, const float angleDeg);

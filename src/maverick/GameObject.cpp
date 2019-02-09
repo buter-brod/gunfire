@@ -9,9 +9,11 @@
 
 #include <algorithm>
 
+static const std::string emptyStr;
+
 GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
 
-	if (!_idleState) {
+	if (_idleState == nullptr) {
 		_idleState = State::New(CfgStatic::idleStateName);
 		_idleState->_animation = _idleAnimation;
 	}
@@ -25,9 +27,12 @@ void GameObject::SetSize(const Size& sz)        { _size = sz;         }
 void GameObject::SetPosition(const Point& pt)   { _position = pt;     }
 void GameObject::SetMirrorX(const bool mirrorX) { _mirrorX = mirrorX; }
 void GameObject::SetScale(const float scale)    { _scale = scale;     }
-void GameObject::SetDirection(const Point& d)   { _direction = d;     }
 void GameObject::SetSpeed(const float s)        { _speed = s;         }
 void GameObject::SetAngleSpeed(const float s)   { _angleSpeed = s;    }
+
+void GameObject::SetDirection(const Point& d) {
+	_direction = d.normalized();
+}
 
 void GameObject::SetEngineComponent(EngineComponentPtr component) {
 	if (_engineComponent != nullptr) {
@@ -74,9 +79,9 @@ AnimationPtr GameObject::getAnimation(const std::string& animName, const bool on
 	return animIt->second;
 }
 
-void GameObject::onStateUpdate(const StatePtr prevState) {
+void GameObject::onStateUpdate(const StatePtr& prevState) {
 
-	auto soundFunc = [](const std::string& soundName) {
+	const auto soundFunc = [](const std::string& soundName) {
 		if (!soundName.empty()) {
 			SoundManager::PlaySound(soundName);
 		}
@@ -87,50 +92,63 @@ void GameObject::onStateUpdate(const StatePtr prevState) {
 	}
 
 	soundFunc(_state->_sound);
+	_latestAnimation.reset();
 }
 
-void GameObject::ChangeState(StatePtr newState) {
+void GameObject::ChangeState(const StatePtr& newState) {
 
 	Log::Inst()->PutMessage("object " + getFullName() + " will change state from " + (_state ? _state->_name : "(none)") + " to " + newState->_name);
 
-	StatePtr prevState = _state;
+	const StatePtr prevState = _state;
 	_state = newState;
 	_state->_startTime = _gameSimulationTime;
 	onStateUpdate(prevState);
 }
 
-const std::string GameObject::GetAnimation() const {
-	return _state ? _state->_animation : "";
+const std::string& GameObject::GetAnimation() const {
+
+	if (!_state) {
+		return emptyStr;
+	}
+
+	return _state->_animation;
 }
 
-const std::string GameObject::GetState() const {
-	return _state ? _state->_name : "";
+const std::string& GameObject::GetState() const {
+
+	if (!_state) {
+		return emptyStr;
+	}
+
+	return _state->_name;
 }
 
-void GameObject::updateState() {
+bool GameObject::updateState() {
 
 	const float currTime = _gameSimulationTime;
+	bool changed = false;
 
 	if (!_state) {
 		
-		AnimationPtr idleAnimPtr = getAnimation(_idleAnimation, true);
+		const AnimationPtr idleAnimPtr = getAnimation(_idleAnimation, true);
 		if (!idleAnimPtr) {
 			AddAnimation(_idleAnimation);
 		}
 		
 		ChangeState(_idleState);
+		changed = true;
 	}
 
 	float duration = _state->_duration;
 
 	if (!_state->_animation.empty()) {
 
-		if (duration == basedOnAnimation) {
-			AnimationPtr animation = getAnimation(_state->_animation);
+		if (duration == basedOnAnimation) { 
+			const AnimationPtr animation = getAnimation(_state->_animation);
 
 			if (animation == nullptr) {
 				Log::Inst()->PutErr("GameObject::updateState error, state " + _state->_name + " animation " + _state->_animation);
-				return;
+				return changed;
 			}
 
 			const unsigned int animFPS = animation->GetFPS();
@@ -148,9 +166,12 @@ void GameObject::updateState() {
 	const float stateElapsed = Utils::dt(currTime, _state->_startTime);
 
 	if (duration > 0.f && stateElapsed > duration) {
-		StatePtr newState = _state->_nextState ? _state->_nextState : _idleState;
+		const StatePtr newState = _state->_nextState ? _state->_nextState : _idleState;
 		ChangeState(newState);
+		changed = true;
 	}
+
+	return changed;
 }
 
 float GameObject::GetEffectCoeff(const float maxDuration, const float minVal, const float maxVal) const {
@@ -178,25 +199,22 @@ float GameObject::GetEffectCoeff(const float maxDuration, const float minVal, co
 	return coeff;
 }
 
-std::string GameObject::getParticlesName() const {
-	std::string pName;
-
-	if (_state) {
-		pName = _state->_particles;
+const std::string& GameObject::getParticlesName() const {
+	
+	if (!_state) {
+		return emptyStr;
 	}
 
-	return pName;
+	return _state->_particles;
 }
 
-std::string GameObject::getShaderName() const {
+const std::string& GameObject::getShaderName() const {
 
-	std::string shName;
-
-	if (_state) {
-		shName = _state->_shader;
+	if (!_state){
+		return emptyStr;
 	}
 
-	return shName;
+	return _state->_shader;
 }
 
 ShaderPtr GameObject::GetShader() const {
@@ -212,16 +230,25 @@ ShaderPtr GameObject::GetShader() const {
 	return shader;
 }
 
-std::string GameObject::GetCurrentSpriteName() const {
+const std::string& GameObject::GetCurrentSpriteName() const {
 
 	if (_state == nullptr || _state->_animation.empty()) {
-		return "";
+		return emptyStr;
 	}
-	
-	const AnimationPtr animation = getAnimation(_state->_animation);
+
+	const AnimationPtr lastAnimPtr = _latestAnimation.lock();
+	AnimationPtr animation;
+
+	if (lastAnimPtr) {
+		animation = lastAnimPtr;
+	} else {
+		animation = getAnimation(_state->_animation);
+		_latestAnimation = animation;
+	}
+
 	if (animation == nullptr) {
 		Log::Inst()->PutErr("GameObject::GetCurrentSpriteNam error, animation broken :( " + getFullName());
-		return "";
+		return emptyStr;
 	}
 
 	const float time = _gameSimulationTime;
@@ -239,11 +266,11 @@ std::string GameObject::getFullName() const {
 	return _name + std::to_string(getId());
 }
 
-void GameObject::Update(float dt, const float gameTime) {
+void GameObject::Update(const float dt, const float gameTime) {
 	
 	_gameSimulationTime = gameTime;
 
-	if (_direction.len() == 0) {
+	if (_direction.isEmpty()) {
 		Log::Inst()->PutErr("GameObject::update error, invalid direction " + getFullName());
 	}
 
@@ -254,7 +281,7 @@ void GameObject::Update(float dt, const float gameTime) {
 	}
 
 	_speed += _acceleration * dt;
-	_position += _direction.normalized() * _speed * dt;
+	_position += _direction * _speed * dt;
 
 	const float angleFullRound = 360;
 	_rotation += fmod(_angleSpeed * dt, angleFullRound);

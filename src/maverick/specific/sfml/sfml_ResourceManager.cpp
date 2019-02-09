@@ -59,7 +59,7 @@ bool sfml_ResourceManager::LoadAtlas(const std::string& tName, const std::string
 	return true;
 }
 
-const ShaderPtr sfml_ResourceManager::AddShader(const std::string& sName) {
+ShaderPtr sfml_ResourceManager::AddShader(const std::string& sName) {
 
 	const auto& shIt = _shaders.find(sName);
 
@@ -85,7 +85,7 @@ const ShaderPtr sfml_ResourceManager::AddShader(const std::string& sName) {
 	return shPtr;
 }
 
-const ShaderPtr sfml_ResourceManager::GetShader(const std::string& sName, const bool onlyTry) {
+ShaderPtr sfml_ResourceManager::GetShader(const std::string& sName, const bool onlyTry) {
 
 	const auto& shIt = _shaders.find(sName);
 
@@ -100,7 +100,7 @@ const ShaderPtr sfml_ResourceManager::GetShader(const std::string& sName, const 
 	return shIt->second;
 }
 
-const TexturePtr sfml_ResourceManager::AddTexture(const std::string& tName) {
+TexturePtr sfml_ResourceManager::AddTexture(const std::string& tName) {
 
 	const auto& texIt = _textures.find(tName);
 

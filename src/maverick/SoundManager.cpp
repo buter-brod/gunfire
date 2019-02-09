@@ -1,9 +1,6 @@
 #include "SoundManager.h"
 #include "Log.h"
 
-SoundManager::SoundManager() {}
-SoundManager::~SoundManager() {}
-
 SoundManagerWPtr& mgrPtr() {
 	static SoundManagerWPtr mgrPtr;
 	return mgrPtr;

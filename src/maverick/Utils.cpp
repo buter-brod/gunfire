@@ -12,9 +12,9 @@ namespace Utils {
 
 	time_us getTime() {
 		
-		auto now = std::chrono::system_clock::now();
-		auto duration = now.time_since_epoch();
-		auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+		const auto now = std::chrono::system_clock::now();
+		const auto duration = now.time_since_epoch();
+		const auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 		
 		return us;
 	}
@@ -41,10 +41,10 @@ namespace Utils {
 	}
 
 	float rnd01() { return float(rnd()) / RANDOM_STRENGTH; }
-	float rnd0xf(float x) { return rnd01() * x; }
-	unsigned int rnd0xi(unsigned int x) { return rnd() % x; }
+	float rnd0xf(const float x) { return rnd01() * x; }
+	unsigned int rnd0xi(const unsigned int x) { return rnd() % x; }
 
-	float rndfMinMax(float min, float max) { return min + rnd01() * (max - min); }
+	float rndfMinMax(const float min, const float max) { return min + rnd01() * (max - min); }
 
 	
 	float dt(const time_us first, const time_us second) {
@@ -54,7 +54,7 @@ namespace Utils {
 		}
 
 		const auto usDelta = first - second;
-		float dtSeconds = float(usDelta) / 1000.f / 1000.f;
+		const float dtSeconds = float(usDelta) / 1000.f / 1000.f;
 		return dtSeconds;
 	}
 	
