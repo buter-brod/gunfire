@@ -1,7 +1,7 @@
 #include "sfml_SoundManager.h"
 #include "sfml_Sound.h"
 
-#include "Config.h"
+#include "CfgStatic.h"
 #include "Log.h"
 
 std::shared_ptr<sfml_SoundManager>& sfml_SoundManager::instancePtr() {

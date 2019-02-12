@@ -1,6 +1,6 @@
 #include "sfml_TextureAtlas.h"
 #include <fstream>
-#include "Config.h"
+#include "CfgStatic.h"
 #include "Log.h"
 
 /* simpified reader of mtpf format, google it: Moony-TexturePacker */

@@ -1,5 +1,5 @@
 #include "ShaderHelper.h"
-#include "Config.h"
+#include "CfgStatic.h"
 #include "GameObject.h"
 #include "Shader.h"
 #include "Log.h"

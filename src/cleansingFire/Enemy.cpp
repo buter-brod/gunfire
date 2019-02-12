@@ -1,5 +1,6 @@
 #include "Enemy.h"
 
+#include "CFCfgStatic.h"
 #include "Config.h"
 #include "EngineComponent.h"
 

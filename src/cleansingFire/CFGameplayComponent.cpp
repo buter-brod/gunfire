@@ -1,13 +1,13 @@
 #include "CFGameplayComponent.h"
 #include "Log.h"
 #include "Config.h"
+#include "CfgStatic.h"
+#include "CFCfgStatic.h"
 #include "SoundManager.h"
 
 #include "Player.h"
 #include "Enemy.h"
 #include "Bullet.h"
-
-#include "Game.h"
 
 static constexpr auto CFNameLiteral = "cleansingFire";
 

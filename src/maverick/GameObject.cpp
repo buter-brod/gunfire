@@ -1,11 +1,12 @@
 #include "GameObject.h"
 
 #include "Log.h"
-#include "Config.h"
+#include "CfgStatic.h"
 #include "Animation.h"
 #include "EngineComponent.h"
 #include "SoundManager.h"
 #include "ShaderHelper.h"
+#include "Utils.h"
 
 #include <algorithm>
 

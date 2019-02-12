@@ -2,7 +2,7 @@
 
 #include "sfml_ResourceManager.h"
 #include "sfml_Utils.h"
-#include "Config.h"
+#include "CFCfgStatic.h"
 
 #include "Thor/Particles/Affectors.hpp"
 #include "Thor/Math/Distributions.hpp"

@@ -1,5 +1,5 @@
 #include "Log.h"
-#include "Config.h"
+#include "CfgStatic.h"
 #include "Utils.h"
 
 #include <fstream>

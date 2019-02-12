@@ -6,7 +6,7 @@
 
 #include "GameObject.h"
 #include "Log.h"
-#include "Config.h"
+#include "CFCfgStatic.h"
 
 Rect sfml_EngineComponent::GetSpriteRect() const {
 

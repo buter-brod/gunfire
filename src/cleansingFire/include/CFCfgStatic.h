@@ -1,36 +1,16 @@
 #pragma once
-#include "Rect.h"
+#include "Point.h"
 #include "Utils.h"
 
+#include "CfgStatic.h"
 #include <vector>
-#include <memory>
-#include <map>
 
 //#define RELEASE_BUILD
-
-class Config{
-
-public:
-	static Config* Inst();
-	static const int badNum{ INT_MIN };
-
-	std::string getString(const std::string& key) const;
-	int getInt(const std::string& key) const;
-	float getFloat(const std::string& key) const;
-
-private:
-	Config();
-	void init();
-	std::map<std::string, std::string> _values;
-
-	static std::shared_ptr<Config>& instancePtr();
-};
 
 namespace CfgStatic {
 
 	// sizes
 
-	static const Size gameSize(1024, 768);
 	static const Size windowSize = gameSize;
 
 	// object sizes
@@ -41,33 +21,10 @@ namespace CfgStatic {
 
 	// files
 
-	inline std::string getSoundDir() {
-		return "sound/";
-	}
-
-	inline std::string getResourceDir() {
-#ifdef RELEASE_BUILD
-		return "./Resources/";
-#else
-		return "../Resources/";
-#endif
-	}
-
-	static const std::string configFile = getResourceDir() + "config.cfg";
-	static const std::string fontName   = getResourceDir() + "the unseen.ttf";
-
-	static const std::string pixelizeShader = "pixelize";
-
-	static const std::string& logFile = ""; // "log.txt"; // log file disabled
-
-	static const std::string vertExt = ".vert";
-	static const std::string fragExt = ".frag";
+	static const std::string fontName = getResourceDir() + "the unseen.ttf";
 
 	// sprites
-
-	static const std::string atlasPng  = "atlas.png";
-	static const std::string atlasMtpf = "atlas.mtpf";
-
+	
 	static const std::string smokePng = "smoke.png";
 
 	static const std::string playImgFile       = "play.png";
@@ -100,14 +57,9 @@ namespace CfgStatic {
 
 	// FPS
 	
-
-	static const unsigned int simulationFPS = 60;
-
 	static const unsigned int bulletAnimFPS = 5;
 	static const unsigned int   boomAnimFPS = 20;
 	static const unsigned int  enemyAnimFPS = 5;
-
-	const float fpsLogTime = 3.f;
 
 	// animation
 
@@ -145,9 +97,6 @@ namespace CfgStatic {
 	static const float bulletSpeedMax      = 300.f;
 	static const float bulletSpeed         = 200.f;
 
-	static const float pixelizeDuration =    4.f;
-	static const float pixelizeCoeffMax    = 15.f;
-	
 	static const float smokeFadeIn         = 0.15f;
 	static const float smokeFadeOut        = 0.85f;
 	static const float smokeSpeed          = 20.f;
@@ -168,9 +117,6 @@ namespace CfgStatic {
 	static const float smokeMaxDeflect      = 15.f;
 
 	//states
-
-	static const std::string     idleStateName = "idle";
-	static const std::string     deadStateName = "dead";
 
 	static const std::string cooldownStateName = "cooldown";
 	static const std::string shootingStateName = "shooting";

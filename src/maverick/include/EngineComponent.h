@@ -6,7 +6,7 @@ class EngineComponent {
 
 public:
 	explicit EngineComponent(GameObjectWPtr objPtr) : _gameObjectWPtr(objPtr) {}
-	virtual ~EngineComponent() {}
+	virtual ~EngineComponent() = default;
 
 	virtual void Update(const float dt);
 

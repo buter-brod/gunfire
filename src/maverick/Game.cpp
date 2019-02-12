@@ -2,6 +2,7 @@
 
 #include "GameplayComponent.h"
 #include "Config.h"
+#include "CfgStatic.h"
 #include "Log.h"
 
 IDType Game::NewID() {

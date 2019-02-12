@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "CFCfgStatic.h"
 #include "Config.h"
 
 Player::Player(const IDType id)

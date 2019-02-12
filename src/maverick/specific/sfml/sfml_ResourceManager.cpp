@@ -1,7 +1,7 @@
 #include "sfml_ResourceManager.h"
 
 #include "Log.h"
-#include "Config.h"
+#include "CfgStatic.h"
 #include "Shader.h"
 
 #include "sfml_TextureAtlas.h"

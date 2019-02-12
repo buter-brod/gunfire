@@ -1,5 +1,6 @@
 #include "sfml_cleansingFireGame.h"
 #include "Log.h"
+#include "CFCfgStatic.h"
 #include "Config.h"
 
 #include "CFGameplayComponent.h"

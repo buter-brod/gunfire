@@ -23,7 +23,7 @@ public:
 	float GetSimulationTime() const { return _simulationTime; };
 
 protected:
-	const Size& getSize() const;
+	virtual const Size& getSize() const;
 
 	virtual bool update(const float dt);
 	virtual bool updateGameplay(const float dt);

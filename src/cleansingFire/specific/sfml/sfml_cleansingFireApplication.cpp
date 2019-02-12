@@ -1,7 +1,7 @@
 #include "sfml_cleansingFireApplication.h"
 #include "sfml_cleansingFireGame.h"
 
-#include "Config.h"
+#include "CFCfgStatic.h"
 #include "Log.h"
 
 #include "sfml_Sprite.h"
@@ -14,6 +14,7 @@ sfml_cleansingFireApplication::sfml_cleansingFireApplication() {
 }
 
 sfml_cleansingFireApplication::~sfml_cleansingFireApplication() {
+	Log::Inst()->PutMessage("sfml_cleansingFireApplication::~sfml_cleansingFireApplication");
 }
 
 static Point sfToGamePoint(const sf::Vector2i& pos) {

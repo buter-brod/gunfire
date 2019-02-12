@@ -1,7 +1,7 @@
 #include "Bullet.h"
 
 #include "EngineComponent.h"
-#include "Config.h"
+#include "CFCfgStatic.h"
 #include "Log.h"
 
 Bullet::Bullet(const IDType id)

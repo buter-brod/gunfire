@@ -1,5 +1,6 @@
 #include "Config.h"
 #include "Log.h"
+#include "CfgStatic.h"
 
 #include <fstream>
 #include <algorithm>

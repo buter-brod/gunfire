@@ -1,5 +1,6 @@
 #include "sfml_Application.h"
 
+#include "CFCfgStatic.h"
 #include "Config.h"
 #include "Log.h"
 
