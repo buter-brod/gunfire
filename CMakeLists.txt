@@ -4,7 +4,11 @@ project(cleansingFire)
 
 set(SFML_STATIC_LIBRARIES TRUE)
 
-set(SFML_DIR 3rdparty/SFML/lib/cmake/SFML)
+if(UNIX AND NOT APPLE)
+        set(SFML_DIR 3rdparty/SFML/linux/lib/cmake/SFML)
+else()
+		set(SFML_DIR 3rdparty/SFML/win/lib/cmake/SFML)
+endif()
 
 set(CLEANSINGFIRE_DIR ${CMAKE_CURRENT_LIST_DIR}/src/cleansingFire)
 set(MAVERICK_DIR ${CMAKE_CURRENT_LIST_DIR}/src/maverick)
