@@ -5,10 +5,12 @@ project(cleansingFire)
 set(SFML_STATIC_LIBRARIES TRUE)
 
 if(UNIX AND NOT APPLE)
-        set(SFML_DIR 3rdparty/SFML/linux/lib/cmake/SFML)
+	set (DIR_PLATFORM linux)
 else()
-		set(SFML_DIR 3rdparty/SFML/win/lib/cmake/SFML)
+	set (DIR_PLATFORM win)
 endif()
+
+set (SFML_DIR 3rdparty/SFML-${DIR_PLATFORM}/lib/cmake/SFML)
 
 set(CLEANSINGFIRE_DIR ${CMAKE_CURRENT_LIST_DIR}/src/cleansingFire)
 set(MAVERICK_DIR ${CMAKE_CURRENT_LIST_DIR}/src/maverick)
@@ -53,12 +55,12 @@ INCLUDE_DIRECTORIES(${MAVERICK_DIR}/specific/sfml/include)
 INCLUDE_DIRECTORIES(${CLEANSINGFIRE_DIR}/include)
 INCLUDE_DIRECTORIES(${CLEANSINGFIRE_DIR}/specific/sfml/include)
 
-INCLUDE_DIRECTORIES(3rdparty/SFML/include)
-INCLUDE_DIRECTORIES(3rdparty/thor/include)
-LINK_DIRECTORIES(3rdparty/thor/lib)
+INCLUDE_DIRECTORIES(3rdparty/SFML-${DIR_PLATFORM}/include)
+INCLUDE_DIRECTORIES(3rdparty/thor-${DIR_PLATFORM}/include)
+LINK_DIRECTORIES(3rdparty/thor/${DIR_PLATFORM}/lib)
 
-find_library(THOR_LIBRARY_D thor-s-d.lib HINTS 3rdparty/thor/lib)
-find_library(THOR_LIBRARY thor-s.lib HINTS 3rdparty/thor/lib)
+find_library(THOR_LIBRARY_D thor-s-d.lib HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
+find_library(THOR_LIBRARY thor-s.lib HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
 
 find_package(SFML 2.5 COMPONENTS graphics audio REQUIRED)
 target_link_libraries(cleansingFireApp sfml-graphics sfml-audio)
