@@ -57,21 +57,21 @@ namespace CfgStatic {
 
 	// FPS
 	
-	static const unsigned int bulletAnimFPS = 5;
-	static const unsigned int   boomAnimFPS = 20;
-	static const unsigned int  enemyAnimFPS = 5;
+	static constexpr unsigned int bulletAnimFPS = 5;
+	static constexpr unsigned int   boomAnimFPS = 20;
+	static constexpr unsigned int  enemyAnimFPS = 5;
 
 	// animation
 
-	static const unsigned int bulletAnimFramesCount = 2;
-	static const unsigned int boomAnimFramesCount   = 10;
-	static const unsigned int enemyAnimFramesCount  = 2;
+	static constexpr unsigned int bulletAnimFramesCount = 2;
+	static constexpr unsigned int boomAnimFramesCount   = 10;
+	static constexpr unsigned int enemyAnimFramesCount  = 2;
 	
 	// time
 
-	static const float outroEffectDuration = 3.f;
-	static const float smokeLifetime{ 1.f };
-	static const float boomLifetime{ 0.15f };
+	static constexpr float outroEffectDuration = 3.f;
+	static constexpr float smokeLifetime{ 1.f };
+	static constexpr float boomLifetime{ 0.15f };
 
 	// text
 
@@ -88,33 +88,35 @@ namespace CfgStatic {
 
 	// speed
 
-	static const float boomAcceleration    = 300.f;
-	static const float boomAngleSpeed      = 30.f;
+	static constexpr float boomAcceleration    = 300.f;
+	static constexpr float boomAngleSpeed      = 30.f;
 
-	static const float bulletAngleSpeedMin = 30.f;
-	static const float bulletAngleSpeedMax = 360.f;
-	static const float bulletSpeedMin      = 100.f;
-	static const float bulletSpeedMax      = 300.f;
-	static const float bulletSpeed         = 200.f;
+	static constexpr float bulletAngleSpeedMin = 30.f;
+	static constexpr float bulletAngleSpeedMax = 360.f;
+	static constexpr float bulletSpeedMin      = 100.f;
+	static constexpr float bulletSpeedMax      = 300.f;
+	static constexpr float bulletSpeed         = 200.f;
 
-	static const float smokeFadeIn         = 0.15f;
-	static const float smokeFadeOut        = 0.85f;
-	static const float smokeSpeed          = 20.f;
-	static const float smokeEmission       = 45.f;
+	static constexpr float smokeFadeIn         = 0.15f;
+	static constexpr float smokeFadeOut        = 0.85f;
+	static constexpr float smokeSpeed          = 20.f;
+	static constexpr float smokeEmission       = 45.f;
 
 	// positions
 
-	static const float enemyPositionGapX    = 100;
-	static const float enemyPositionGapYMin = 80;
-	static const float enemyPositionGapYMax = 280;
+	static constexpr float enemyPositionGapX    = 100;
+	static constexpr float enemyPositionGapYMin = 80;
+	static constexpr float enemyPositionGapYMax = 280;
 
-	static const float scorePositionX       = 850;
-	static const float scorePositionY       = 700;
+	static constexpr float scorePositionX       = 850;
+	static constexpr float scorePositionY       = 700;
 
-	const float timerPositionX              = 50;
-	const float timerPositionY              = 700;
+	static constexpr float timerPositionX       = 50;
+	static constexpr float timerPositionY       = 700;
 
-	static const float smokeMaxDeflect      = 15.f;
+	static constexpr float smokeMaxDeflect  = 15.f;
+
+	static constexpr float collideDistCoeff = 4.f;
 
 	//states
 

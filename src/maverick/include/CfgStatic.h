@@ -39,8 +39,8 @@ namespace CfgStatic {
 	
 	// FPS
 	
-	static const unsigned int simulationFPS = 60;
-	const float fpsLogTime = 3.f;
+	static constexpr unsigned int simulationFPS = 60;
+	static constexpr float fpsLogTime = 3.f;
 	
 	// States
 	
@@ -49,8 +49,8 @@ namespace CfgStatic {
 
 	// Speed
 
-	static const float pixelizeDuration = 4.f;
-	static const float pixelizeCoeffMax = 15.f;
+	static constexpr float pixelizeDuration = 4.f;
+	static constexpr float pixelizeCoeffMax = 15.f;
 
 }
 
