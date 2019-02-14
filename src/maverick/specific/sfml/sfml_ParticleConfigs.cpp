@@ -1,5 +1,7 @@
 #include "sfml_Particles.h"
 
+#ifndef NO_THOR
+
 #include "sfml_ResourceManager.h"
 #include "sfml_Utils.h"
 #include "CFCfgStatic.h"
@@ -95,3 +97,5 @@ ParticlesPtr Particles::Build(const std::string& config) {
 
 	return particlesPtr;
 }
+
+#endif

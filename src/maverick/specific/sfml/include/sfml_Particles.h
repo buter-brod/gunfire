@@ -1,4 +1,7 @@
 #pragma once
+
+#ifndef NO_THOR
+
 #include "Point.h"
 
 #include "Thor/Particles/ParticleSystem.hpp"
@@ -42,3 +45,5 @@ public:
 private:
 	std::set<EmitterPtr> _emitters;
 };
+
+#endif

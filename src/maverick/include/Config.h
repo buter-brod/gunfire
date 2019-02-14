@@ -2,12 +2,13 @@
 
 #include <memory>
 #include <map>
+#include <limits>
 
 class Config{
 
 public:
 	static Config* Inst();
-	static const int badNum{ INT_MIN };
+	static const int badNum{ std::numeric_limits<std::int32_t>::max() };
 
 	std::string getString(const std::string& key) const;
 	int getInt(const std::string& key) const;

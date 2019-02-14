@@ -12,6 +12,8 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
+#include <math.h>
+
 static bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
 	const sf::Vector2f mousePosF(float(pos.x), float(pos.y));
 	const bool result = spr->getSpr()->getGlobalBounds().contains(mousePosF);

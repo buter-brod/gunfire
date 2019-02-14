@@ -1,6 +1,8 @@
 #include "sfml_Particles.h"
-#include "Log.h"
 
+#ifndef NO_THOR
+
+#include "Log.h"
 #include "Thor/Math/Distributions.hpp"
 
 void Particles::StopEmitters() {
@@ -38,3 +40,5 @@ void Emitter::SetPosition(const Point& p) {
 void Emitter::Stop() {
 	get()->setEmissionRate(0.f);
 }
+
+#endif

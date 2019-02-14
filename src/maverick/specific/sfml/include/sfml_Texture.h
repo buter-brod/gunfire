@@ -3,6 +3,8 @@
 #include <SFML/Graphics/Texture.hpp>
 #include "Rect.h"
 
+#include <memory>
+
 class sfml_Texture {
 
 public:

@@ -31,6 +31,7 @@ Size sfml_EngineComponent::GetTextureSize() const {
 }
 
 bool sfml_EngineComponent::updateParticles(const float dt) {
+#ifndef NO_THOR
 
 	const GameObjectPtr obj = getGameObject().lock();
 	const std::string& currParticlesName = obj->getParticlesName();
@@ -53,14 +54,17 @@ bool sfml_EngineComponent::updateParticles(const float dt) {
 	const Point& emitterPos = obj->GetEmitterPosition();
 	_particlesPtr->Update(dt, emitterPos);
 
+#endif
+
 	return true;
 }
 
 void sfml_EngineComponent::StopEmitters() {
-
+#ifndef NO_THOR
 	if (_particlesPtr) {
 		_particlesPtr->StopEmitters();
 	}
+#endif
 }
 
 bool sfml_EngineComponent::updateSprite() {

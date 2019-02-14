@@ -75,10 +75,12 @@ bool sfml_Game::drawObject(const GameObject* obj) const {
 		_renderWindow->draw(*spr->getSpr(), shader);
 	}
 
+#ifndef NO_THOR
 	const auto& particles = sfmlComponent->GetParticles();
 	if (particles) {
 		_renderWindow->draw(*particles);
 	}
+#endif
 
 	return true;
 }

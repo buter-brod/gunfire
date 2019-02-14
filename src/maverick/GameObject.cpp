@@ -9,6 +9,7 @@
 #include "Utils.h"
 
 #include <algorithm>
+#include <math.h>
 
 static const std::string emptyStr;
 

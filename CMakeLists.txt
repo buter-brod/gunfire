@@ -6,16 +6,20 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
 
-set(SFML_STATIC_LIBRARIES TRUE)
-
 if(UNIX AND NOT APPLE)
+	set(LINUX TRUE)
+else()
+endif()
+
+if(LINUX)
 	set (DIR_PLATFORM linux)
 else()
 	set (DIR_PLATFORM win)
+    set(SFML_STATIC_LIBRARIES TRUE)
 endif()
 
-set (SFML_DIR 3rdparty/SFML-${DIR_PLATFORM}/lib/cmake/SFML)
 
+set (SFML_DIR 3rdparty/SFML-${DIR_PLATFORM}/lib/cmake/SFML)
 set(CLEANSINGFIRE_DIR ${CMAKE_CURRENT_LIST_DIR}/src/cleansingFire)
 set(MAVERICK_DIR ${CMAKE_CURRENT_LIST_DIR}/src/maverick)
 
@@ -44,14 +48,14 @@ add_library(maverick_sfml STATIC ${MAVERICK_SFML_SRC} )
 add_library(cleansingFire STATIC ${CLEANSINGFIRE_SRC} )
 add_library(cleansingFire_sfml STATIC ${CLEANSINGFIRE_SFML_SRC} )
 
-target_compile_definitions(maverick_sfml PRIVATE SFML_STATIC)
-target_compile_definitions(cleansingFire_sfml PRIVATE SFML_STATIC)
+if(LINUX)
+else()
+	target_compile_definitions(maverick_sfml PRIVATE SFML_STATIC)
+	target_compile_definitions(cleansingFire_sfml PRIVATE SFML_STATIC)
 
-add_executable(cleansingFireApp src/main.cpp)
-
-set_property(DIRECTORY ${CMAKE_CURRENT_LIST_DIR} PROPERTY VS_STARTUP_PROJECT cleansingFireApp)
-
-set(VS_STARTUP_PROJECT cleansingFireApp)
+	set_property(DIRECTORY ${CMAKE_CURRENT_LIST_DIR} PROPERTY VS_STARTUP_PROJECT cleansingFireApp)
+	set(VS_STARTUP_PROJECT cleansingFireApp)
+endif()
 
 INCLUDE_DIRECTORIES(${MAVERICK_DIR}/include)
 INCLUDE_DIRECTORIES(${MAVERICK_DIR}/specific/sfml/include)
@@ -61,27 +65,38 @@ INCLUDE_DIRECTORIES(${CLEANSINGFIRE_DIR}/specific/sfml/include)
 
 INCLUDE_DIRECTORIES(3rdparty/SFML-${DIR_PLATFORM}/include)
 INCLUDE_DIRECTORIES(3rdparty/thor-${DIR_PLATFORM}/include)
-LINK_DIRECTORIES(3rdparty/thor/${DIR_PLATFORM}/lib)
 
-find_library(THOR_LIBRARY_D thor-s-d.lib HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
-find_library(THOR_LIBRARY thor-s.lib HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
+if(LINUX)
+    find_library(THOR_LIBRARY_D libthor-d.so HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
+    find_library(THOR_LIBRARY libthor.so HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
+else()
+    find_library(THOR_LIBRARY_D thor-s-d.lib HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
+    find_library(THOR_LIBRARY thor-s.lib HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
+endif()
 
-find_package(SFML 2.5 COMPONENTS graphics audio REQUIRED)
-target_link_libraries(cleansingFireApp sfml-graphics sfml-audio)
+add_executable(cleansingFireApp src/main.cpp)
 
-target_link_libraries(cleansingFireApp maverick)
-target_link_libraries(cleansingFireApp maverick_sfml)
-target_link_libraries(cleansingFireApp cleansingFire)
-target_link_libraries(cleansingFireApp cleansingFire_sfml)
+find_package(SFML 2.5 COMPONENTS audio graphics REQUIRED)
+
+add_dependencies(cleansingFire maverick)
+add_dependencies(cleansingFire_sfml cleansingFire)
+add_dependencies(cleansingFireApp cleansingFire_sfml)
 
 target_link_libraries(cleansingFireApp debug ${THOR_LIBRARY_D})
 target_link_libraries(cleansingFireApp ${THOR_LIBRARY})
 
-ADD_CUSTOM_COMMAND(
-    TARGET cleansingFire
-    POST_BUILD
-	
-	COMMAND ${CMAKE_COMMAND} -E copy
-${CMAKE_CURRENT_LIST_DIR}/Resources/openal32.dll
-${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-)
+target_link_libraries(cleansingFireApp cleansingFire_sfml maverick_sfml cleansingFire maverick sfml-audio sfml-graphics)
+
+if(LINUX)
+else()
+    ADD_CUSTOM_COMMAND(
+        TARGET cleansingFireApp
+        POST_BUILD
+
+    	COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_LIST_DIR}/Resources/openal32.dll
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    )
+
+endif()
+

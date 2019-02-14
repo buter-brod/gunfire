@@ -19,7 +19,10 @@ public:
 	virtual Size GetTextureSize() const override;
 	
 	SpritePtr GetSprite() const { return _spritePtr; }
+
+#ifndef NO_THOR
 	ParticlesPtr GetParticles() const { return _particlesPtr; }
+#endif
 
 	virtual void StopEmitters() override;
 
@@ -30,10 +33,13 @@ protected:
 
 private:
 	SpritePtr _spritePtr;
-	ParticlesPtr _particlesPtr;
 	TextureRect _latestTexRect;
 
 	std::string _textureName;
 	std::string _shaderName;
 	std::string _particlesName;
+
+#ifndef NO_THOR
+	ParticlesPtr _particlesPtr;
+#endif
 };
