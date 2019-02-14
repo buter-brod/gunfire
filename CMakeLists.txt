@@ -49,6 +49,7 @@ add_library(cleansingFire STATIC ${CLEANSINGFIRE_SRC} )
 add_library(cleansingFire_sfml STATIC ${CLEANSINGFIRE_SFML_SRC} )
 
 if(LINUX)
+	target_compile_definitions(maverick_sfml PRIVATE NO_THOR)
 else()
 	target_compile_definitions(maverick_sfml PRIVATE SFML_STATIC)
 	target_compile_definitions(cleansingFire_sfml PRIVATE SFML_STATIC)
@@ -67,8 +68,10 @@ INCLUDE_DIRECTORIES(3rdparty/SFML-${DIR_PLATFORM}/include)
 INCLUDE_DIRECTORIES(3rdparty/thor-${DIR_PLATFORM}/include)
 
 if(LINUX)
-    find_library(THOR_LIBRARY_D libthor-d.so HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
-    find_library(THOR_LIBRARY libthor.so HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
+	#thor binaries are not compatible with target sfml ver on linux. Too sad.
+
+    #find_library(THOR_LIBRARY_D libthor-d.so HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
+    #find_library(THOR_LIBRARY libthor.so HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
 else()
     find_library(THOR_LIBRARY_D thor-s-d.lib HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
     find_library(THOR_LIBRARY thor-s.lib HINTS 3rdparty/thor-${DIR_PLATFORM}/lib)
@@ -82,10 +85,14 @@ add_dependencies(cleansingFire maverick)
 add_dependencies(cleansingFire_sfml cleansingFire)
 add_dependencies(cleansingFireApp cleansingFire_sfml)
 
-target_link_libraries(cleansingFireApp debug ${THOR_LIBRARY_D})
-target_link_libraries(cleansingFireApp ${THOR_LIBRARY})
+target_link_libraries(cleansingFireApp cleansingFire_sfml maverick_sfml cleansingFire maverick)
 
-target_link_libraries(cleansingFireApp cleansingFire_sfml maverick_sfml cleansingFire maverick sfml-audio sfml-graphics)
+if (NOT LINUX)
+	target_link_libraries(cleansingFireApp debug ${THOR_LIBRARY_D} ${THOR_LIBRARY} )
+endif()
+
+target_link_libraries(cleansingFireApp sfml-audio sfml-graphics)
+
 
 if(LINUX)
 else()
