@@ -30,6 +30,10 @@ void Game::OnCursorMoved(const Point& pt) {
 }
 void Game::OnCursorClicked(const Point& pt) {
 
+	if (GetPaused()) {
+		return;
+	}
+
 	for (auto& cmpPair : _gameplayComponents) {
 		cmpPair.second->OnCursorClicked(pt);
 	}

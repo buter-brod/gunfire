@@ -13,6 +13,8 @@ namespace sf {
 
 typedef std::shared_ptr<sf::RenderWindow> WindowPtr;
 
+typedef std::map<std::string, std::string> GameInitParams;
+
 Point toGamePoint(const Point& pos);
 
 class sfml_Application {
@@ -25,12 +27,12 @@ protected:
 	bool init();
 	virtual bool initSpecial();
 	virtual void drawSpecial();
-	virtual GamePtr createGame() = 0;
+	virtual GamePtr createGame(const GameInitParams params) = 0;
 
 	void gameLoop();
 	void draw();
 	void freeResources();
-	void startGame();
+	void startGame(const GameInitParams params);
 
 	GamePtr getGamePtr() const { return _gamePtr; }
 	WindowPtr getWindowPtr() const { return _window; }

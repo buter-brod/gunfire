@@ -115,11 +115,9 @@ bool GameplayComponent::checkObjectsObsolete(ObjectsArr& arr) {
 
 bool GameplayComponent::Update(const float dt) {
 
-	if (_paused) {
-		return false;
-	}
-
-	_simulationTime += dt;
+	const float t = _paused ? 0.f : dt;
+	
+	_simulationTime += t;
 
 	const auto& arrs = getObjectLists();
 
@@ -127,7 +125,7 @@ bool GameplayComponent::Update(const float dt) {
 		
 		for (auto& objPair : *arr) {
 			auto objPtr = objPair.second;
-			objPtr->Update(dt, _simulationTime);
+			objPtr->Update(t, _simulationTime);
 		}
 
 		checkObjectsObsolete(*arr);

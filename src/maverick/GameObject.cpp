@@ -278,7 +278,7 @@ void GameObject::Update(const float dt, const float gameTime) {
 
 	if (_size.isEmpty() && _engineComponent != nullptr) {
 		const Size& sizeFromEngine = _engineComponent->GetSpriteSize();
-		Log::Inst()->PutMessage("GameObject " + getFullName() + " size not set, will get it from engine: " + sizeFromEngine.strInt() + " but that's not cool, you know");
+		Log::Inst()->PutMessage("GameObject " + getFullName() + " size not set, will get it from engine: " + sizeFromEngine.strInt());
 		_size = sizeFromEngine;
 	}
 

@@ -14,6 +14,12 @@ Config::Config() {
 	init();
 }
 
+bool Config::hasValue(const std::string& key) const {
+	
+	const bool found = _values.find(key) != _values.end();
+	return found;
+}
+
 std::string Config::getString(const std::string& key) const {
 
 	const auto valIt = _values.find(key);

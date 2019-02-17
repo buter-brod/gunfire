@@ -33,13 +33,28 @@ bool sfml_cleansingFireGame::update(const float dt) {
 void sfml_cleansingFireGame::Init() {
 
 	Log::Inst()->PutMessage("sfml_cleansingFireGame::Init");
+	sfml_ResourceManager::Inst()->AddTexture(CfgStatic::bgDlgSpr);
 	sfml_ResourceManager::Inst()->AddTexture(CfgStatic::bgSprName);
+
 	sfml_ResourceManager::Inst()->AddShader(CfgStatic::pixelizeShader);
 
 	_gameplayPtr = addGameplayComponent<CFGameplayComponent>();
 
+	if (_skipIntro) {
+		_gameplayPtr->SetSkipIntro();
+	}
+
 	initText();
 	sfml_Game::Init();
+}
+
+void sfml_cleansingFireGame::SetSkipIntro() {
+	
+	_skipIntro = true;
+
+	if (_gameplayPtr) {
+		_gameplayPtr->SetSkipIntro();
+	}	
 }
 
 void sfml_cleansingFireGame::updateText() {
@@ -61,13 +76,17 @@ void sfml_cleansingFireGame::Draw() {
 
 	sfml_Game::Draw();
 
-	wnd->draw(*_scoreTxt);
+	if (!_gameplayPtr->IsIntroDialogActive()) {
+		wnd->draw(*_scoreTxt);
 
-	if (_gameplayPtr->GetTimeRemain() > 0) {
-		wnd->draw(*_timerTxt);
-	}
-	else {
-		wnd->draw(*_gameOverText);
+		if (_gameplayPtr->GetTimeRemain() > 0) {
+			wnd->draw(*_timerTxt);
+		}
+		else {
+			if (!_gameplayPtr->IsOutroDialogActive()) {
+				wnd->draw(*_gameOverText);
+			}
+		}
 	}
 }
 

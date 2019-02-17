@@ -22,7 +22,8 @@ void Sound::Play() {
 	Log::Inst()->PutErr("Error, Sound::Play not implemented");
 }
 
-sfml_Sound::sfml_Sound() noexcept {
+void Sound::Stop() {
+	Log::Inst()->PutErr("Error, Sound::Stop not implemented");
 }
 
 sfml_Sound::~sfml_Sound() {
@@ -48,4 +49,8 @@ bool sfml_Sound::load(const std::string& name) {
 
 void sfml_Sound::Play() {
 	_sound.play();
+}
+
+void sfml_Sound::Stop() {
+	_sound.stop();
 }

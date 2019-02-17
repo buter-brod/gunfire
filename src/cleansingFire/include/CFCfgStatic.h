@@ -18,6 +18,7 @@ namespace CfgStatic {
 	static const Size playerSize(330, 287);
 	static const Size bulletSize(79, 77);
 	static const Size enemySize(224, 137);
+	static const Size bgDlgSize(554, 334);
 
 	// files
 
@@ -35,8 +36,14 @@ namespace CfgStatic {
 	static const std::string playerSpr         = "fox.png";
 	static const std::string playerFireSpr     = "fox_throw.png";
 	static const std::string playerCooldownSpr = "fox_empty.png";
-	static const std::string bgSprName         = "background.png";
 	static const std::string enemySpr          = "police.png";
+
+	static const std::string introDlgSpr   = "intro.png";
+	static const std::string outroDlgSpr   = "outro.png";
+	static const std::string bgWndDlgSpr   = "chat_bg.png";
+
+	static const std::string bgSprName = "background.png";
+	static const std::string bgDlgSpr = "dlg_wnd_bg.png";
 
 	//sounds
 
@@ -44,7 +51,6 @@ namespace CfgStatic {
 	static const std::vector<std::string> boomSounds  = { "boom0.ogg", "boom1.ogg" };
 
 	static const std::string ambientSound = "ambient.ogg";
-	static const std::string musicTrack   = "music.ogg";
 	static const std::string readySound   = "lighter.ogg";
 	static const std::string throwSound   = "throw.ogg";
 
@@ -66,6 +72,9 @@ namespace CfgStatic {
 	static constexpr unsigned int bulletAnimFramesCount = 2;
 	static constexpr unsigned int boomAnimFramesCount   = 10;
 	static constexpr unsigned int enemyAnimFramesCount  = 2;
+
+	static constexpr unsigned int introDlgFramesCount = 10;
+	static constexpr unsigned int outroDlgFramesCount = 5;
 	
 	// time
 
@@ -85,6 +94,10 @@ namespace CfgStatic {
 	static const std::string playerName = "fox";
 	static const std::string bgName     = "background";
 	static const std::string enemyName  = "police";
+
+	static const std::string textDlgName = "textDlg";
+	static const std::string bgDlgName = "bgDlg";
+	static const std::string bgWndDlgName = "bgWndDlg";
 
 	// speed
 

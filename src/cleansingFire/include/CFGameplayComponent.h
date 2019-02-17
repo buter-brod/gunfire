@@ -7,7 +7,7 @@ typedef std::weak_ptr<Player> PlayerWPtr;
 class CFGameplayComponent : public GameplayComponent {
 
 public:
-	static std::string nameLiteral();
+	static const std::string& nameLiteral();
 
 	explicit CFGameplayComponent(const Size& sz);
 
@@ -18,6 +18,10 @@ public:
 	virtual void OnCursorClicked(const Point& pt) override;
 
 	virtual bool Update(const float dt) override;
+
+	bool IsIntroDialogActive() const;
+	bool IsOutroDialogActive() const;
+	void SetSkipIntro();
 
 	unsigned int GetFrags() const { return _frags; }
 	float GetTimeRemain() const;
@@ -33,7 +37,13 @@ protected:
 
 	bool isGameOverAnimStarted() const;
 	void startGameOverAnim();
-	void setGameOverAnimFor(GameObjectPtr objPtr);
+	void setGameOverAnimFor(const GameObjectPtr& obj) const;
+
+	bool checkIntroDlg();
+	bool checkOutroDlg();
+	bool removeDlg();
+	bool addDlg(const std::string& sprName, const unsigned int number);
+	void tryDlgAdvance();
 	
 	virtual void initSound();
 
@@ -57,4 +67,15 @@ private:
 	ObjectsArr _enemyObjects;
 	ObjectsArr _bulletObjects;
 	ObjectsArr _miscObjects;
+	ObjectsArr _dlgObjects;
+
+	GameObjectWPtr _dialogBg;
+	GameObjectWPtr _dialogWndBg;
+	GameObjectWPtr _dialogTxt;
+
+	std::string _musicTrack;
+	std::string _ambientTrack;
+
+	int _introDlgState{ 0 };
+	int _outroDlgState{ 0 };
 };

@@ -17,8 +17,9 @@ public:
 	explicit sfml_cleansingFireGame(sf::RenderWindow*);
 	~sfml_cleansingFireGame();
 
-	virtual void Init() override;
+	void SetSkipIntro();
 
+	virtual void Init() override;
 protected:
 	virtual void initText();
 	virtual void updateText();
@@ -34,4 +35,6 @@ private:
 	TextPtr _gameOverText;
 
 	FontPtr _font;
+
+	bool _skipIntro{ false };
 };

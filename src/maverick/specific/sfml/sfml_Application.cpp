@@ -47,7 +47,7 @@ void sfml_Application::freeResources() {
 	_gamePtr = nullptr;
 }
 
-void sfml_Application::startGame() {
+void sfml_Application::startGame(const GameInitParams params = {}) {
 
 	Log::Inst()->PutMessage("Application::startGame");
 
@@ -58,7 +58,7 @@ void sfml_Application::startGame() {
 
 	sfml_SoundManager::Create();
 
-	_gamePtr = createGame();
+	_gamePtr = createGame(params);
 	_gamePtr->Init();
 }
 

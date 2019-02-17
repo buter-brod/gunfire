@@ -9,9 +9,10 @@
 #include "Enemy.h"
 #include "Bullet.h"
 
-static constexpr auto CFNameLiteral = "cleansingFire";
-
-std::string CFGameplayComponent::nameLiteral() { return CFNameLiteral; };
+const std::string& CFGameplayComponent::nameLiteral() {
+	static const std::string& cfNameLiteral = "cleansingFire";
+	return cfNameLiteral;
+};
 
 CFGameplayComponent::CFGameplayComponent(const Size& sz) : GameplayComponent(sz) {
 	setName(nameLiteral());
@@ -20,9 +21,21 @@ CFGameplayComponent::CFGameplayComponent(const Size& sz) : GameplayComponent(sz)
 
 CFGameplayComponent::~CFGameplayComponent() {
 	Log::Inst()->PutMessage("~CFGameplayComponent");
+
+	if (!_musicTrack.empty()) {
+		SoundManager::StopSound(_musicTrack);
+	}
+
+	if (!_ambientTrack.empty()) {
+		SoundManager::StopSound(_ambientTrack);
+	}
 }
 
 GameObjectArrPtrVec CFGameplayComponent::getObjectLists() {
+
+	if (!_dlgObjects.empty()) {
+		return { &_dlgObjects };
+	}
 
 	return { &_miscObjects, &_enemyObjects, &_bulletObjects };
 }
@@ -31,31 +44,42 @@ bool CFGameplayComponent::Update(const float dt) {
 
 	_timeRemain = getTimeRemain();
 
-	if (_timeRemain > 0.f) {
-		if (_shootRequest.requested) {
-			tryShoot(_shootRequest.targetPt);
-			_shootRequest = { false, Point() };
+	const bool introDlgNow = checkIntroDlg();
+	const bool outroDlgNow = checkOutroDlg();
+
+	const bool dlgActive = introDlgNow || outroDlgNow;
+
+	if (!dlgActive) {
+		const bool removed = removeDlg();
+
+		if (removed) {
+			SoundManager::PlaySound(_musicTrack, true);
+			SoundManager::PlaySound(CfgStatic::ambientSound, true);
 		}
-
-		checkSpawn();
-		checkCollisions();
 	}
-	else {
 
-		if (!isGameOverAnimStarted()) {
-			startGameOverAnim();
-			
+	const float t = dlgActive ? 0.f : dt;
+
+	if (t > 0.f) {
+		if (_timeRemain > 0.f) {
+
+			if (_shootRequest.requested) {
+				tryShoot(_shootRequest.targetPt);
+				_shootRequest = { false, Point() };
+			}
+
+			checkSpawn();
+			checkCollisions();
 		}
 		else {
-			const auto playerPtr = _playerWPtr.lock();
-			if (!playerPtr) {
-				// show outro
+
+			if (!isGameOverAnimStarted()) {
+				startGameOverAnim();
 			}
-		}	
+		}
 	}
 
-	GameplayComponent::Update(dt);
-
+	GameplayComponent::Update(t);
 	return true;
 }
 
@@ -163,7 +187,7 @@ bool CFGameplayComponent::isGameOverAnimStarted() const {
 	return true;
 }
 
-void CFGameplayComponent::setGameOverAnimFor(GameObjectPtr obj) {
+void CFGameplayComponent::setGameOverAnimFor(const GameObjectPtr& obj) const {
 	const std::string& currAnim = obj->GetAnimation();
 
 	obj->SetSpeed(0.f);
@@ -317,15 +341,27 @@ void CFGameplayComponent::initSound() {
 	SoundManager::LoadSound(CfgStatic::readySound);
 	SoundManager::LoadSound(CfgStatic::throwSound);
 
-	SoundManager::LoadSound(CfgStatic::ambientSound);
-	SoundManager::PlaySound(CfgStatic::ambientSound, true);
+	const auto initCfgSound = [](const std::string& cfgOption, const std::string& cfgTrack, std::string& outputStr) {
 
-	const bool musicDisabled = Config::Inst()->getInt("noMusic") > 0;
+		const bool trackInCfg = Config::Inst()->hasValue(cfgTrack);
+		const bool enabledCfg = !Config::Inst()->hasValue(cfgOption) || Config::Inst()->getInt(cfgOption) == 0;
 
-	if (!musicDisabled) {
-		SoundManager::LoadSound(CfgStatic::musicTrack);
-		SoundManager::PlaySound(CfgStatic::musicTrack, true);
-	}
+		if (trackInCfg != enabledCfg) {
+			Log::Inst()->PutErr("CFGameplayComponent::initSound initCfgSound error, check music/ambient settings");
+		}
+		else if (trackInCfg && enabledCfg) {
+
+			const std::string& trackStr = Config::Inst()->getString(cfgTrack);
+			const bool loadedOk = SoundManager::LoadSound(trackStr);
+
+			if (loadedOk) {
+				outputStr = trackStr;
+			}
+		}
+	};
+	
+	initCfgSound("noMusic", "musicTrack", _musicTrack);
+	initCfgSound("noAmbient", "ambientTrack", _ambientTrack);
 }
 
 void CFGameplayComponent::Init() {
@@ -369,6 +405,27 @@ void CFGameplayComponent::OnCursorMoved(const Point& pt) {
 	}
 }
 
+void CFGameplayComponent::tryDlgAdvance() {
+	
+	const auto tryRemoveTxt = [this]() {
+		const auto dlgTxtObj = _dialogTxt.lock();
+
+		if (dlgTxtObj) {
+			removeObject(dlgTxtObj, _dlgObjects);
+			_dialogTxt.reset();
+		}
+	};
+
+	if (IsIntroDialogActive()) {
+		++_introDlgState;
+		tryRemoveTxt();
+	}
+	else if (IsOutroDialogActive() && _outroDlgState < CfgStatic::outroDlgFramesCount - 1) {
+		++_outroDlgState;
+		tryRemoveTxt();
+	}	
+}
+
 void CFGameplayComponent::OnCursorClicked(const Point& pt) {
 	Log::Inst()->PutMessage("Game::OnCursorClicked " + pt.strInt());
 
@@ -376,5 +433,111 @@ void CFGameplayComponent::OnCursorClicked(const Point& pt) {
 		return;
 	}
 
+	tryDlgAdvance();
+
 	_shootRequest = { true, pt };
+}
+
+void CFGameplayComponent::SetSkipIntro() {
+	_introDlgState = -1;
+}
+
+bool CFGameplayComponent::checkIntroDlg() {
+
+	const bool shouldBeIntro = IsIntroDialogActive();
+
+	if (shouldBeIntro) {
+		addDlg(CfgStatic::introDlgSpr, _introDlgState);
+		return true;
+	}
+
+	return false;
+}
+
+bool CFGameplayComponent::checkOutroDlg() {
+
+	const bool shouldBeOutro = IsOutroDialogActive();
+
+	if (shouldBeOutro) {
+
+		if (_outroDlgState < CfgStatic::outroDlgFramesCount) {
+			addDlg(CfgStatic::outroDlgSpr, _outroDlgState);
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool CFGameplayComponent::addDlg(const std::string& sprName, const unsigned int number) {
+
+	const auto addToCenter = [this](const GameObjectPtr obj) {
+		const Point center = CfgStatic::gameSize / 2.f;
+		obj->SetPosition(center);
+		addObject(obj, _dlgObjects);
+	};
+
+	if (!_dialogBg.lock()) {
+
+		const auto dlgBgObj = std::make_shared<GameObject>(newID(), CfgStatic::bgDlgName, CfgStatic::bgDlgSpr);
+		dlgBgObj->SetSize(CfgStatic::gameSize);
+		addToCenter(dlgBgObj);
+		_dialogBg = dlgBgObj;
+	}
+
+	if (!_dialogWndBg.lock()) {
+
+		const auto dlgWndBgObj = std::make_shared<GameObject>(newID(), CfgStatic::bgWndDlgName, CfgStatic::bgWndDlgSpr);
+		dlgWndBgObj->SetSize(CfgStatic::bgDlgSize);
+		addToCenter(dlgWndBgObj);
+		_dialogWndBg = dlgWndBgObj;
+	}
+
+	if (!_dialogTxt.lock()) {
+
+		std::string introDlgSprName = sprName;
+
+		const auto dotPos = introDlgSprName.find('.'); // if names contain file extension, put frame number at the end of the name-part.
+		introDlgSprName.insert(dotPos, std::to_string(number));
+
+		const auto dlgTxtObj = std::make_shared<GameObject>(newID(), CfgStatic::textDlgName, introDlgSprName);
+		addToCenter(dlgTxtObj);
+		_dialogTxt = dlgTxtObj;
+	}
+
+	return true;
+}
+
+bool CFGameplayComponent::removeDlg() {
+
+	const auto removeFunc = [this](GameObjectWPtr& wPtr) -> bool {
+		const auto obj = wPtr.lock();
+		if (obj) {
+			removeObject(obj, _dlgObjects);
+			wPtr.reset();
+			return true;
+		}
+
+		return false;
+	};
+
+	const bool wndRemoved = removeFunc(_dialogWndBg);
+	const bool txtRemoved = removeFunc(_dialogTxt);
+	const bool bgRemoved  = removeFunc(_dialogBg);
+
+	const bool removedAnything = wndRemoved || txtRemoved || bgRemoved;
+
+	return removedAnything;
+}
+
+bool CFGameplayComponent::IsIntroDialogActive() const {
+	return _introDlgState >= 0 && _introDlgState < (int)CfgStatic::introDlgFramesCount;
+}
+
+bool CFGameplayComponent::IsOutroDialogActive() const {
+
+	return _timeRemain <= 0.f &&
+		_outroDlgState >= 0 &&
+		!_playerWPtr.lock();
 }

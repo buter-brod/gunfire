@@ -13,9 +13,23 @@ bool SoundManager::loadSound(const std::string& sName) {
 	return false;
 };
 
+bool SoundManager::stopSound(const std::string& sName) {
+	return false;
+};
+
 bool SoundManager::playSound(const std::string& sName, const bool loop) {
 	return false;
 };
+
+bool SoundManager::StopSound(const std::string& snd) {
+	auto sndMgr = SoundManager::getSoundMgr().lock();
+	if (!sndMgr) {
+		Log::Inst()->PutErr("SoundManager::PlaySound error, sound mgr not set correctly");
+		return false;
+	}
+
+	return sndMgr->stopSound(snd);
+}
 
 bool SoundManager::PlaySound(const std::string& snd, const bool loop) {
 	auto sndMgr = SoundManager::getSoundMgr().lock();

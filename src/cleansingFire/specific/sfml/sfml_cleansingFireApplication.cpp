@@ -9,6 +9,8 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
+static const std::string skipIntroParam = "skipIntro";
+
 sfml_cleansingFireApplication::sfml_cleansingFireApplication() {
 	Log::Inst()->PutMessage("sfml_cleansingFireApplication::sfml_cleansingFireApplication");
 }
@@ -51,8 +53,15 @@ bool sfml_cleansingFireApplication::onMouseMoved(const int x, const int y) {
 	return false;
 }
 
-GamePtr sfml_cleansingFireApplication::createGame() {
-	return std::make_shared<sfml_cleansingFireGame>(getWindowPtr().get());
+GamePtr sfml_cleansingFireApplication::createGame(const GameInitParams params) {
+
+	auto gamePtr = std::make_shared<sfml_cleansingFireGame>(getWindowPtr().get());
+
+	if (params.count(skipIntroParam) > 0) {
+		gamePtr->SetSkipIntro();
+	}
+
+	return gamePtr;
 }
 
 bool sfml_cleansingFireApplication::onMousePressed(const int x, const int y) {
@@ -62,7 +71,8 @@ bool sfml_cleansingFireApplication::onMousePressed(const int x, const int y) {
 	const bool mouseOnRestartBtn = isMouseOn(_restartBtnImg, mousePos);
 	if (mouseOnRestartBtn) {
 		freeResources();
-		startGame();
+		startGame({ {skipIntroParam, "1"} });
+
 		refreshPauseColor();
 		return true;
 	}

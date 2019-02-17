@@ -66,6 +66,17 @@ SoundPtr sfml_SoundManager::getSound(const std::string& sName, const bool onlyTr
 	return sndIt->second;
 }
 
+bool sfml_SoundManager::stopSound(const std::string& sName) {
+
+	const SoundPtr snd = getSound(sName);
+	if (snd) {
+		snd->Stop();
+		return true;
+	}
+
+	return false;
+}
+
 bool sfml_SoundManager::playSound(const std::string& sName, const bool loop) {
 
 	const SoundPtr snd = getSound(sName);
