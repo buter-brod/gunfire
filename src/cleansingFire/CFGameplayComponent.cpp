@@ -228,19 +228,6 @@ float CFGameplayComponent::GetTimeRemain() const {
 	return _timeRemain;
 }
 
-bool CFGameplayComponent::isGameOverAnimStarted() const {
-
-	const auto playerPtr = _playerWPtr.lock();
-
-	if (playerPtr) {
-		const std::string& playerState = playerPtr->GetState();
-		const bool playing = (playerState != CfgStatic::dyingStateName && playerState != CfgStatic::deadStateName);
-		return !playing;
-	}
-
-	return true;
-}
-
 void CFGameplayComponent::setGameOverAnimFor(const GameObjectPtr& obj) const {
 	const std::string& currAnim = obj->GetAnimation();
 
@@ -476,12 +463,16 @@ void CFGameplayComponent::OnCursorMoved(const Point& pt) {
 		return;
 	}
 
-	auto playerPtr = _playerWPtr.lock();
+	if (_state == GameState::MAIN) {
+		auto playerPtr = _playerWPtr.lock();
 
-	if (playerPtr && !isGameOverAnimStarted()) {
-		const bool onLeftSide = pt.getX() < getSize().getX() / 2.f;
-		playerPtr->SetMirrorX(onLeftSide);
-	}
+		if (playerPtr) {
+			const bool onLeftSide = pt.getX() < getSize().getX() / 2.f;
+			playerPtr->SetMirrorX(onLeftSide);
+		} else {
+			Log::Inst()->PutErr("Game::OnCursorMoved error, player not set, but state is MAIN");
+		}
+	}	
 }
 
 void CFGameplayComponent::OnCursorClicked(const Point& pt) {

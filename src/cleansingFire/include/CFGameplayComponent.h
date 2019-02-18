@@ -40,7 +40,6 @@ protected:
 
 	bool isObjectObsolete(GameObjectPtr objPtr) override;
 
-	bool isGameOverAnimStarted() const;
 	void startGameOverAnim();
 	void setGameOverAnimFor(const GameObjectPtr& obj) const;
 
