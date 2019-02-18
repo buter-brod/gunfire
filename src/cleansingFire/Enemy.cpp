@@ -35,7 +35,9 @@ void Enemy::Update(const float dt, const float gameTime) {
 	const float x = pos.getX();
 	const float xMax = CfgStatic::gameSize.getX();
 
-	const bool needTurn = dir.getY() == 0.f && ( 
+	const bool inIdleState = (GetState() == CfgStatic::idleStateName);
+
+	const bool needTurn = inIdleState && (
 		(dir.getX() < 0.f && x < 0.f) ||
 		(dir.getX() > 0.f && x > xMax));
 

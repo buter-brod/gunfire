@@ -2,16 +2,15 @@
 #include "MiscForward.h"
 
 #include "Point.h"
-#include <functional>
 
-typedef std::function<IDType()> IDTypeFunc;
-typedef std::function<void()> InvalidateObjectsFunc;
+#include <functional>
+#include <queue>
 
 class GameplayComponent {
 
 public:
 	explicit GameplayComponent(const Size& sz);
-	virtual ~GameplayComponent() {}
+	virtual ~GameplayComponent() = default;
 
 	const std::string& GetName() const { return _name; }
 
@@ -22,20 +21,21 @@ public:
 	virtual GameObjectCArrPtrVec GetObjectLists();
 
 	void SetPaused(const bool paused);
-	void SetIDFunc(const IDTypeFunc f);
-
-	// who should be informed that object lists were changed
-	void SetObjInvalidateFunc(const InvalidateObjectsFunc f);
+	void SetGameServicesPtr(const GameServicesWPtr& gsptr);
 
 	virtual bool Update(const float dt);
 
 protected:
-	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr);
-	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr);
-	bool removeObject(const IDType id, ObjectsArr& arr);
+	bool addObject(GameObjectPtr objPtr, ObjectsArr& arr) const;
+	bool removeObject(GameObjectPtr objPtr, ObjectsArr& arr) const;
+	bool removeObject(const IDType id, ObjectsArr& arr) const;
 
 	bool checkObjectsObsolete(ObjectsArr& arr);
 	void setName(const std::string& name);
+
+	void schedule(std::function<void()> f);
+
+	GameServicesWPtr getGameServicesWPtr() const { return _gameServicesWPtr; }
 
 	float getSimulationTime() const { return _simulationTime; }
 	bool getPaused() const { return _paused; }
@@ -43,6 +43,7 @@ protected:
 	virtual GameObjectArrPtrVec getObjectLists();
 
 	IDType newID() const;
+	void invalidateObjects() const;
 
 	virtual bool isObjectObsolete(GameObjectPtr objPtr);
 
@@ -51,9 +52,8 @@ private:
 	bool _paused{ false };
 	float _simulationTime{ 0.f };
 	std::string _name;
-	IDTypeFunc _newIDFunc;
 
-	
-	InvalidateObjectsFunc _invalidateObjFunc;
-	//todo: can we use normal Observer here instead...
+	std::queue<std::function<void()> > _scheduled;
+
+	GameServicesWPtr _gameServicesWPtr;
 };

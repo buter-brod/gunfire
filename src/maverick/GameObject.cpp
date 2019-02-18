@@ -9,16 +9,13 @@
 #include "Utils.h"
 
 #include <algorithm>
-#include <math.h>
 
 static const std::string emptyStr;
 
 GameObject::GameObject(const IDType id, const std::string& name, const std::string& idleAnim) :_id(id), _name(name), _idleAnimation(idleAnim) {
 
-	if (_idleState == nullptr) {
-		_idleState = State::New(CfgStatic::idleStateName);
-		_idleState->_animation = _idleAnimation;
-	}
+	_idleState = State::New(CfgStatic::idleStateName);
+	_idleState->_animation = _idleAnimation;
 }
 
 GameObject::~GameObject() {
@@ -41,7 +38,9 @@ void GameObject::SetEngineComponent(EngineComponentPtr component) {
 		Log::Inst()->PutErr("GameObject::SetEngineComponent error, engineComponent is already set");
 	}
 
-	_engineComponent = component;
+	Log::Inst()->PutMessage("GameObject::SetEngineComponent for " + getFullName());
+
+	_engineComponent = std::move(component);;
 }
 
 EngineComponentPtr GameObject::GetEngineComponent() const { return _engineComponent; };

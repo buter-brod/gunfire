@@ -9,7 +9,7 @@ public:
 protected:
 	virtual bool initSpecial() override;
 	void drawSpecial() override;
-	virtual GamePtr createGame(const GameInitParams params) override;
+	virtual GamePtr createGame(const GameInitParams& params) override;
 
 	void refreshPauseColor();
 

@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "CfgStatic.h"
 #include "Log.h"
+#include "GameServices.h"
 
 IDType Game::NewID() {
 	return _nextID++;
@@ -12,6 +13,11 @@ IDType Game::NewID() {
 Game::Game() {
 	Config::Inst();
 	Log::Inst()->PutMessage("Game::Game");
+
+	auto idFunc = std::bind(&Game::NewID, this);
+	auto invFunc = std::bind(&Game::invalidateCache, this);
+
+	_gameServices = std::make_shared<GameServices>(idFunc, invFunc);
 }
 
 Game::~Game() {
@@ -48,8 +54,7 @@ bool Game::addGameplayComponent(GameplayComponentPtr component) {
 		return false;
 	}
 
-	component->SetObjInvalidateFunc(std::bind(&Game::invalidateCache, this));
-	component->SetIDFunc(std::bind(&Game::NewID, this));
+	component->SetGameServicesPtr(_gameServices);
 
 	_gameplayComponents.emplace(name, component);
 	return true;
@@ -101,7 +106,7 @@ bool Game::Update(const float frameDt) {
 	while (_simulationTimeAcc >= dt) {
 		update(dt);
 		_simulationTimeAcc -= dt;
-		updated |= true;
+		updated = true;
 	}
 
 	return updated;

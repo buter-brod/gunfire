@@ -39,9 +39,12 @@ int Config::getInt(const std::string& key) const {
 		const int val = std::stoi(valStr);
 		return val;
 	}
-	catch (...) {}
+	catch (...) {
+		//const std::invalid_argument& ia
+		//const std::out_of_range& oor
 
-	Log::Inst()->PutErr("Config::getInt error, unable to read key " + key);
+		Log::Inst()->PutErr("Config::getInt error, unable to read key " + key);
+	}
 
 	return badNum;
 }
@@ -53,9 +56,9 @@ float Config::getFloat(const std::string& key) const {
 		const float val = std::stof(valStr);
 		return val;
 	}
-	catch (...) {}
-
-	Log::Inst()->PutErr("Config::getFloat error, unable to read key " + key);
+	catch (...) {
+		Log::Inst()->PutErr("Config::getFloat error, unable to read key " + key);
+	}
 
 	return float(badNum);
 }

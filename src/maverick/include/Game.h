@@ -54,6 +54,8 @@ private:
 
 	mutable std::vector<GameObjectWPtr> _objectsCache;
 
+	GameServicesPtr _gameServices;
+
 	std::map<std::string, GameplayComponentPtr> _gameplayComponents;
 
 	SoundManagerWPtr _soundMgr;

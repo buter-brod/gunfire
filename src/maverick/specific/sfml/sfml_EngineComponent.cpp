@@ -109,16 +109,18 @@ bool sfml_EngineComponent::updateSprite() {
 		Size sprScale = size / _latestTexRect.rect._size * scale * wndScale;
 		sprScale.X() *= (mirrorX ? -1.f : 1.f);
 
-		_spritePtr->getSpr()->setScale(Utils::toSfmlVector2f(sprScale));
+		auto sprPtr = _spritePtr->getSpr();
+
+		sprPtr->setScale(Utils::toSfmlVector2f(sprScale));
 
 		const auto rot = obj->GetRotation();
 		const auto pos = obj->GetPosition() * wndScale;
 
-		_spritePtr->getSpr()->setRotation(rot);
-		_spritePtr->getSpr()->setPosition(Utils::toSfmlVector2f(pos));
+		sprPtr->setRotation(rot);
+		sprPtr->setPosition(Utils::toSfmlVector2f(pos));
 
 		const Size halfSize(float(tW) / 2.f, float(tH) / 2.f);
-		_spritePtr->getSpr()->setOrigin(halfSize.getX(), halfSize.getY());
+		sprPtr->setOrigin(halfSize.getX(), halfSize.getY());
 	}
 
 	return true;
@@ -156,6 +158,12 @@ void sfml_EngineComponent::Update(const float dt) {
 	if (!objPtr) {
 		Log::Inst()->PutErr("EngineComponent::Update error, no valid object associated");
 		return;
+	}
+
+	const std::string& state = objPtr->GetState();
+
+	if (state.empty()) {
+		Log::Inst()->PutErr("sfml_EngineComponent::Update error, object not ready yet? = " + objPtr->getFullName());
 	}
 	
 	updateSprite();

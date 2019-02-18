@@ -4,6 +4,7 @@
 #include "CfgStatic.h"
 #include "CFCfgStatic.h"
 #include "SoundManager.h"
+#include "Dialog.h"
 
 #include "Player.h"
 #include "Enemy.h"
@@ -33,50 +34,103 @@ CFGameplayComponent::~CFGameplayComponent() {
 
 GameObjectArrPtrVec CFGameplayComponent::getObjectLists() {
 
-	if (!_dlgObjects.empty()) {
-		return { &_dlgObjects };
+	if (_dlgMgr->IsActive()) {
+		return { &_dlgMgr->GetObjects() };
 	}
 
-	return { &_miscObjects, &_enemyObjects, &_bulletObjects };
+	return { 
+		&_miscObjects, 
+		&_enemyObjects, 
+		&_bulletObjects };
+}
+
+void CFGameplayComponent::setState(const GameState state) {
+
+	_state = state;
+
+	if (_state == GameState::INIT) {
+		Log::Inst()->PutErr("CFGameplayComponent::setState error, INIT should not be set explicitly");
+	}
+	else if (_state == GameState::INTRO) {
+
+		Log::Inst()->PutMessage("CFGameplayComponent setState INTRO");
+		_dlgMgr->StartDialog(CfgStatic::introDlgName);
+		SoundManager::PlaySound(CfgStatic::messageSound);
+	}
+	else if (_state == GameState::MAIN) {
+
+		Log::Inst()->PutMessage("CFGameplayComponent setState MAIN");
+
+		if (!_musicTrack.empty()) {
+			SoundManager::PlaySound(_musicTrack, true);
+		}
+
+		if (!_ambientTrack.empty()) {
+			SoundManager::PlaySound(_ambientTrack, true);
+		}		
+	}
+	else if (_state == GameState::GAMEOVER) {
+
+		Log::Inst()->PutMessage("CFGameplayComponent setState GAMEOVER");
+		startGameOverAnim();
+	}
+	else if (_state == GameState::OUTRO) {
+
+		Log::Inst()->PutMessage("CFGameplayComponent setState OUTRO");
+		_dlgMgr->StartDialog(CfgStatic::outroDlgName);
+		SoundManager::PlaySound(CfgStatic::messageSound);
+	}	
+}
+
+bool CFGameplayComponent::tryStateAdvance() {
+
+	if (_state == GameState::INIT) {
+		setState(_skipIntro ? GameState::MAIN : GameState::INTRO);
+		return true;
+	}
+	else if (_state == GameState::INTRO) {
+		if(!_dlgMgr->IsActive()) {
+			setState(GameState::MAIN);
+			return true;
+		}
+	}
+	else if (_state == GameState::MAIN) {
+		if (_timeRemain == 0.f) { 
+			setState(GameState::GAMEOVER);
+			return true;
+		}
+	}
+	else if (_state == GameState::GAMEOVER) {
+		if (_playerWPtr.lock() == nullptr) {
+			setState(GameState::OUTRO);
+			return true;
+		}
+	}
+	else if (_state == GameState::OUTRO) {
+	}
+
+	return false;
 }
 
 bool CFGameplayComponent::Update(const float dt) {
 
 	_timeRemain = getTimeRemain();
 
-	const bool introDlgNow = checkIntroDlg();
-	const bool outroDlgNow = checkOutroDlg();
-
-	const bool dlgActive = introDlgNow || outroDlgNow;
-
-	if (!dlgActive) {
-		const bool removed = removeDlg();
-
-		if (removed) {
-			SoundManager::PlaySound(_musicTrack, true);
-			SoundManager::PlaySound(CfgStatic::ambientSound, true);
-		}
+	if (getPaused()) {
+		return false;
 	}
 
-	const float t = dlgActive ? 0.f : dt;
+	tryStateAdvance();
 
-	if (t > 0.f) {
-		if (_timeRemain > 0.f) {
+	const bool mainState = (_state == GameState::MAIN);
+	const bool dlgState = (_state == GameState::INTRO || _state == GameState::OUTRO);
 
-			if (_shootRequest.requested) {
-				tryShoot(_shootRequest.targetPt);
-				_shootRequest = { false, Point() };
-			}
+	const float t = dlgState ? 0.f : dt;
 
-			checkSpawn();
-			checkCollisions();
-		}
-		else {
+	if (mainState) {
 
-			if (!isGameOverAnimStarted()) {
-				startGameOverAnim();
-			}
-		}
+		checkSpawn();
+		checkCollisions();
 	}
 
 	GameplayComponent::Update(t);
@@ -122,7 +176,6 @@ bool CFGameplayComponent::isObjectObsolete(GameObjectPtr objPtr) {
 	const Point& sz = objPtr->GetSize();
 
 	const Size& gameSize = CfgStatic::gameSize;
-	const Point center = gameSize / 2.f;
 
 	const bool outOfBounds =
 		pos.getX() < -sz.getX() ||
@@ -134,7 +187,8 @@ bool CFGameplayComponent::isObjectObsolete(GameObjectPtr objPtr) {
 	if (outOfBounds) {
 		// not visible by game bounds
 
-		const bool notMoving = objPtr->GetSpeed() == 0.f;
+		const bool notMoving = objPtr->GetSpeed() == 0.f; 
+		const Point center = gameSize / 2.f;
 
 		// object is either not moving or moving to somewhere far from center
 		const bool isAway = notMoving || isMovingOut((pos - center), dir);
@@ -280,7 +334,7 @@ void CFGameplayComponent::checkCollisions() {
 	}
 }
 
-void CFGameplayComponent::onCollision(GameObjectPtr bullet, GameObjectPtr enemy) {
+void CFGameplayComponent::onCollision(const GameObjectPtr& bullet, const GameObjectPtr& enemy) {
 
 	BulletPtr bulletPtr = std::static_pointer_cast<Bullet>(bullet);
 	EnemyPtr enemyPtr = std::static_pointer_cast<Enemy>(enemy);
@@ -328,6 +382,35 @@ bool CFGameplayComponent::tryShoot(const Point& whereTo) {
 	return true;
 }
 
+bool CFGameplayComponent::initCfgSound(const std::string& cfgTrack, std::string& outputStr) {
+
+	const bool hasValue = Config::Inst()->hasValue(cfgTrack);
+	if (!hasValue) {
+		return false;
+	}
+
+	const std::string& trackStr = Config::Inst()->getString(cfgTrack);
+
+	if (!trackStr.empty()) {		
+
+		bool ok = SoundManager::IsSoundLoaded(trackStr);
+
+		if (!ok) {
+			const bool loadedOk = SoundManager::LoadSound(trackStr);
+			if (loadedOk) {
+				ok = true;
+			}
+		} 
+
+		if (ok) {
+			outputStr = trackStr;
+			return true;
+		}
+	}
+
+	return false;
+};
+
 void CFGameplayComponent::initSound() {
 
 	for (auto& s : CfgStatic::boomSounds) {
@@ -340,28 +423,22 @@ void CFGameplayComponent::initSound() {
 
 	SoundManager::LoadSound(CfgStatic::readySound);
 	SoundManager::LoadSound(CfgStatic::throwSound);
+	SoundManager::LoadSound(CfgStatic::messageSound);
 
-	const auto initCfgSound = [](const std::string& cfgOption, const std::string& cfgTrack, std::string& outputStr) {
+	initCfgSound("musicTrack", _musicTrack);
+	initCfgSound("ambientTrack", _ambientTrack);
+}
 
-		const bool trackInCfg = Config::Inst()->hasValue(cfgTrack);
-		const bool enabledCfg = !Config::Inst()->hasValue(cfgOption) || Config::Inst()->getInt(cfgOption) == 0;
-
-		if (trackInCfg != enabledCfg) {
-			Log::Inst()->PutErr("CFGameplayComponent::initSound initCfgSound error, check music/ambient settings");
-		}
-		else if (trackInCfg && enabledCfg) {
-
-			const std::string& trackStr = Config::Inst()->getString(cfgTrack);
-			const bool loadedOk = SoundManager::LoadSound(trackStr);
-
-			if (loadedOk) {
-				outputStr = trackStr;
-			}
-		}
-	};
+void CFGameplayComponent::initDialogs() {
 	
-	initCfgSound("noMusic", "musicTrack", _musicTrack);
-	initCfgSound("noAmbient", "ambientTrack", _ambientTrack);
+	_dlgMgr = std::make_shared<DlgManager>();
+	_dlgMgr->SetGameServicesPtr(getGameServicesWPtr());
+
+	const auto introDlg = std::make_shared<DialogInfo>(CfgStatic::introDlgName, CfgStatic::introDlgSpr, CfgStatic::introDlgFramesCount);
+	const auto outroDlg = std::make_shared<DialogInfo>(CfgStatic::outroDlgName, CfgStatic::outroDlgSpr, CfgStatic::outroDlgFramesCount);
+
+	_dlgMgr->AddDialog(introDlg);
+	_dlgMgr->AddDialog(outroDlg);
 }
 
 void CFGameplayComponent::Init() {
@@ -387,6 +464,8 @@ void CFGameplayComponent::Init() {
 	addObject(playerPtr, _miscObjects);
 
 	_playerWPtr = playerPtr;
+
+	initDialogs();
 }
 
 void CFGameplayComponent::OnCursorMoved(const Point& pt) {
@@ -405,139 +484,40 @@ void CFGameplayComponent::OnCursorMoved(const Point& pt) {
 	}
 }
 
-void CFGameplayComponent::tryDlgAdvance() {
-	
-	const auto tryRemoveTxt = [this]() {
-		const auto dlgTxtObj = _dialogTxt.lock();
-
-		if (dlgTxtObj) {
-			removeObject(dlgTxtObj, _dlgObjects);
-			_dialogTxt.reset();
-		}
-	};
-
-	if (IsIntroDialogActive()) {
-		++_introDlgState;
-		tryRemoveTxt();
-	}
-	else if (IsOutroDialogActive() && _outroDlgState < CfgStatic::outroDlgFramesCount - 1) {
-		++_outroDlgState;
-		tryRemoveTxt();
-	}	
-}
-
 void CFGameplayComponent::OnCursorClicked(const Point& pt) {
 	Log::Inst()->PutMessage("Game::OnCursorClicked " + pt.strInt());
 
-	if (getPaused()) {
-		return;
-	}
+	schedule([this, pt]() {
 
-	tryDlgAdvance();
+		const auto advanceDlgFunc = [this]() -> bool {
+			const bool advance = _dlgMgr->AdvanceDialog();
 
-	_shootRequest = { true, pt };
+			if (advance) {
+				SoundManager::PlaySound(CfgStatic::messageSound);
+				return true;
+			}
+
+			return false;
+		};
+
+		if (_state == GameState::INTRO) {
+
+			const bool advance = advanceDlgFunc();
+			if (!advance) {
+				_dlgMgr->EndDialog();
+			}
+		}
+		else if (_state == GameState::MAIN) {
+			tryShoot(pt);
+		}
+		else if (_state == GameState::OUTRO) {
+			advanceDlgFunc();
+		}
+	});
 }
 
 void CFGameplayComponent::SetSkipIntro() {
-	_introDlgState = -1;
-}
-
-bool CFGameplayComponent::checkIntroDlg() {
-
-	const bool shouldBeIntro = IsIntroDialogActive();
-
-	if (shouldBeIntro) {
-		addDlg(CfgStatic::introDlgSpr, _introDlgState);
-		return true;
-	}
-
-	return false;
-}
-
-bool CFGameplayComponent::checkOutroDlg() {
-
-	const bool shouldBeOutro = IsOutroDialogActive();
-
-	if (shouldBeOutro) {
-
-		if (_outroDlgState < CfgStatic::outroDlgFramesCount) {
-			addDlg(CfgStatic::outroDlgSpr, _outroDlgState);
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-bool CFGameplayComponent::addDlg(const std::string& sprName, const unsigned int number) {
-
-	const auto addToCenter = [this](const GameObjectPtr obj) {
-		const Point center = CfgStatic::gameSize / 2.f;
-		obj->SetPosition(center);
-		addObject(obj, _dlgObjects);
-	};
-
-	if (!_dialogBg.lock()) {
-
-		const auto dlgBgObj = std::make_shared<GameObject>(newID(), CfgStatic::bgDlgName, CfgStatic::bgDlgSpr);
-		dlgBgObj->SetSize(CfgStatic::gameSize);
-		addToCenter(dlgBgObj);
-		_dialogBg = dlgBgObj;
-	}
-
-	if (!_dialogWndBg.lock()) {
-
-		const auto dlgWndBgObj = std::make_shared<GameObject>(newID(), CfgStatic::bgWndDlgName, CfgStatic::bgWndDlgSpr);
-		dlgWndBgObj->SetSize(CfgStatic::bgDlgSize);
-		addToCenter(dlgWndBgObj);
-		_dialogWndBg = dlgWndBgObj;
-	}
-
-	if (!_dialogTxt.lock()) {
-
-		std::string introDlgSprName = sprName;
-
-		const auto dotPos = introDlgSprName.find('.'); // if names contain file extension, put frame number at the end of the name-part.
-		introDlgSprName.insert(dotPos, std::to_string(number));
-
-		const auto dlgTxtObj = std::make_shared<GameObject>(newID(), CfgStatic::textDlgName, introDlgSprName);
-		addToCenter(dlgTxtObj);
-		_dialogTxt = dlgTxtObj;
-	}
-
-	return true;
-}
-
-bool CFGameplayComponent::removeDlg() {
-
-	const auto removeFunc = [this](GameObjectWPtr& wPtr) -> bool {
-		const auto obj = wPtr.lock();
-		if (obj) {
-			removeObject(obj, _dlgObjects);
-			wPtr.reset();
-			return true;
-		}
-
-		return false;
-	};
-
-	const bool wndRemoved = removeFunc(_dialogWndBg);
-	const bool txtRemoved = removeFunc(_dialogTxt);
-	const bool bgRemoved  = removeFunc(_dialogBg);
-
-	const bool removedAnything = wndRemoved || txtRemoved || bgRemoved;
-
-	return removedAnything;
-}
-
-bool CFGameplayComponent::IsIntroDialogActive() const {
-	return _introDlgState >= 0 && _introDlgState < (int)CfgStatic::introDlgFramesCount;
-}
-
-bool CFGameplayComponent::IsOutroDialogActive() const {
-
-	return _timeRemain <= 0.f &&
-		_outroDlgState >= 0 &&
-		!_playerWPtr.lock();
+	
+	Log::Inst()->PutMessage("CFGameplayComponent set to skip intro");
+	_skipIntro = true;
 }

@@ -27,12 +27,12 @@ protected:
 	bool init();
 	virtual bool initSpecial();
 	virtual void drawSpecial();
-	virtual GamePtr createGame(const GameInitParams params) = 0;
+	virtual GamePtr createGame(const GameInitParams& params) = 0;
 
 	void gameLoop();
 	void draw();
 	void freeResources();
-	void startGame(const GameInitParams params);
+	void startGame(const GameInitParams& params);
 
 	GamePtr getGamePtr() const { return _gamePtr; }
 	WindowPtr getWindowPtr() const { return _window; }

@@ -1,9 +1,6 @@
 #include "GameplayComponent.h"
 #include "MiscForward.h"
 
-class Player;
-typedef std::weak_ptr<Player> PlayerWPtr;
-
 class CFGameplayComponent : public GameplayComponent {
 
 public:
@@ -19,19 +16,27 @@ public:
 
 	virtual bool Update(const float dt) override;
 
-	bool IsIntroDialogActive() const;
-	bool IsOutroDialogActive() const;
 	void SetSkipIntro();
 
 	unsigned int GetFrags() const { return _frags; }
 	float GetTimeRemain() const;
+
+	enum class GameState {
+		INIT,
+		INTRO,
+		MAIN,
+		GAMEOVER,
+		OUTRO
+	};
+
+	GameState GetState() const { return _state; }
 
 protected:
 	bool tryShoot(const Point& whereTo);
 	void checkSpawn();
 
 	void checkCollisions();
-	void onCollision(GameObjectPtr bullet, GameObjectPtr enemy);
+	void onCollision(const GameObjectPtr& bullet, const GameObjectPtr& enemy);
 
 	bool isObjectObsolete(GameObjectPtr objPtr) override;
 
@@ -39,13 +44,10 @@ protected:
 	void startGameOverAnim();
 	void setGameOverAnimFor(const GameObjectPtr& obj) const;
 
-	bool checkIntroDlg();
-	bool checkOutroDlg();
-	bool removeDlg();
-	bool addDlg(const std::string& sprName, const unsigned int number);
-	void tryDlgAdvance();
-	
+	static bool initCfgSound(const std::string& cfgTrack, std::string& outputStr);
+
 	virtual void initSound();
+	virtual void initDialogs();
 
 	float getTimeRemain() const;
 
@@ -56,26 +58,22 @@ private:
 	PlayerWPtr _playerWPtr;
 	mutable float _timeRemain { -1.f };
 
-	struct {
-		bool requested{ false };
-		Point targetPt;
-	} _shootRequest;
-
 	unsigned int _frags{ 0 };
 	float _bonusTime{ 0.f };
 
 	ObjectsArr _enemyObjects;
 	ObjectsArr _bulletObjects;
 	ObjectsArr _miscObjects;
-	ObjectsArr _dlgObjects;
-
-	GameObjectWPtr _dialogBg;
-	GameObjectWPtr _dialogWndBg;
-	GameObjectWPtr _dialogTxt;
 
 	std::string _musicTrack;
 	std::string _ambientTrack;
 
-	int _introDlgState{ 0 };
-	int _outroDlgState{ 0 };
+	DlgManagerPtr _dlgMgr;
+
+	bool _skipIntro{ false };
+
+	GameState _state { GameState::INIT };
+
+	bool tryStateAdvance();
+	void setState(const GameState state);
 };

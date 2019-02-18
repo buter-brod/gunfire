@@ -23,7 +23,7 @@ static Point sfToGamePoint(const sf::Vector2i& pos) {
 	return toGamePoint({ (float)pos.x, (float)pos.y });
 }
 
-static bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
+static bool isMouseOn(SpritePtr spr, const sf::Vector2i& pos) {
 	const sf::Vector2f mousePosF(float(pos.x), float(pos.y));
 	const bool result = spr->getSpr()->getGlobalBounds().contains(mousePosF);
 	return result;
@@ -53,7 +53,7 @@ bool sfml_cleansingFireApplication::onMouseMoved(const int x, const int y) {
 	return false;
 }
 
-GamePtr sfml_cleansingFireApplication::createGame(const GameInitParams params) {
+GamePtr sfml_cleansingFireApplication::createGame(const GameInitParams& params) {
 
 	auto gamePtr = std::make_shared<sfml_cleansingFireGame>(getWindowPtr().get());
 

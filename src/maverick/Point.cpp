@@ -1,5 +1,4 @@
 #include "Point.h"
-#include <math.h>
 
 constexpr float pi = 3.1415926f;
 

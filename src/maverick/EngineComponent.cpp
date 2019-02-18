@@ -12,6 +12,10 @@ GameObjectWPtr EngineComponent::getGameObject() const {
 	return objPtr;
 }
 
+void EngineComponent::setShader(ShaderPtr shader) {
+	_shaderPtr = std::move(shader);
+}
+
 void EngineComponent::Update(const float dt) {}
 
 Size EngineComponent::GetSpriteSize() const {

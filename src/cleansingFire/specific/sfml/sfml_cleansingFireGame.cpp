@@ -33,6 +33,7 @@ bool sfml_cleansingFireGame::update(const float dt) {
 void sfml_cleansingFireGame::Init() {
 
 	Log::Inst()->PutMessage("sfml_cleansingFireGame::Init");
+	sfml_ResourceManager::Inst()->AddTexture(CfgStatic::bgWndDlgSpr);
 	sfml_ResourceManager::Inst()->AddTexture(CfgStatic::bgDlgSpr);
 	sfml_ResourceManager::Inst()->AddTexture(CfgStatic::bgSprName);
 
@@ -76,17 +77,32 @@ void sfml_cleansingFireGame::Draw() {
 
 	sfml_Game::Draw();
 
-	if (!_gameplayPtr->IsIntroDialogActive()) {
-		wnd->draw(*_scoreTxt);
+	const auto& state = _gameplayPtr->GetState();
 
-		if (_gameplayPtr->GetTimeRemain() > 0) {
-			wnd->draw(*_timerTxt);
-		}
-		else {
-			if (!_gameplayPtr->IsOutroDialogActive()) {
-				wnd->draw(*_gameOverText);
-			}
-		}
+	bool needTimer = false;
+	bool needScore = false;
+	bool needGameover = false;
+
+	if (state == CFGameplayComponent::GameState::MAIN) {
+		needTimer = true;
+		needScore = true;
+	} 
+	else if (state == CFGameplayComponent::GameState::GAMEOVER) {
+		needScore = true;
+		needGameover = true;
+	} 
+	else if (state == CFGameplayComponent::GameState::OUTRO) {
+		needScore = true;
+	}
+
+	if (needGameover) {
+		wnd->draw(*_gameOverText);
+	}
+	if (needScore) {
+		wnd->draw(*_scoreTxt);
+	}
+	if (needTimer) {
+		wnd->draw(*_timerTxt);
 	}
 }
 

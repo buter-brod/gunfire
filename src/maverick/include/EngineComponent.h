@@ -20,7 +20,7 @@ public:
 
 protected:
 	GameObjectWPtr getGameObject() const;
-	void setShader(ShaderPtr shader) { _shaderPtr = shader; }
+	void setShader(ShaderPtr shader);
 
 private:
 	GameObjectWPtr _gameObjectWPtr;

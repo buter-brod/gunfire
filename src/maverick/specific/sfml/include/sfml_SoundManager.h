@@ -11,6 +11,7 @@ public:
 	static void Create();
 
 	virtual bool loadSound(const std::string& sName) override;
+	virtual bool isSoundLoaded(const std::string& sName) override;
 	virtual bool playSound(const std::string& sName, const bool loop = false) override;
 	virtual bool stopSound(const std::string& sName) override;
 

@@ -27,6 +27,12 @@ void sfml_SoundManager::Create() {
 	setSoundMgr(ptr);
 }
 
+bool sfml_SoundManager::isSoundLoaded(const std::string& sName) {
+	const auto& sndIt = _sounds.find(sName);
+	const bool loaded = sndIt != _sounds.end();
+	return loaded;	
+}
+
 bool sfml_SoundManager::loadSound(const std::string& sName) {
 
 	const auto& sndIt = _sounds.find(sName);

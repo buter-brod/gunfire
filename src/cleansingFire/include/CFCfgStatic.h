@@ -53,6 +53,7 @@ namespace CfgStatic {
 	static const std::string ambientSound = "ambient.ogg";
 	static const std::string readySound   = "lighter.ogg";
 	static const std::string throwSound   = "throw.ogg";
+	static const std::string messageSound = "message.ogg";
 
 	//colors 
 
@@ -94,6 +95,9 @@ namespace CfgStatic {
 	static const std::string playerName = "fox";
 	static const std::string bgName     = "background";
 	static const std::string enemyName  = "police";
+
+	static const std::string introDlgName = "introDlg";
+	static const std::string outroDlgName = "outroDlg";
 
 	static const std::string textDlgName = "textDlg";
 	static const std::string bgDlgName = "bgDlg";

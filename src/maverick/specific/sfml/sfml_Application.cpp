@@ -12,9 +12,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
-#include <math.h>
-
-static bool isMouseOn(SpritePtr spr, const sf::Vector2i pos) {
+static bool isMouseOn(const SpritePtr& spr, const sf::Vector2i& pos) {
 	const sf::Vector2f mousePosF(float(pos.x), float(pos.y));
 	const bool result = spr->getSpr()->getGlobalBounds().contains(mousePosF);
 	return result;
@@ -47,7 +45,7 @@ void sfml_Application::freeResources() {
 	_gamePtr = nullptr;
 }
 
-void sfml_Application::startGame(const GameInitParams params = {}) {
+void sfml_Application::startGame(const GameInitParams& params = {}) {
 
 	Log::Inst()->PutMessage("Application::startGame");
 

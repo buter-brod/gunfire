@@ -3,6 +3,7 @@
 
 #include "Log.h"
 #include "Config.h"
+#include "GameServices.h"
 
 GameplayComponent::GameplayComponent(const Size& sz) : _size(sz) {
 }
@@ -13,19 +14,8 @@ void GameplayComponent::setName(const std::string& name) {
 
 void GameplayComponent::Init() {}
 
-void GameplayComponent::SetObjInvalidateFunc(const InvalidateObjectsFunc f) {
-	if (_invalidateObjFunc) {
-		Log::Inst()->PutErr("GameplayComponent::SetObjInvalidateFunc error, you're not trying to add one component to more than one game, are you?");
-	}
-	_invalidateObjFunc = f;
-}
-
-void GameplayComponent::SetIDFunc(const IDTypeFunc f) {
-
-	if (_newIDFunc) {
-		Log::Inst()->PutErr("GameplayComponent::SetIDFunc error, you're not trying to add one component to more than one game, are you?");
-	}
-	_newIDFunc = f;
+void GameplayComponent::SetGameServicesPtr(const GameServicesWPtr& gsptr) {
+	_gameServicesWPtr = gsptr;
 }
 
 const Size& GameplayComponent::getSize() const {
@@ -34,15 +24,25 @@ const Size& GameplayComponent::getSize() const {
 
 IDType GameplayComponent::newID() const {
 
-	if (_newIDFunc) {
-		return _newIDFunc();
+	const auto gsPtr = _gameServicesWPtr.lock();
+
+	if (gsPtr) {
+		return gsPtr->NewID();
 	}
 
 	Log::Inst()->PutErr("GameplayComponent::newID error, id func not found");
 	return 0;
 }
 
-bool GameplayComponent::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
+void GameplayComponent::invalidateObjects() const {
+	
+	const auto gsPtr = _gameServicesWPtr.lock();
+	if (gsPtr) {
+		gsPtr->invalidateObjects();
+	}
+}
+
+bool GameplayComponent::addObject(GameObjectPtr objPtr, ObjectsArr& arr) const {
 
 	const IDType id = objPtr->getId();
 
@@ -52,30 +52,24 @@ bool GameplayComponent::addObject(GameObjectPtr objPtr, ObjectsArr& arr) {
 	}
 	
 	arr.emplace(id, objPtr);
-
-	if (_invalidateObjFunc) {
-		_invalidateObjFunc();
-	}
+	invalidateObjects();
 
 	return true;
 }
 
-bool GameplayComponent::removeObject(const IDType id, ObjectsArr& arr) {
+bool GameplayComponent::removeObject(const IDType id, ObjectsArr& arr) const {
 	if (arr.count(id) == 0) {
 		Log::Inst()->PutErr("GameplayComponent::removeObject error, object " + std::to_string(id) + " already removed or never existed");
 		return false;
 	}
 
 	arr.erase(id);
-
-	if (_invalidateObjFunc) {
-		_invalidateObjFunc();
-	}
+	invalidateObjects();
 
 	return true;
 }
 
-bool GameplayComponent::removeObject(GameObjectPtr objPtr, ObjectsArr& arr) {
+bool GameplayComponent::removeObject(GameObjectPtr objPtr, ObjectsArr& arr) const {
 	
 	const IDType id = objPtr->getId();
 	return removeObject(id, arr);
@@ -113,12 +107,25 @@ bool GameplayComponent::checkObjectsObsolete(ObjectsArr& arr) {
 	return true;
 }
 
+void GameplayComponent::schedule(std::function<void()> f) {
+
+	if(!f) {
+		Log::Inst()->PutErr("GameplayComponent::schedule error, f null");
+	}
+
+	_scheduled.push(f);
+}
+
 bool GameplayComponent::Update(const float dt) {
 
-	const float t = _paused ? 0.f : dt;
-	
-	_simulationTime += t;
+	while (!_scheduled.empty()) {
+		const auto f = _scheduled.front();
+		f();
+		_scheduled.pop();
+	}
 
+	const float t = _paused ? 0.f : dt;
+	_simulationTime += t;
 	const auto& arrs = getObjectLists();
 
 	for (auto& arr : arrs) {
