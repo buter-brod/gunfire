@@ -98,7 +98,7 @@ else()
         POST_BUILD
 
     	COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_LIST_DIR}/Resources/openal32.dll
+    ${CMAKE_CURRENT_LIST_DIR}/3rdparty/SFML-win/openal32.dll
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     )
 
